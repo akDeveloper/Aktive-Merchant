@@ -16,6 +16,7 @@ try {
       <tr>
         <th>PAResStatus</th>
         <th>SignatureVerification</th>
+        <th>TransactionId</th>
         <th>EciFlag</th>
         <th>Xid</th>
         <th>Cavv</th>
@@ -27,11 +28,12 @@ try {
       <tr>
         <td><?php echo $response->pares_status ?></td>
         <td><?php echo $response->signature_verification ?></td>
+        <td><?php echo $_SESSION['transaction_id'] ?></td>
         <td><?php echo $response->eci_flag ?></td> 
         <td><?php echo $response->xid ?></td>
-        <td><?php echo $response->Cavv ?></td>
-        <td><?php echo $response->ErrorNo ?></td>
-        <td<?php echo $response->ErrorDesc ?></td>
+        <td><?php echo $response->cavv ?></td>
+        <td><?php echo $response->error_no ?></td>
+        <td<?php echo $response->error_desc ?></td>
       </tr>
     </tbody>
   </table>
