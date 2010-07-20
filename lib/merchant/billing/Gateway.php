@@ -13,6 +13,7 @@ abstract class Merchant_Billing_Gateway {
   public $supported_cardtypes = array('visa', 'master', 'american_express', 'switch', 'solo', 'maestro');
   public $homepage_url;
   public $display_name;
+  
   private $DEBIT_CARDS = array('switch', 'solo');
 
   public function supports($card_type) {
@@ -37,11 +38,6 @@ abstract class Merchant_Billing_Gateway {
       throw new Exception('money amount must be a positive Integer in cents.');
     }
     return ($this->money_format == 'cents') ? $cents : $money;
-//    if ($this->money_format == 'cents') {
-//      return $cents;
-//    } else {
-//      return sprintf("%.2f", $cents / 100);
-//    }
   }
 
   private function card_brand($source) {
@@ -59,12 +55,12 @@ abstract class Merchant_Billing_Gateway {
   /**
    * PostsData
    */
-  public function ssl_get($endpoint, $data, $timeout = '0', $headers = array()) {
-    return $this->ssl_request('get', $endpoint, $data, $timeout, $headers);
+  public function ssl_get($endpoint, $data, $options = array()) {
+    return $this->ssl_request('get', $endpoint, $data, $options);
   }
 
-  public function ssl_post($endpoint, $data, $timeout = '0', $headers = array()) {
-    return $this->ssl_request('post', $endpoint, $data, $timeout, $headers);
+  public function ssl_post($endpoint, $data, $options = array()) {
+    return $this->ssl_request('post', $endpoint, $data, $options );
   }
 
   private function ssl_request($method, $endpoint, $data, $timeout = '0', $headers = array()) {
