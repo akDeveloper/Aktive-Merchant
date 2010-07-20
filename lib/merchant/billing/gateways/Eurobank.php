@@ -11,12 +11,12 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
     
   private $options = array();
   private $xml;
-  public  $default_currency  = 'EUR';
-  public  $supported_countries = array('GR');
-  public  $supported_cardtypes = array('visa', 'master');
-  public  $homepage_url = 'http://www.eurobank.gr/online/home/generic.aspx?id=79&mid=635';
-  public  $display_name = 'Eurobank Euro-Commerce';
-  public  $money_format = 'cents';
+  protected  $default_currency  = 'EUR';
+  protected  $supported_countries = array('GR');
+  protected  $supported_cardtypes = array('visa', 'master');
+  protected  $homepage_url = 'http://www.eurobank.gr/online/home/generic.aspx?id=79&mid=635';
+  protected  $display_name = 'Eurobank Euro-Commerce';
+  protected  $money_format = 'cents';
 
   private $CURRENCY_MAPPINGS = array(
         'USD' => 840, 'GRD' => 300, 'EUR' => 978

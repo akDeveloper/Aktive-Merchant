@@ -11,13 +11,13 @@ class Merchant_Billing_Centinel extends Merchant_Billing_Gateway {
   const LIVE_URL = 'https://centinel.cardinalcommerce.com/maps/txns.asp';
 
   # The countries the gateway supports merchants from as 2 digit ISO country codes
-  public $supported_countries = array('US', 'GR');
+  protected $supported_countries = array('US', 'GR');
 
   # The card types supported by the payment gateway
-  public $homepage_url = 'http://www.cardinalcommerce.com';
+  protected $homepage_url = 'http://www.cardinalcommerce.com';
 
   # The homepage URL of the gateway
-  public $display_name = 'Centinel 3D Secure';
+  protected $display_name = 'Centinel 3D Secure';
 
   private $options;
   private $post;
@@ -128,7 +128,7 @@ XML;
   private function commit($action, $money, $parameters) {
     $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
 
-    $data = $this->ssl_post($url, $this->post_data($action, $parameters,'10'));
+    $data = $this->ssl_post($url, $this->post_data($action, $parameters,array('timeout' => '10')));
 
     switch ($action) {
       case 'cmpi_lookup':

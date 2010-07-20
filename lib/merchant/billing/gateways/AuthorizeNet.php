@@ -26,10 +26,10 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
   const TRANSACTION_ID          = 6;
   const CARD_CODE_RESPONSE_CODE = 38;
 
-  public $supported_countries = array('US');
-  public $supported_cardtypes  = array('visa', 'master', 'american_express', 'discover');
-  public $homepage_url = 'http://www.authorize.net/';
-  public $display_name = 'Authorize.Net';
+  protected $supported_countries = array('US');
+  protected $supported_cardtypes  = array('visa', 'master', 'american_express', 'discover');
+  protected $homepage_url = 'http://www.authorize.net/';
+  protected $display_name = 'Authorize.Net';
 
   private $post = array();
   private $options = array();

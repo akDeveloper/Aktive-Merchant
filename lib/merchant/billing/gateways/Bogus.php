@@ -15,10 +15,10 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway {
   const CAPTURE_ERROR_MESSAGE = "Bogus Gateway: Use authorization number 1 for exception, 2 for error and anything else for success";
   const VOID_ERROR_MESSAGE = "Bogus Gateway: Use authorization number 1 for exception, 2 for error and anything else for success";
 
-  public $supported_countries = array('US', 'GR');
-  public $supported_cardtypes = array('bogus');
-  public $homepage_url = 'http://example.com';
-  public $display_name = 'Bogus';
+  protected $supported_countries = array('US', 'GR');
+  protected $supported_cardtypes = array('bogus');
+  protected $homepage_url = 'http://example.com';
+  protected $display_name = 'Bogus';
 
   public function authorize($money, CreditCard $creditcard, $options = array()) {
     switch ($creditcard->number) {

@@ -7,14 +7,34 @@
  */
 abstract class Merchant_Billing_Gateway {
 
-  public $money_format = 'dollars'; # or cents
-  public $default_currency;
-  public $supported_countries = array();
-  public $supported_cardtypes = array('visa', 'master', 'american_express', 'switch', 'solo', 'maestro');
-  public $homepage_url;
-  public $display_name;
+  protected $money_format = 'dollars'; # or cents
+  protected $default_currency;
+  protected $supported_countries = array();
+  protected $supported_cardtypes = array('visa', 'master', 'american_express', 'switch', 'solo', 'maestro');
+  protected $homepage_url;
+  protected $display_name;
   
   private $DEBIT_CARDS = array('switch', 'solo');
+
+  public function money_format() {
+    return $this->money_format;
+  }
+
+  public function supported_countries() {
+    return $this->supported_countries;
+  }
+
+  public function supported_cardtypes() {
+    return $this->supported_cardtypes;
+  }
+
+  public function homepage_url() {
+    return $this->homepage_url;
+  }
+
+  public function display_name() {
+    return $this->display_name;
+  }
 
   public function supports($card_type) {
     return in_array($card_type, $this->supported_cardtypes);

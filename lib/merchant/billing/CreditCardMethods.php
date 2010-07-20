@@ -73,8 +73,8 @@ class Merchant_Billing_CreditCardMethods {
     return ( strlen($number) >= 12 );
   }
 
-  private static function valid_test_mode_card_number(){
-    return Merchant_Billing_Base::is_test();
+  private static function valid_test_mode_card_number($number){
+    return Merchant_Billing_Base::is_test() && in_array($number, array( '1','2','3','success','failure','error') );
   }
 
   /**

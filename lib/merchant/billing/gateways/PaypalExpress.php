@@ -35,10 +35,10 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_Gateway {
   private $token;
   private $payer_id;
 
-  public $default_currency = 'EUR';
-  public $supported_countries = array('US');
-  public $homepage_url = 'https://www.paypal.com/cgi-bin/webscr?cmd=xpt/merchant/ExpressCheckoutIntro-outside';
-  public $display_name = 'PayPal Express Checkout';
+  protected $default_currency = 'EUR';
+  protected $supported_countries = array('US');
+  protected $homepage_url = 'https://www.paypal.com/cgi-bin/webscr?cmd=xpt/merchant/ExpressCheckoutIntro-outside';
+  protected $display_name = 'PayPal Express Checkout';
 
   const FAILURE = 'Failure';
   const PENDING = 'Pending';
