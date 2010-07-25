@@ -83,9 +83,9 @@ abstract class Merchant_Billing_Gateway {
     return $this->ssl_request('post', $endpoint, $data, $options );
   }
 
-  private function ssl_request($method, $endpoint, $data, $timeout = '0', $headers = array()) {
+  private function ssl_request($method, $endpoint, $data, $options = array()) {
     $connection = new Merchant_Connection($endpoint);
-    return $connection->request($method, $data, $timeout, $headers);
+    return $connection->request($method, $data, $options);
   }
 
   /**
