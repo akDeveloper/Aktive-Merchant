@@ -32,16 +32,17 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
   protected $display_name = 'Authorize.Net';
 
   private $post = array();
+  private $xml;
   private $options = array();
   private $CARD_CODE_ERRORS = array( 'N', 'S' );
   private $AVS_ERRORS = array( 'A', 'E', 'N', 'R', 'W', 'Z' );
 
-  const AUTHORIZE_NET_ARB_NAMESPACE = 'AnetApi/xml/v1/schema/AnetApiSchema.xsd';
+  private $AUTHORIZE_NET_ARB_NAMESPACE = 'AnetApi/xml/v1/schema/AnetApiSchema.xsd';
 
   private $RECURRING_ACTIONS = array(
-    'create' => 'ARBCreateSubscription',
-    'update' => 'ARBUpdateSubscription',
-    'cancel' => 'ARBCancelSubscription'
+    'create' => 'ARBCreateSubscriptionRequest',
+    'update' => 'ARBUpdateSubscriptionRequest',
+    'cancel' => 'ARBCancelSubscriptionRequest'
   );
 
   public function  __construct($options) {
@@ -57,14 +58,13 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
    * $return Merchant_Billing_Response 
    */
   public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options = array()) {
-    $post = array();
-    $this->add_invoice($post, $options);
-    $this->add_creditcard($post, $creditcard);
-    $this->add_address($post, $options);
-    $this->add_customer_data($post, $options);
-    $this->add_duplicate_window($post);
+    $this->add_invoice($options);
+    $this->add_creditcard($creditcard);
+    $this->add_address($options);
+    $this->add_customer_data($options);
+    $this->add_duplicate_window();
 
-    return $this->commit('AUTH_ONLY', $money, $post);
+    return $this->commit('AUTH_ONLY', $money);
   }
 
   /**
@@ -84,12 +84,26 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
 
     return $this->commit('AUTH_CAPTURE', $money);
   }
-
+  
+  /**
+   *
+   * @param float $money
+   * @param string $authorization
+   * @param array $options
+   * @return Merchant_Billing_Response
+   */  
   public function capture($money, $authorization, $options = array()) {
     $this->post = array('trans_id' => $authorization);
     $this->add_customer_data($options);
     return $this->commit('PRIOR_AUTH_CAPTURE', $money);
   }
+  
+  /**
+   *
+   * @param string $authorization
+   * @param array $options
+   * @return Merchant_Billing_Response
+   */  
 
   public function void($authorization, $options = array()) {
     $this->post = array('trans_id' => $authorization);
@@ -116,9 +130,60 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
      return $this->commit('CREDIT', $money);
   }
   
-/*
- * Private
- */
+
+  /**
+   *
+   * @param float $money
+   * @param Merchant_Billing_CreditCard $creditcard
+   * @param array $options
+   */
+  public function recurring($money, Merchant_Billing_CreditCard $creditcard, $options=array()) {
+    $this->required_options('length, unit, start_date, occurrences, billing_address', $options);
+    $this->required_options('first_name, last_name', $options['billing_address']);
+
+    $amount = $this->amount($money);
+    
+    $ref_id = isset($parameters['order_id']) ? $parameters['order_id'] : " ";
+    $this->xml .= "<refId>$ref_id</refId>";
+    $this->xml .= "<subscription>";
+    $this->arb_add_subscription($amount, $options);
+    $this->arb_add_creditcard($creditcard);
+    $this->arb_add_address($options['billing_address']);
+    $this->xml .= "</subscription>";
+    return $this->recurring_commit('create');
+  }
+
+
+  /**
+   *
+   * @param string $subscription_id Subscription id return from recurring method
+   * @param Merchant_Billing_CreditCard $creditcard
+   */
+  public function update_recurring($subscription_id, Merchant_Billing_CreditCard $creditcard) {
+    
+    $this->xml .= <<<XML
+            <subscriptionId>$subscription_id</subscriptionId>
+              <subscription>
+XML;
+    $this->arb_add_creditcard($creditcard);
+    $this->xml .= "</subscription>";
+
+    return $this->recurring_commit('update');
+  }
+
+  /**
+   *
+   * @param string $subscription_id Subscription id return from recurring method
+   * @return Merchant_Billing_Response
+   */
+  public function cancel_recurring($subscription_id) {
+
+    $this->xml .= "<subscriptionId>$subscription_id</subscriptionId>";
+
+    return $this->recurring_commit('cancel');
+  }
+
+  /* Private */
 
   /**
    *
@@ -204,7 +269,7 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
     $this->post = array_merge($this->post, $parameters);
     $request = "";
 
-    #Add x_ prefix on all keys
+    #Add x_ prefix to all keys
     foreach ( $this->post as $k=>$v ) {
       $request .= 'x_' . $k . '=' . urlencode($v).'&';
     }
@@ -264,6 +329,132 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
     }
   }
 
+
+  /* ARB */
   
+  private function recurring_commit($action, $parameters=array()) {
+    $url = $this->is_test() ? self::ARB_TEST_URL : self::ARB_LIVE_URL;
+
+    $headers = array("Content-type: text/xml");
+
+    $data = $this->ssl_post($url, $this->arb_post_data($action, $parameters), array('headers'=>$headers));
+
+    $response = $this->arb_parse($data);
+
+    $message = $this->arb_message_from($response);
+
+    $test_mode = $this->is_test();
+
+    return new Merchant_Billing_Response($this->arb_success_from($response), $message, $response, array(
+        'test' => $test_mode
+      )
+    );
+  }
+
+  private function arb_parse($body) {
+
+    $response = array();
+    
+    /*
+     * SimpleXML returns some warnings about arb namespace, althought it parse
+     * the xml correctly.
+      $xml = simplexml_load_string($body);
+      $response['ref_id'] = (string) $xml->refId;
+      $response['result_code'] = (string) $xml->messages->resultCode;
+      $response['code'] = (string) $xml->messages->message->code;
+      $response['text'] = (string) $xml->messages->message->text;
+      $response['subscription_id'] = (string) $xml->subscriptionId;
+     */
+
+    /*
+     * Used parsing method from authorize.net example
+     */
+    $response['ref_id'] = $this->substring_between($body,'<refId>','</refId>');
+    $response['result_code'] = $this->substring_between($body,'<resultCode>','</resultCode>');
+    $response['code'] = $this->substring_between($body,'<code>','</code>');
+    $response['text'] = $this->substring_between($body,'<text>','</text>');
+    $response['subscription_id'] = $this->substring_between($body,'<subscriptionId>','</subscriptionId>');
+   
+    return $response;
+  }
+
+  private function arb_message_from($response) {
+    return $response['text'];
+  }
+
+  private function arb_success_from($response) {
+    return $response['result_code'] == 'Ok';
+  }
+
+  private function arb_add_creditcard(Merchant_Billing_CreditCard $creditcard) {
+    $expiration_date = $this->cc_format($creditcard->year, 'four_digits') . "-" . 
+            $this->cc_format($creditcard->month, 'two_Digits');
+    
+    $this->xml .= <<< XML
+        <payment>
+          <creditCard>
+            <cardNumber>{$creditcard->number}</cardNumber>
+            <expirationDate>{$expiration_date}</expirationDate>
+          </creditCard>
+        </payment>
+XML;
+  }
+
+  private function arb_add_address($address) {
+    $this->xml .= <<< XML
+        <billTo>
+          <firstName>{$address['first_name']}</firstName>
+          <lastName>{$address['last_name']}</lastName>
+        </billTo>
+XML;
+  }
+
+  private function arb_add_subscription($amount, $options) {
+   $this->xml .= <<< XML
+      <name>Subscription of {$options['billing_address']['first_name']} {$options['billing_address']['last_name']}</name>
+      <paymentSchedule>
+        <interval>
+          <length>{$options['length']}</length>
+          <unit>{$options['unit']}</unit>
+        </interval>
+        <startDate>{$options['start_date']}</startDate>
+        <totalOccurrences>{$options['occurrences']}</totalOccurrences>
+        <trialOccurrences>0</trialOccurrences>
+      </paymentSchedule>
+      <amount>$amount</amount>
+      <trialAmount>0</trialAmount>
+XML;
+  }
+
+  private function arb_post_data($action) {
+    $xml = <<<XML
+<?xml version="1.0" encoding="utf-8"?>
+      <{$this->RECURRING_ACTIONS[$action]} xmlns="{$this->AUTHORIZE_NET_ARB_NAMESPACE}">
+        <merchantAuthentication>
+          <name>{$this->options['login']}</name>
+          <transactionKey>{$this->options['password']}</transactionKey>
+        </merchantAuthentication>
+          {$this->xml}
+      </{$this->RECURRING_ACTIONS[$action]}>
+XML;
+
+    return $xml;
+  }
+
+  /*
+   * ARB parsing xml
+   */
+  private function substring_between($haystack,$start,$end) {
+    if (strpos($haystack,$start) === false || strpos($haystack,$end) === false)
+    {
+      return false;
+    }
+    else
+    {
+      $start_position = strpos($haystack,$start)+strlen($start);
+      $end_position = strpos($haystack,$end);
+      return substr($haystack,$start_position,$end_position-$start_position);
+    }
+}
 }
 ?>
