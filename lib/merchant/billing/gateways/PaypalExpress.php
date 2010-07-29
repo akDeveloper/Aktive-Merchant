@@ -64,7 +64,6 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_Gateway {
         'VERSION'       => $this->version,
         'SIGNATURE'     => $this->options['signature'],
         'CURRENCYCODE'  => $this->default_currency);
-
   }
 
   /**
@@ -164,16 +163,13 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_Gateway {
     parse_str( $response, $response_array );
     if ( $response_array['ACK'] == self::FAILURE ) {
       $error_message = "Error code (". $response_array['L_ERRORCODE0'] . ")\n ".$response_array['L_SHORTMESSAGE0']. ".\n Reason: ".$response_array['L_LONGMESSAGE0'];
-      Logger::error_log($error_message);
-    #throw new Exception ($error_message );
+      Merchant_Logger::error_log($error_message);
     }
     return $response_array;
   }
 
   private function commit($request) {
     $response = $this->parse( $this->ssl_post($this->url, $request) );
-    #$response = $this->parse( 'TOKEN=EC%2d3Y885866912034356&TIMESTAMP=2010%2d06%2d19T14%3a45%3a14Z&CORRELATIONID=eec2593365b5&ACK=Success&VERSION=56%2e0&BUILD=1364064&EMAIL=whiteu_1252885474_per%40gmail%2ecom&PAYERID=26R5KV9FZ53RL&PAYERSTATUS=verified&FIRSTNAME=Test&LASTNAME=User&COUNTRYCODE=US&SHIPTONAME=Test%20User&SHIPTOSTREET=1%20Main%20St&SHIPTOCITY=San%20Jose&SHIPTOSTATE=CA&SHIPTOZIP=95131&SHIPTOCOUNTRYCODE=US&SHIPTOCOUNTRYNAME=United%20States&ADDRESSSTATUS=Confirmed&CURRENCYCODE=EUR&AMT=1%2e00&SHIPPINGAMT=0%2e00&HANDLINGAMT=0%2e00&TAXAMT=0%2e00&INSURANCEAMT=0%2e00&SHIPDISCAMT=0%2e00' );
-    #$response = $this->parse( 'TIMESTAMP=2010%2d06%2d19T14%3a10%3a42Z&CORRELATIONID=5440b9f29a6f9&ACK=Failure&L_ERRORCODE0=10001&L_SHORTMESSAGE0=Internal%20Error&L_LONGMESSAGE0=Timeout%20processing%20request' );
     $options  = array();
     $options['test'] = $this->is_test();
     $options['authorization'] = $this->authorization_from($response);
