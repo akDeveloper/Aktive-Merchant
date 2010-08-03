@@ -26,12 +26,16 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
   private $post;
 
   /**
+   * $options array includes login parameters of merchant and optional currency.
    *
    * @param array $options
    */
   public function __construct($options = array()) {
-    #$this->required_options('login, password', $options);
+    $this->required_options('login, password', $options);
 
+    if ( isset( $options['currency'] ) )
+      $this->default_currency = $options['currency'];
+      
     $this->options = $options;
   }
 
@@ -45,7 +49,7 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
   public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options=array()) {
     $this->add_invoice($options);
     $this->add_creditcard($creditcard);
-    $this->add_address($creditcard, $options);
+    $this->add_address($options);
     $this->add_customer_data($options);
 
     return $this->commit('authonly', $money);
@@ -70,7 +74,7 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
   /**
    *
    * @param float $money
-   * @param string $authorization
+   * @param string $authorization (unique value received from authorize action)
    * @param array $options
    * @return Merchant_Billing_Response
    */
@@ -108,6 +112,7 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
   /* Private */
 
   /**
+   * Customer data like e-mail, ip, web browser used for transaction etc
    *
    * @param array $options
    */
@@ -117,25 +122,24 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
 
   /**
    *
+   * Options key can be 'shipping address' and 'billing_address' or 'address'
+   * Each of these keys must have an address array like:
+   * $address['name']
+   * $address['company']
+   * $address['address1']
+   * $address['address2']
+   * $address['city']
+   * $address['state']
+   * $address['country']
+   * $address['zip']
+   * $address['phone']
+   * common pattern for addres is
+   * $billing_address = isset($options['billing_address']) ? $options['billing_address'] : $options['address']
+   * $shipping_address = $options['shipping_address']
+   *
    * @param array $options
    */
   private function add_address($options) {
-    /**
-     * Options key can be 'billing_address' or 'shipping address' or 'address'
-     * Each of these keys must have an address array like:
-     * $options['name']
-     * $options['company']
-     * $options['address1']
-     * $options['address2']
-     * $options['city']
-     * $options['state']
-     * $options['country']
-     * $options['zip']
-     * $options['phone']
-     * common pattern for addres is
-     * billing_address = options['billing_address'] || options['address']
-     * shipping_address = options['shipping_address']
-     */
   }
 
   /**
@@ -156,13 +160,11 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
   }
 
   /**
+   * Parse the raw data response from gateway
    *
    * @param string $body
    */
   private function parse($body) {
-    /**
-     * Parse the raw data response from gateway
-     */
   }
 
   /**
@@ -192,6 +194,7 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
   }
 
   /**
+   * Returns success flag from gateway response
    *
    * @param array $response
    * @return string
@@ -201,6 +204,7 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
   }
 
   /**
+   * Returns message (error explanation  or success) from gateway response
    *
    * @param array $response
    * @return string
@@ -211,6 +215,7 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
 
 
   /**
+   * Returns fraud review from gateway response
    *
    * @param array $response
    * @return string
@@ -221,6 +226,8 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
 
   /**
    *
+   * Returns avs result from gateway response
+   *
    * @param array $response
    * @return string
    */
@@ -230,14 +237,14 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
 
   /**
    *
+   * Add final parameters to post data and
+   * build $this->post to the format that your payment gateway understands
+   *
    * @param string $action
    * @param array $parameters
    */
   private function post_data($action, $parameters = array()) {
-    /**
-     * Add final parameters to post data and
-     * build $this->post to the format that your payment gateway understands
-     */
+  
   }
 
 }
