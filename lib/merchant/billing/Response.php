@@ -15,6 +15,13 @@ class Merchant_Billing_Response {
   private   $cvv_result;
   private   $fraud_review;
 
+  /**
+   *
+   * @param boolean $success
+   * @param string $message
+   * @param array $params
+   * @param array $options
+   */
   public function __construct($success, $message, $params = array(), $options = array() ) {
     $this->success = $success;
     $this->message = $message;
