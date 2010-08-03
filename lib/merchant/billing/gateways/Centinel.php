@@ -148,7 +148,8 @@ XML;
 
     $test_mode = $this->is_test();
 
-    return new Merchant_Billing_CentinelResponse($this->success_from($response), $this->message_from($response), $response, $options);
+    return new Merchant_Billing_CentinelResponse($this->success_from($response),
+            $this->message_from($response), $response, $options);
   }
 
   private function success_from($response) {
@@ -157,14 +158,6 @@ XML;
 
   private function message_from($response) {
     return $response['error_desc'];
-  }
-
-  private function fraud_review_from($response) {
-
-  }
-
-  private function avs_result_from($response) {
-    return array( 'code' => $response['avs_result_code'] );
   }
 
   private function post_data($action, $parameters = array()) {
