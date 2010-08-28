@@ -60,12 +60,12 @@ abstract class Merchant_Billing_Gateway {
     return ($this->money_format == 'cents') ? $cents : $money;
   }
 
-  private function card_brand($source) {
+  protected function card_brand($source) {
     $result = isset($source->brand) ? $source->brand : $source->type;
     return strtolower($result);
   }
 
-  public function requires_start_date_or_issue_number(CreditCard $creditcard) {
+  public function requires_start_date_or_issue_number(Merchant_Billing_CreditCard $creditcard) {
     $card_band = $this->card_brand($creditcard);
     if (empty($card_band))
       return false;
