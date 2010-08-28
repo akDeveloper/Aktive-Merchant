@@ -5,7 +5,7 @@
  * @author Andreas Kollaros
  */
 
-class Merchant_Billing_Helper {
+class Merchant_Billing_Helper extends Merchant_Billing_FormHelper{
 
   private $fields = array();
 
@@ -17,19 +17,19 @@ class Merchant_Billing_Helper {
     $this->order = $order;
     $this->account = $account;
     $this->amount = $options['amount'];
-    $rhis->currency = $options['currency'];
+    $this->currency = $options['currency'];
   }
 
-  public function mapping($attribute, $options = array()) {
+  protected function mapping($attribute, $options = array()) {
     $this->mappings[$attribute] = $options;
   }
 
-  public function add_field($name, $value) {
+  protected  function add_field($name, $value) {
     if ( empty($name) || empty($value)) return;
     $this->fields[$name] = $value;
   }
 
-  public function add_fields($subkey, $params=array()) {
+  protected  function add_fields($subkey, $params=array()) {
     foreach ( $params as $k=>$v ) {
       $field = $this->mappings[$subkey][$k];
       if ( !empty($field) ) $this->add_field($field, $v);
@@ -46,7 +46,7 @@ class Merchant_Billing_Helper {
     return $this;
   }
 
-  public function form_fields() {
+  protected function form_fields() {
     return $this->fields;
   }
 
@@ -54,7 +54,6 @@ class Merchant_Billing_Helper {
     if ( !isset($this->mappings[$name] ) ) return;
     
     $mapping = $this->mappings[$name];
-    var_dump($mapping);
 
     $args = current($arguments);
     if ( is_array($mapping) ) {
@@ -65,6 +64,14 @@ class Merchant_Billing_Helper {
       $this->add_field($mapping, $args);
     }
     return $this;
+  }
+
+  public function to_html() {
+    $fields = $this->form_fields();
+    foreach ($fields as $field => $value) {
+      $to_html .= $this->hidden_field_tag($field,$value);
+    }
+    return $to_html;
   }
 
   /**
