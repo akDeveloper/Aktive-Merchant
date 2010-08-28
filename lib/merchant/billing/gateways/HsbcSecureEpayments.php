@@ -227,13 +227,12 @@ XML;
   private function commit($action) {
     $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
     $response = $this->parse($this->ssl_post($url, $this->xml));
-    #$response = $this->parse('');
+
     return new Merchant_Billing_Response($this->success_from($action, $response), $this->message_from($response), $response, $this->options_from($response));
   }
 
   private function parse($response_xml) {
     $xml = simplexml_load_string($response_xml);
-    #$xml = simplexml_load_file('D:/www/merchant/log/response.xml');
 
     $response = array();
 
