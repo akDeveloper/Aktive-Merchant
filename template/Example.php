@@ -3,7 +3,7 @@
 /**
  * Description of Example
  *
- * @author Andreas Kollaros
+ * @author <your name>
  */
 
 class Merchant_Billing_Example extends Merchant_Billing_Gateway {
@@ -41,9 +41,10 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
 
   /**
    *
-   * @param float $money
+   * @param float                       $money
    * @param Merchant_Billing_CreditCard $creditcard
-   * @param array $options
+   * @param array                       $options
+   *
    * @return Merchant_Billing_Response
    */
   public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options=array()) {
@@ -57,9 +58,10 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
 
   /**
    *
-   * @param float $money
+   * @param number                      $money
    * @param Merchant_Billing_CreditCard $creditcard
-   * @param array $options
+   * @param array                       $options
+   * 
    * @return Merchant_Billing_Response
    */
   public function purchase($money, Merchant_Billing_CreditCard $creditcard, $options=array()) {
@@ -73,9 +75,10 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
 
   /**
    *
-   * @param float $money
+   * @param number $money
    * @param string $authorization (unique value received from authorize action)
-   * @param array $options
+   * @param array  $options
+   * 
    * @return Merchant_Billing_Response
    */
   public function capture($money, $authorization, $options = array()) {
@@ -88,7 +91,8 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
   /**
    *
    * @param string $authorization
-   * @param array $options
+   * @param array  $options
+   * 
    * @return Merchant_Billing_Response
    */
   public function void($authorization, $options = array()) {
@@ -98,9 +102,10 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
 
   /**
    *
-   * @param float $money
+   * @param number $money
    * @param string $identification
-   * @param array $options
+   * @param array  $options
+   * 
    * @return Merchant_Billing_Response
    */
   public function credit($money, $identification, $options = array()) {
@@ -124,6 +129,7 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
    *
    * Options key can be 'shipping address' and 'billing_address' or 'address'
    * Each of these keys must have an address array like:
+   * <code>
    * $address['name']
    * $address['company']
    * $address['address1']
@@ -133,9 +139,12 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
    * $address['country']
    * $address['zip']
    * $address['phone']
-   * common pattern for addres is
+   * </code>
+   * common pattern for address is
+   * <code>
    * $billing_address = isset($options['billing_address']) ? $options['billing_address'] : $options['address']
    * $shipping_address = $options['shipping_address']
+   * </code>
    *
    * @param array $options
    */
@@ -170,8 +179,9 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
   /**
    *
    * @param string $action
-   * @param float $money
-   * @param array $parameters
+   * @param number $money
+   * @param array  $parameters
+   * 
    * @return Merchant_Billing_Response
    */
   private function commit($action, $money, $parameters) {
@@ -197,6 +207,7 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
    * Returns success flag from gateway response
    *
    * @param array $response
+   * 
    * @return string
    */
   private function success_from($response) {
@@ -207,6 +218,7 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
    * Returns message (error explanation  or success) from gateway response
    *
    * @param array $response
+   * 
    * @return string
    */
   private function message_from($response) {
@@ -218,6 +230,7 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
    * Returns fraud review from gateway response
    *
    * @param array $response
+   *
    * @return string
    */
   private function fraud_review_from($response) {
@@ -229,6 +242,7 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
    * Returns avs result from gateway response
    *
    * @param array $response
+   *
    * @return string
    */
   private function avs_result_from($response) {
@@ -241,7 +255,7 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
    * build $this->post to the format that your payment gateway understands
    *
    * @param string $action
-   * @param array $parameters
+   * @param array  $parameters
    */
   private function post_data($action, $parameters = array()) {
   
