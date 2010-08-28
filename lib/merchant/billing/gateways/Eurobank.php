@@ -40,7 +40,7 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
 
   /**
    *
-   * @param float $money - Total order amount. (REQUIRED)
+   * @param number $money - Total order amount. (REQUIRED)
    * @param CreditCard $creditcard - A creditcard class object (REQUIRED)
    * @param array $options
    * @return Response
