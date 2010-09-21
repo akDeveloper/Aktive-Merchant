@@ -2,7 +2,9 @@
 /**
  * Description of CreditCard
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 
 require_once dirname(__FILE__) . "/CreditCardMethods.php";
@@ -10,18 +12,18 @@ require_once dirname(__FILE__) . "/ExpiryDate.php";
 
 class Merchant_Billing_CreditCard extends Merchant_Billing_CreditCardMethods {
 
-  private $first_name;
-  private $last_name;
-  private $month;
-  private $year;
-  private $type;
-  private $number;
-  private $verification_value;
+  public $first_name;
+  public $last_name;
+  public $month;
+  public $year;
+  public $type;
+  public $number;
+  public $verification_value;
 
   # Required for Switch / Solo cards
-  private $start_month;
-  private $start_year;
-  private $issue_number;
+  public $start_month;
+  public $start_year;
+  public $issue_number;
 
   private $errors;
 
