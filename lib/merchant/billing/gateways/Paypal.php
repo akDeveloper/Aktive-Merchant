@@ -1,9 +1,11 @@
 <?php
 
 /**
- * Description of Example
+ * Description of Merchant_Billing_Paypal
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 require_once dirname(__FILE__) . "/paypal/PaypalCommon.php";
 class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
@@ -35,7 +37,7 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
         'switch'           => 'Switch',
         'solo'             => 'Solo'
   );
-  
+
   /**
    * $options array includes login parameters of merchant and optional currency.
    *
@@ -52,9 +54,10 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
 
   /**
    *
-   * @param number $money
+   * @param number                      $money
    * @param Merchant_Billing_CreditCard $creditcard
-   * @param array $options
+   * @param array                       $options
+   *
    * @return Merchant_Billing_Response
    */
   public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options=array()) {
@@ -68,9 +71,10 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
 
   /**
    *
-   * @param number $money
+   * @param number                      $money
    * @param Merchant_Billing_CreditCard $creditcard
-   * @param array $options
+   * @param array                       $options
+   *
    * @return Merchant_Billing_Response
    */
   public function purchase($money, Merchant_Billing_CreditCard $creditcard, $options=array()) {
@@ -79,7 +83,11 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
     $this->add_address( $options);
     $this->post['PAYMENTACTION'] = 'Sale';
     $this->post['AMT'] = $this->amount($money);
-    $this->post['IPADDRESS'] = $_SERVER['REMOTE_ADDR'];
+    if ( isset($_SERVER['REMOTE_ADDR']) ) {
+      $this->post['IPADDRESS'] = $_SERVER['REMOTE_ADDR'];
+    } elseif ( isset($options['ip']) ) {
+      $this->post['IPADDRESS'] = $options['ip'];
+    }
     return $this->commit('DoDirectPayment');
   }
 
@@ -88,11 +96,12 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
    * @param number $money
    * @param string $authorization (unique value received from authorize action)
    * @param array $options
+   *
    * @return Merchant_Billing_Response
    */
   public function capture($money, $authorization, $options = array()) {
     $this->required_options('complete_type', $options);
-    
+
     $this->post['AUTHORIZATIONID'] = $authorization;
     $this->post['AMT'] = $this->amount($money);
     $this->post['COMPLETETYPE'] = $options['complete_type']; # Complete or NotComplete
@@ -104,7 +113,8 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
   /**
    *
    * @param string $authorization
-   * @param array $options
+   * @param array  $options
+   *
    * @return Merchant_Billing_Response
    */
   public function void($authorization, $options = array()) {
@@ -117,7 +127,8 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
    *
    * @param number $money
    * @param string $identification
-   * @param array $options
+   * @param array  $options
+   *
    * @return Merchant_Billing_Response
    */
   public function credit($money, $identification, $options = array()) {
@@ -167,7 +178,7 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
    * @param Merchant_Billing_CreditCard $creditcard
    */
   private function add_creditcard(Merchant_Billing_CreditCard $creditcard) {
-    
+
     $this->post['CREDITCARDTYPE'] = $this->credit_card_types[$creditcard->type];
     $this->post['ACCT']           = $creditcard->number;
     $this->post['EXPDATE']        = $this->cc_format($creditcard->month,'two_digits') . $this->cc_format($creditcard->year,'four_digits');
@@ -175,7 +186,7 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
     $this->post['FIRSTNAME']      = $creditcard->first_name;
     $this->post['LASTNAME']       = $creditcard->last_name;
     $this->post['CURRENCYCODE']   = $this->default_currency;
-    
+
   }
 
   /**
@@ -186,14 +197,14 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
     $this->post['INVNUM'] = isset($options['order_id']) ? $options['order_id'] : null;
     $this->post['NOTE']   = isset($options['note']) ? $options['note'] : null;
   }
-  
+
   /**
    *
    * Add final parameters to post data and
    * build $this->post to the format that your payment gateway understands
    *
    * @param string $action
-   * @param array $parameters
+   * @param array  $parameters
    */
   protected function post_data($action) {
     $this->post['METHOD']    = $action;
@@ -201,7 +212,7 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
     $this->post['PWD']       = $this->options['password'];
     $this->post['USER']      = $this->options['login'];
     $this->post['SIGNATURE'] = $this->options['signature'];
-    
+
     return $this->urlize( $this->post );
   }
 
@@ -209,10 +220,11 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
   /**
    *
    * @param Boolean $success
-   * @param String $message
-   * @param Array $response
-   * @param Array $options
-   * @return Merchant_Billing_Response 
+   * @param string  $message
+   * @param array   $response
+   * @param array   $options
+   *
+   * @return Merchant_Billing_Response
    */
   protected function build_response($success, $message, $response, $options=array()){
     return new Merchant_Billing_Response($success, $message, $response,$options);
@@ -220,3 +232,4 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
 
 }
 ?>
+
