@@ -1,8 +1,10 @@
 <?php
 /**
- * Description of AuthorizeNet
+ * Description of Merchant_Billing_AuthorizeNet
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
   const API_VERSION = "3.1";
@@ -149,7 +151,7 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
     $amount = $this->amount($money);
 
     $ref_id = isset($parameters['order_id']) ? $parameters['order_id'] : " ";
-    $this->xml .= "<refId>$ref_id</refId>";
+    $this->xml = "<refId>$ref_id</refId>";
     $this->xml .= "<subscription>";
     $this->arb_add_subscription($amount, $options);
     $this->arb_add_creditcard($creditcard);
@@ -168,7 +170,7 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
    */
   public function update_recurring($subscription_id, Merchant_Billing_CreditCard $creditcard) {
 
-    $this->xml .= <<<XML
+    $this->xml = <<<XML
             <subscriptionId>$subscription_id</subscriptionId>
               <subscription>
 XML;
@@ -186,7 +188,7 @@ XML;
    */
   public function cancel_recurring($subscription_id) {
 
-    $this->xml .= "<subscriptionId>$subscription_id</subscriptionId>";
+    $this->xml = "<subscriptionId>$subscription_id</subscriptionId>";
 
     return $this->recurring_commit('cancel');
   }
@@ -382,9 +384,14 @@ XML;
 
     $test_mode = $this->is_test();
 
-    return new Merchant_Billing_Response($this->arb_success_from($response), $message, $response, array(
-        'test' => $test_mode
-      )
+    return new Merchant_Billing_Response(
+            $this->arb_success_from($response),
+            $message,
+            $response,
+            array(
+              'test' => $test_mode,
+              'authorization' => $response['subscription_id'],
+            )
     );
   }
 
