@@ -2,7 +2,9 @@
 /**
  * Description of Connection
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Merchant_Connection {
   
@@ -14,8 +16,9 @@ class Merchant_Connection {
 
   public function request ($method, $body, $options = array()){
     
-    $timeout = isset($options['timeout']) ? $options['timeout'] : '0';
-    $headers = isset($options['headers']) ? $options['headers'] : array();
+    $timeout    = isset($options['timeout']) ? $options['timeout'] : '0';
+    $user_agent = isset($options['user_agent']) ? $options['user_agent'] : null;
+    $headers    = isset($options['headers']) ? $options['headers'] : array();
 
     $server = parse_url($this->endpoint);
 
@@ -42,6 +45,9 @@ class Merchant_Connection {
       curl_setopt($curl, CURLOPT_FORBID_REUSE, 1);
       curl_setopt($curl, CURLOPT_FRESH_CONNECT, 1);
       curl_setopt($curl, CURLOPT_CONNECTTIMEOUT , $timeout);
+      if ( isset($user_agent))
+        curl_setopt($curl, CURLOPT_USERAGENT,$user_agent);
+
       if ($method == 'post')
         curl_setopt($curl, CURLOPT_POST, 1);
       curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
