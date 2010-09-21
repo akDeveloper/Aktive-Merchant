@@ -3,7 +3,9 @@
 /**
  * Description of Merchant_Billing_Centinel
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 require_once dirname(__FILE__) . "/centinel/CentinelResponse.php";
 class Merchant_Billing_Centinel extends Merchant_Billing_Gateway {
@@ -26,9 +28,7 @@ class Merchant_Billing_Centinel extends Merchant_Billing_Gateway {
 
   
   private $VERSION = '1.7';
-  private $CURRENCY_MAPPINGS = array(
-        'USD' => 840, 'GBP' => 826, 'CAD' => 124, 'EUR' => 978
-        );
+
   public function __construct($options = array()) {
     $this->required_options('login, password, processor_id', $options);
 
@@ -70,7 +70,7 @@ XML;
 
     $this->post .= <<<XML
       <OrderNumber>{$order_number}</OrderNumber>
-      <CurrencyCode>{$this->CURRENCY_MAPPINGS[$this->default_currency]}</CurrencyCode>
+      <CurrencyCode>{$this->currency_lookup($this->default_currency)}</CurrencyCode>
       <Amount>{$amount}</Amount>
 XML;
   }
