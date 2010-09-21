@@ -5,7 +5,9 @@ define('BOLD_SEQ', "\033[1m");
 /**
  * Description of Logger
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Merchant_Logger {
 

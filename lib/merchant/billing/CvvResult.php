@@ -2,7 +2,9 @@
 /**
  * Description of CvvResult
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Merchant_Billing_CvvResult {
   private static $MESSAGES = array(

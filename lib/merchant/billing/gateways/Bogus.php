@@ -1,8 +1,10 @@
 <?php
 /**
- * Description of Bogus
+ * Description of Merchant_Billing_Bogus
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Merchant_Billing_Bogus extends Merchant_Billing_Gateway {
   const AUTHORIZATION = '53433';

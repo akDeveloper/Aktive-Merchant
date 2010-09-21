@@ -1,9 +1,11 @@
 <?php
 
 /**
- * Description of PaypalCommon
+ * Description of Merchant_Billing_PaypalCommon
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Merchant_Billing_PaypalCommon extends Merchant_Billing_Gateway{
   const TEST_URL = 'https://api-3t.sandbox.paypal.com/nvp';

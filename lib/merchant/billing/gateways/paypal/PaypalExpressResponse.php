@@ -1,8 +1,10 @@
 <?php
 /**
- * Description of PaypalExpressResponse
+ * Description of Merchant_Billing_PaypalExpressResponse
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Merchant_Billing_PaypalExpressResponse extends Merchant_Billing_Response {
 

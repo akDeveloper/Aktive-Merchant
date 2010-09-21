@@ -3,7 +3,9 @@
 /**
  * Description of Example
  *
- * @author <your name>
+ * @package Aktive Merchant
+ * @author  <your name>
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 
 class Merchant_Billing_Example extends Merchant_Billing_Gateway {

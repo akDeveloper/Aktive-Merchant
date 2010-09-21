@@ -1,18 +1,10 @@
 <?php
 /**
- * Description of PaypalExpress
+ * Description of Merchant_Billing_PaypalExpress
  *
- * @author Andreas Kollaros
- *
- * PUBLIC METHODS
- * ============================
- *  setup_authorize()
- *  setup_purchase()
- *  authorize()
- *  purchase()
- *  get_details_for()
- *  url_for_token()
- * @return Response Object
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 
 require_once dirname(__FILE__) . "/paypal/PaypalCommon.php";
@@ -52,11 +44,20 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon {
    * @param Array  $options
    *               token    token param from setup action
    *               payer_id payer_id param from setup action
+   *
+   * @return Merchant_Billing_Response
    */
   public function authorize($amount, $options = array() ) {
     return $this->do_action($amount, "Authorization", $options);
   }
 
+  /**
+   *
+   * @param number $amount
+   * @param array $options
+   * 
+   * @return Merchant_Billing_Response
+   */
   public function purchase($amount, $options = array()) {
     return $this->do_action($amount, "Sale", $options);
   }
@@ -65,15 +66,24 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon {
    * Setup Authorize and Purchase actions
    *
    * @param number $money  Total order amount
-   * @param Array  $options
+   * @param array  $options
    *               currency           Valid currency code ex. 'EUR', 'USD'. See http://www.xe.com/iso4217.php for more
    *               return_url         Success url (url from  your site )
    *               cancel_return_url  Cancel url ( url from your site )
+   *
+   * @return Merchant_Billing_Response
    */
   public function setup_authorize($money, $options = array()) {
     return $this->setup($money, 'Authorization', $options);
   }
 
+  /**
+   *
+   * @param number $money
+   * @param array $options
+   * 
+   * @return Merchant_Billing_Response
+   */
   public function setup_purchase($money, $options = array()) {
     return $this->setup($money, 'Sale', $options);
   }
@@ -115,10 +125,23 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon {
 
   }
 
+  /**
+   *
+   * @param string $token
+   *
+   * @return string url address to redirect
+   */
   public function url_for_token($token) {
     return $this->redirect_url . $token;
   }
 
+  /**
+   *
+   * @param string $token
+   * @param string $payer_id
+   *
+   * @return Merchant_Billing_Response
+   */
   public function get_details_for($token, $payer_id) {
 
     $this->payer_id = urldecode($payer_id);
@@ -157,6 +180,15 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon {
     return $this->urlize( $this->post );
   }
 
+  /**
+   *
+   * @param boolean $success
+   * @param string  $message
+   * @param array   $response
+   * @param array   $options
+   * 
+   * @return Merchant_Billing_PaypalExpressResponse 
+   */
   protected function build_response($success, $message, $response, $options=array()){
     return new Merchant_Billing_PaypalExpressResponse($success, $message, $response,$options);
   }
