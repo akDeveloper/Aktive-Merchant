@@ -4,7 +4,7 @@ This project is a php port of Ruby's [Active Merchant](http://github.com/Shopify
 
 The aim is to develop a PHP application to includes payments gateway under a common interface.
 
-## Supported Gataways
+## Supported Gateways
 
 * [Authorize.net](http://www.authorize.net)
 * [Centinel 3D Secure](http://www.cardinalcommerce.com)
