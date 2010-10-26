@@ -5,7 +5,8 @@ if ( false === spl_autoload_register('gateways_autoload') ){
 
 function gateways_autoload($class_name) {
   $path = dirname(__FILE__) . "/";
-  $class_filename = array_pop(explode('_',$class_name));
+  $class_name = explode('_',$class_name);
+  $class_filename = array_pop($class_name);
   if ( file_exists( $path . 'gateways/' . $class_filename . ".php" ) ) {
     require_once( $path . 'gateways/' . $class_filename . ".php");
   }
