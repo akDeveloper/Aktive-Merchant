@@ -68,6 +68,7 @@ class Merchant_Billing_Helper extends Merchant_Billing_FormHelper{
 
   public function to_html() {
     $fields = $this->form_fields();
+    $to_html = '';
     foreach ($fields as $field => $value) {
       $to_html .= $this->hidden_field_tag($field,$value);
     }

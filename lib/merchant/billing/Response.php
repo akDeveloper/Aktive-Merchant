@@ -40,10 +40,18 @@ class Merchant_Billing_Response {
     return isset($this->params[$name]) ? $this->params[$name] : null;
   }
 
+  /**
+   *
+   * @return boolean
+   */
   public function success(){
     return $this->success;
   }
 
+  /**
+   *
+   * @return boolean
+   */
   public function test(){
     return $this->test;
   }
@@ -63,9 +71,11 @@ class Merchant_Billing_Response {
   public function params(){
     return $this->params;
   }
+  
   public function avs_result(){
     return $this->avs_result;
   }
+  
   public function cvv_result(){
     return $this->cvv_result;
   }
