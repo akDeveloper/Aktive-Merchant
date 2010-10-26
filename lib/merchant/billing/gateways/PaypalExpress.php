@@ -164,7 +164,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_Gateway {
     parse_str( $response, $response_array );
     if ( $response_array['ACK'] == self::FAILURE ) {
       $error_message = "Error code (". $response_array['L_ERRORCODE0'] . ")\n ".$response_array['L_SHORTMESSAGE0']. ".\n Reason: ".$response_array['L_LONGMESSAGE0'];
-      Logger::error_log($error_message);
+      Merchant_Logger::error_log($error_message);
     #throw new Exception ($error_message );
     }
     return $response_array;
