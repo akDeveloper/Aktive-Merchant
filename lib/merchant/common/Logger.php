@@ -23,6 +23,12 @@ class Merchant_Logger {
 
   static public function log($string) {
     if ( null === self::$path ) self::$path = dirname(__FILE__) . '/../../../log/';
+
+    if ( ! is_writable(self::$path . self::$filename) OR ! file_exists(self::$path . self::$filename))
+    {
+        return;
+    }
+
     $fp = fopen(self::$path . self::$filename, 'a');
     fwrite($fp, $string."\n");
     fclose($fp);
