@@ -49,12 +49,24 @@ class Merchant_Logger {
 
   static public function save_response($string) {
     if ( null === self::$path ) self::$path = dirname(__FILE__) . '/../../../log/';
+
+    if ( ! is_writable(self::$path . 'response.xml') OR ! file_exists(self::$path . 'response.xml'))
+    {
+        return;
+    }
+
     $fp = fopen(self::$path . 'response.xml', 'w');
     fwrite($fp, $string);
     fclose($fp);
   }
   static public function save_request($string) {
     if ( null === self::$path ) self::$path = dirname(__FILE__) . '/../../../log/';
+
+    if ( ! is_writable(self::$path . 'request.xml') OR ! file_exists(self::$path . 'request.xml'))
+    {
+        return;
+    }
+
     $fp = fopen(self::$path . 'request.xml', 'w');
     fwrite($fp, $string);
     fclose($fp);
