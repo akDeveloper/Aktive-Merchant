@@ -90,7 +90,7 @@ class Merchant_Billing_AvsResult {
 
     if ( null === $attr ) $attr = array();
 
-    if ( isset( $attr['code'] ) && !empty($attr['code']) )
+    if ( isset( $attr['code'] ) && !empty($attr['code']) && $attr['code']!='null' )
       $this->code = strtoupper($attr['code']);
     $this->message = self::$MESSAGES[$this->code];
 
