@@ -65,7 +65,7 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
     $this->add_address($options);
     $this->post['PAYMENTACTION'] = 'Authorization';
     $this->post['AMT'] = $this->amount($money);
-    $this->post['IPADDRESS'] = $_SERVER['REMOTE_ADDR'];
+    $this->post['IPADDRESS'] = isset($options['ip']) ? $options['ip'] : $_SERVER['REMOTE_ADDR'];
     return $this->commit('DoDirectPayment');
   }
 
@@ -83,11 +83,7 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
     $this->add_address( $options);
     $this->post['PAYMENTACTION'] = 'Sale';
     $this->post['AMT'] = $this->amount($money);
-    if ( isset($_SERVER['REMOTE_ADDR']) ) {
-      $this->post['IPADDRESS'] = $_SERVER['REMOTE_ADDR'];
-    } elseif ( isset($options['ip']) ) {
-      $this->post['IPADDRESS'] = $options['ip'];
-    }
+    $this->post['IPADDRESS'] = isset($options['ip']) ? $options['ip'] : $_SERVER['REMOTE_ADDR'];
     return $this->commit('DoDirectPayment');
   }
 
@@ -232,4 +228,3 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
 
 }
 ?>
-
