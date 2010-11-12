@@ -10,8 +10,8 @@
 require_once dirname(__FILE__) . "/paypal/PaypalCommon.php";
 require_once dirname(__FILE__) . "/paypal/PaypalExpressResponse.php";
 class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon {
-
-  private $redirect_url = 'https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=';
+  const TEST_REDIRECT_URL = 'https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=';
+  const LIVE_REDIRECT_URL = 'https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=';
 
   private $version  = '59.0';
 
@@ -132,7 +132,8 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon {
    * @return string url address to redirect
    */
   public function url_for_token($token) {
-    return $this->redirect_url . $token;
+    $redirect_url = $this->is_test() ? self::TEST_REDIRECT_URL : self::LIVE_REDIRECT_URL;
+    return $redirect_url . $token;
   }
 
   /**
