@@ -26,9 +26,16 @@ define('HSBC_PASS','');
 define('HSBC_CLIENT_ID','');
 
 /**
- * PAYPAL
+ * PAYPAL EXPRESS
  */
 define('PAYPAL_LOGIN','');
 define('PAYPAL_PASS','');
 define('PAYPAL_SIG','');
+
+/**
+ * PAYPAL PRO
+ */
+define('PAYPAL_PRO_LOGIN','');
+define('PAYPAL_PRO_PASS','');
+define('PAYPAL_PRO_SIG','');
 ?>
