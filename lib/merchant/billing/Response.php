@@ -2,7 +2,9 @@
 /**
  * Description of Response
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Merchant_Billing_Response {
 
@@ -15,6 +17,13 @@ class Merchant_Billing_Response {
   private   $cvv_result;
   private   $fraud_review;
 
+  /**
+   *
+   * @param boolean $success
+   * @param string $message
+   * @param array $params
+   * @param array $options
+   */
   public function __construct($success, $message, $params = array(), $options = array() ) {
     $this->success = $success;
     $this->message = $message;
@@ -31,10 +40,18 @@ class Merchant_Billing_Response {
     return isset($this->params[$name]) ? $this->params[$name] : null;
   }
 
+  /**
+   *
+   * @return boolean
+   */
   public function success(){
     return $this->success;
   }
 
+  /**
+   *
+   * @return boolean
+   */
   public function test(){
     return $this->test;
   }
@@ -54,9 +71,11 @@ class Merchant_Billing_Response {
   public function params(){
     return $this->params;
   }
+  
   public function avs_result(){
     return $this->avs_result;
   }
+  
   public function cvv_result(){
     return $this->cvv_result;
   }

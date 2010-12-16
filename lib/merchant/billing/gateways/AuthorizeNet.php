@@ -1,8 +1,10 @@
 <?php
 /**
- * Description of AuthorizeNet
+ * Description of Merchant_Billing_AuthorizeNet
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
   const API_VERSION = "3.1";
@@ -52,10 +54,11 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
   }
   /**
    *
-   * @param float $money
+   * @param number                      $money
    * @param Merchant_Billing_CreditCard $creditcard
-   * @param array $options
-   * $return Merchant_Billing_Response 
+   * @param array                       $options
+   *
+   * @return Merchant_Billing_Response
    */
   public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options = array()) {
     $this->add_invoice($options);
@@ -69,13 +72,14 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
 
   /**
    *
-   * @param float $money
+   * @param number                      $money
    * @param Merchant_Billing_CreditCard $creditcard
-   * @param array $options
-   * @return Merchant_Billing_Response 
+   * @param array                       $options
+   *
+   * @return Merchant_Billing_Response
    */
   public function purchase($money, Merchant_Billing_CreditCard $creditcard, $options = array()) {
-    
+
     $this->add_invoice($options);
     $this->add_creditcard($creditcard);
     $this->add_address($options);
@@ -84,26 +88,28 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
 
     return $this->commit('AUTH_CAPTURE', $money);
   }
-  
+
   /**
    *
-   * @param float $money
+   * @param number $money
    * @param string $authorization
-   * @param array $options
+   * @param array  $options
+   *
    * @return Merchant_Billing_Response
-   */  
+   */
   public function capture($money, $authorization, $options = array()) {
     $this->post = array('trans_id' => $authorization);
     $this->add_customer_data($options);
     return $this->commit('PRIOR_AUTH_CAPTURE', $money);
   }
-  
+
   /**
    *
    * @param string $authorization
-   * @param array $options
+   * @param array  $options
+   *
    * @return Merchant_Billing_Response
-   */  
+   */
 
   public function void($authorization, $options = array()) {
     $this->post = array('trans_id' => $authorization);
@@ -113,9 +119,10 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
 
   /**
    *
-   * @param float $money
+   * @param number $money
    * @param string $identification
-   * @param array $options
+   * @param array  $options
+   *
    * @return Merchant_Billing_Response
    */
   public function credit($money, $identification, $options = array()) {
@@ -129,22 +136,22 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
      $this->add_invoice($options);
      return $this->commit('CREDIT', $money);
   }
-  
+
 
   /**
    *
-   * @param float $money
+   * @param number                      $money
    * @param Merchant_Billing_CreditCard $creditcard
-   * @param array $options
+   * @param array                       $options
    */
   public function recurring($money, Merchant_Billing_CreditCard $creditcard, $options=array()) {
     $this->required_options('length, unit, start_date, occurrences, billing_address', $options);
     $this->required_options('first_name, last_name', $options['billing_address']);
 
     $amount = $this->amount($money);
-    
+
     $ref_id = isset($parameters['order_id']) ? $parameters['order_id'] : " ";
-    $this->xml .= "<refId>$ref_id</refId>";
+    $this->xml = "<refId>$ref_id</refId>";
     $this->xml .= "<subscription>";
     $this->arb_add_subscription($amount, $options);
     $this->arb_add_creditcard($creditcard);
@@ -156,12 +163,14 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway {
 
   /**
    *
-   * @param string $subscription_id Subscription id return from recurring method
+   * @param string                      $subscription_id subscription id returned from recurring method
    * @param Merchant_Billing_CreditCard $creditcard
+   *
+   * @return Merchant_Billing_Response
    */
   public function update_recurring($subscription_id, Merchant_Billing_CreditCard $creditcard) {
-    
-    $this->xml .= <<<XML
+
+    $this->xml = <<<XML
             <subscriptionId>$subscription_id</subscriptionId>
               <subscription>
 XML;
@@ -173,12 +182,13 @@ XML;
 
   /**
    *
-   * @param string $subscription_id Subscription id return from recurring method
+   * @param string $subscription_id subscription id return from recurring method
+   *
    * @return Merchant_Billing_Response
    */
   public function cancel_recurring($subscription_id) {
 
-    $this->xml .= "<subscriptionId>$subscription_id</subscriptionId>";
+    $this->xml = "<subscriptionId>$subscription_id</subscriptionId>";
 
     return $this->recurring_commit('cancel');
   }
@@ -188,9 +198,10 @@ XML;
   /**
    *
    * @param string $action
-   * @param float $money
-   * @param array $parameters
-   * @return Merchant_Billing_Response 
+   * @param number $money
+   * @param array  $parameters
+   *
+   * @return Merchant_Billing_Response
    */
   private function commit($action, $money, $parameters = array()) {
     if ($action != 'VOID')
@@ -202,49 +213,77 @@ XML;
     $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
 
     $data = $this->ssl_post($url, $this->post_data($action, $parameters));
-    
+
     $response = $this->parse($data);
 
     $message = $this->message_from($response);
-    
+
     $test_mode = $this->is_test();
 
-    return new Merchant_Billing_Response($this->success_from($response), $message, $response, array(
-        'test' => $test_mode,
-        'authorization' => $response['transaction_id'],
-        'fraud_review' => $this->fraud_review_from($response),
-        'avs_result' => array( 'code' => $response['avs_result_code'] ),
-        'cvv_result' => $response['card_code']
-      )
+    return new Merchant_Billing_Response(
+            $this->success_from($response),
+            $message,
+            $response,
+            array(
+              'test' => $test_mode,
+              'authorization' => $response['transaction_id'],
+              'fraud_review' => $this->fraud_review_from($response),
+              'avs_result' => array( 'code' => $response['avs_result_code'] ),
+              'cvv_result' => $response['card_code']
+            )
     );
   }
 
+  /**
+   *
+   * @param string $response
+   *
+   * @return bool
+   */
   private function success_from($response) {
     return $response['response_code'] == self::APPROVED;
   }
 
+  /**
+   *
+   * @param string $response
+   *
+   * @return bool
+   */
   private function fraud_review_from($response) {
     return $response['response_code'] == self::FRAUD_REVIEW;
   }
 
-  private function message_from($results) {
-    if ( $results['response_code'] == self::DECLINED ) {
-      if ( in_array( $results['card_code'], self::$CARD_CODE_ERRORS ) ) {
+  /**
+   *
+   * @param string $response
+   *
+   * @return string
+   */
+  private function message_from($response) {
+    if ( $response['response_code'] == self::DECLINED ) {
+      if ( in_array( $response['card_code'], self::$CARD_CODE_ERRORS ) ) {
         $cvv_messages = Merchant_Billing_CvvResult::messages();
-        return $cvv_messages[$results['card_code']];
+        return $cvv_messages[$response['card_code']];
       }
-      if ( in_array( $results['avs_result_code'], self::$AVS_ERRORS ) ) {
+      if ( in_array( $response['avs_result_code'], self::$AVS_ERRORS ) ) {
         $avs_messages = Merchant_Billing_AvsResult::messages();
-        return $avs_messages[$results['avs_result_code']];
+        return $avs_messages[$response['avs_result_code']];
       }
     }
 
-    return $results['response_reason_text'] === null ? '' : $results['response_reason_text'];
+    return $response['response_reason_text'] === null ? '' : $response['response_reason_text'];
   }
 
+  /**
+   *
+   * @param string $body raw gateway response
+   *
+   * @return array gateway response in array format.
+   */
   private function parse($body) {
     $fields = explode('|', $body);
-    $results = array(
+    $response = array(
       'response_code' => $fields[self::RESPONSE_CODE],
       'response_reason_code' => $fields[self::RESPONSE_REASON_CODE],
       'response_reason_text' => $fields[self::RESPONSE_REASON_TEXT],
@@ -253,7 +292,7 @@ XML;
       'card_code' => $fields[self::CARD_CODE_RESPONSE_CODE]
     );
 
-    return $results;
+    return $response;
   }
 
   private function post_data($action, $parameters = array()) {
@@ -331,7 +370,7 @@ XML;
 
 
   /* ARB */
-  
+
   private function recurring_commit($action, $parameters=array()) {
     $url = $this->is_test() ? self::ARB_TEST_URL : self::ARB_LIVE_URL;
 
@@ -345,16 +384,21 @@ XML;
 
     $test_mode = $this->is_test();
 
-    return new Merchant_Billing_Response($this->arb_success_from($response), $message, $response, array(
-        'test' => $test_mode
-      )
+    return new Merchant_Billing_Response(
+            $this->arb_success_from($response),
+            $message,
+            $response,
+            array(
+              'test' => $test_mode,
+              'authorization' => $response['subscription_id'],
+            )
     );
   }
 
   private function arb_parse($body) {
 
     $response = array();
-    
+
     /*
      * SimpleXML returns some warnings about arb namespace, althought it parse
      * the xml correctly.
@@ -374,7 +418,7 @@ XML;
     $response['code'] = $this->substring_between($body,'<code>','</code>');
     $response['text'] = $this->substring_between($body,'<text>','</text>');
     $response['subscription_id'] = $this->substring_between($body,'<subscriptionId>','</subscriptionId>');
-   
+
     return $response;
   }
 
@@ -387,9 +431,9 @@ XML;
   }
 
   private function arb_add_creditcard(Merchant_Billing_CreditCard $creditcard) {
-    $expiration_date = $this->cc_format($creditcard->year, 'four_digits') . "-" . 
+    $expiration_date = $this->cc_format($creditcard->year, 'four_digits') . "-" .
             $this->cc_format($creditcard->month, 'two_Digits');
-    
+
     $this->xml .= <<< XML
         <payment>
           <creditCard>

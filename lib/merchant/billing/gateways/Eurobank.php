@@ -1,8 +1,10 @@
 <?php
 /**
- * Description of Eurobank
+ * Description of Merchant_Billing_Eurobank
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
 
@@ -25,8 +27,8 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
   /**
    *
    * @param array $options
-   * ==== Options
-   * 'login' - Your merchan id. (REQUIRED)
+   * Options
+   * 'login'    - Your merchan id.         (REQUIRED)
    * 'password' - Your encrypted password. (REQUIRED)
    */
   public function __construct($options) {
@@ -40,10 +42,11 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
 
   /**
    *
-   * @param float $money - Total order amount. (REQUIRED)
-   * @param CreditCard $creditcard - A creditcard class object (REQUIRED)
-   * @param array $options
-   * @return Response
+   * @param number                      $money      - Total order amount.       (REQUIRED)
+   * @param Merchant_Billing_CreditCard $creditcard - A creditcard class object (REQUIRED)
+   * @param array                       $options
+   * 
+   * @return Merchant_Billing_Response
    */
   public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options=array()) {
     $this->required_options('customer_email', $options);
@@ -51,25 +54,51 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
     return $this->commit();
   }
 
+  /**
+   *
+   * @param number $money
+   * @param string $authorization
+   * @param array  $options
+   *
+   * @return Merchant_Billing_Response
+   */
   public function capture($money, $authorization, $options=array()) {
     $options = array_merge($options, array('authorization'=>$authorization));
     $this->build_xml($money, 'Capture', null, $options);
     return $this->commit();
   }
 
+  /**
+   *
+   * @param number $money
+   * @param string $identification
+   * @param array  $options
+   *
+   * @return Merchant_Billing_Response
+   */
   public function credit($money, $identification, $options=array()) {
     $options = array_merge($options, array('authorization'=>$identification));
     $this->build_xml($money, 'Refund', null, $options);
     return $this->commit();
   }
 
+  /**
+   *
+   * @param string $identification
+   * @param array  $options
+   * 
+   * @return Merchant_Billing_Response
+   */
   public function void($identification, $options = array()) {
     $options = array_merge($options, array('authorization'=>$identification));
     $this->build_xml(0, 'Cancel', null, $options);
     return $this->commit();
   }
 
-
+  /**
+   *
+   * @return Merchant_Billing_Response
+   */
   private function commit() {
     $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
     
@@ -91,6 +120,12 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
     return new Merchant_Billing_Response($this->success_from($response), $this->message_from($response), $response, $this->options_from($response));
   }
 
+  /**
+   *
+   * @param string $response_xml
+   *
+   * @return array
+   */
   private function parse($response_xml) {
     $xml = simplexml_load_string($response_xml);
     $response = array();
@@ -108,10 +143,22 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
     return $response['error_code'] == '0';
   }
 
+  /**
+   *
+   * @param string $response
+   *
+   * @return boolean
+   */
   private function message_from($response) {
     return $response['message'];
   }
 
+  /**
+   *
+   * @param string $response
+   *
+   * @return array
+   */
   private function options_from($response) {
     $options = array();
     $options['test']          = $this->is_test();
@@ -122,6 +169,10 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
     return $options;
   }
 
+  /**
+   *
+   * @param Merchant_Billing_CreditCard $creditcard 
+   */
   private function build_payment_info(Merchant_Billing_CreditCard $creditcard) {
     $month = $this->cc_format($creditcard->month, 'two_digits');
     $year  = $this->cc_format($creditcard->year, 'two_digits');
@@ -138,7 +189,14 @@ XML;
   }
 
 
-  private function build_xml($money, $type, $creditcard = null, $options=array()) {
+  /**
+   *
+   * @param number                      $money
+   * @param string                      $type
+   * @param Merchant_Billing_CreditCard $creditcard
+   * @param array                       $options
+   */
+  private function build_xml($money, $type, Merchant_Billing_CreditCard $creditcard = null, $options=array()) {
     $merchant_desc = isset($options['merchant_desc']) ? $options['merchant_desc'] : null;
     $merchant_ref = isset($options['authorization']) ? $options['authorization'] : "REF " . date("YmdH:i:s", time());
     $customer_email = isset($options['customer_email']) ? $options['customer_email'] : "";
@@ -156,7 +214,7 @@ XML;
             <Amount>{$this->amount($money)}</Amount>
             <MerchantRef>{$merchant_ref}</MerchantRef>
             <MerchantDesc>{$merchant_desc}</MerchantDesc>
-            <Currency>{$this->CURRENCY_MAPPINGS[$this->default_currency]}</Currency>
+            <Currency>{$this->currency_lookup($this->default_currency)}</Currency>
             <CustomerEmail>{$customer_email}</CustomerEmail>
             <Var1 />
             <Var2 />

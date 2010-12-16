@@ -1,8 +1,10 @@
 <?php
 /**
- * Description of Bogus
+ * Description of Merchant_Billing_Bogus
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Merchant_Billing_Bogus extends Merchant_Billing_Gateway {
   const AUTHORIZATION = '53433';
@@ -20,7 +22,7 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway {
   protected $homepage_url = 'http://example.com';
   protected $display_name = 'Bogus';
 
-  public function authorize($money, CreditCard $creditcard, $options = array()) {
+  public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options = array()) {
     switch ($creditcard->number) {
       case '1':
         return new Response(true, self::SUCCESS_MESSAGE, array('authorized_amount'=>$money), array('test'=>true, 'authorization' => self::AUTHORIZATION ));
@@ -34,7 +36,7 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway {
     }
   }
 
-  public function purchase($money, CreditCard $creditcard, $options = array()) {
+  public function purchase($money, Merchant_Billing_CreditCard $creditcard, $options = array()) {
     switch ($creditcard->number) {
       case '1':
         return new Response(true, self::SUCCESS_MESSAGE, array('paid_amount'=>$money), array('test'=>true));
@@ -90,7 +92,7 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway {
     }
   }
 
-  public function store(CreditCard $creditcard, $options = array()) {
+  public function store(Merchant_Billing_CreditCard $creditcard, $options = array()) {
     switch ($creditcard->number) {
       case '1':
         return new Response(true, self::SUCCESS_MESSAGE, array('billingid' => '1'), array('test' => true, 'authorization' => self::AUTHORIZATION) );

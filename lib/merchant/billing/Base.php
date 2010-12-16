@@ -2,7 +2,9 @@
 /**
  * Description of MerchantBase
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 #require_once dirname(__FILE__) . "/../common.php";
 class Merchant_Billing_Base {

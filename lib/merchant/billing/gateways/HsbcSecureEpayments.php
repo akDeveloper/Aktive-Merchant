@@ -1,9 +1,11 @@
 <?php
 
 /**
- * Description of HsbcSecureEpayments
+ * Description of Merchant_Billing_HsbcSecureEpayments
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Merchant_Billing_HsbcSecureEpayments extends Merchant_Billing_Gateway {
   const TEST_URL = 'https://www.secure-epayments.apixml.hsbc.com';
@@ -13,12 +15,11 @@ class Merchant_Billing_HsbcSecureEpayments extends Merchant_Billing_Gateway {
       'visa' => 1, 'master' => 2, 'american_express' => 8, 'solo' => 9,
       'switch' => 10, 'maestro' => 14
   );
-  private $CURRENCY_MAPPINGS = array(
-      'USD' => 840, 'GBP' => 826, 'CAD' => 124, 'EUR' => 978
-  );
+
   private $COUNTRY_CODE_MAPPINGS = array(
       'CA' => 124, 'GB' => 826, 'US' => 840
   );
+
   private $HSBC_CVV_RESPONSE_MAPPINGS = array(
       '0' => 'X',
       '1' => 'M',
@@ -29,6 +30,7 @@ class Merchant_Billing_HsbcSecureEpayments extends Merchant_Billing_Gateway {
       '6' => 'I',
       '7' => 'U'
   );
+
   private $TRANSACTION_STATUS_MAPPINGS = array(
       'accepted' => "A",
       'declined' => "D",
@@ -131,7 +133,7 @@ XML;
         <Type DataType="String">{$type}</Type>
         <CurrentTotals>
           <Totals>
-            <Total DataType="Money" Currency="{$this->CURRENCY_MAPPINGS[$this->default_currency]}">{$amount}</Total>
+            <Total DataType="Money" Currency="{$this->currency_lookup($this->default_currency)}">{$amount}</Total>
           </Totals>
         </CurrentTotals>
       </Transaction>
@@ -227,13 +229,12 @@ XML;
   private function commit($action) {
     $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
     $response = $this->parse($this->ssl_post($url, $this->xml));
-    #$response = $this->parse('');
+
     return new Merchant_Billing_Response($this->success_from($action, $response), $this->message_from($response), $response, $this->options_from($response));
   }
 
   private function parse($response_xml) {
     $xml = simplexml_load_string($response_xml);
-    #$xml = simplexml_load_file('D:/www/merchant/log/response.xml');
 
     $response = array();
 

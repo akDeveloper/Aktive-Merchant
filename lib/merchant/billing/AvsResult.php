@@ -2,7 +2,9 @@
 /**
  * Description of AvsResult
  *
- * @author Andreas Kollaros
+ * @package Aktive Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  *
  * Implements the Address Verification System
  * https://www.wellsfargo.com/downloads/pdf/biz/merchant/visa_avs.pdf
@@ -88,7 +90,7 @@ class Merchant_Billing_AvsResult {
 
     if ( null === $attr ) $attr = array();
 
-    if ( isset( $attr['code'] ) && !empty($attr['code']) )
+    if ( isset( $attr['code'] ) && !empty($attr['code']) && $attr['code']!='null' )
       $this->code = strtoupper($attr['code']);
     $this->message = self::$MESSAGES[$this->code];
 
