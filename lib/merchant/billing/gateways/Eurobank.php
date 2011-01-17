@@ -10,7 +10,7 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
 
   const TEST_URL = 'https://eptest.eurocommerce.gr/proxypay/apacsonline';
   const LIVE_URL = 'https://ep.eurocommerce.gr/proxypay/apacsonline';
-    
+
   private $options = array();
   private $xml;
   protected  $default_currency  = 'EUR';
@@ -20,9 +20,6 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
   protected  $display_name = 'Eurobank Euro-Commerce';
   protected  $money_format = 'cents';
 
-  private $CURRENCY_MAPPINGS = array(
-        'USD' => 840, 'GRD' => 300, 'EUR' => 978
-        );
 
   /**
    *
@@ -33,7 +30,7 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
    */
   public function __construct($options) {
     $this->required_options('login, password', $options);
-    
+
     if ( isset( $options['currency'] ) )
       $this->default_currency = $options['currency'];
 
@@ -45,7 +42,7 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
    * @param number                      $money      - Total order amount.       (REQUIRED)
    * @param Merchant_Billing_CreditCard $creditcard - A creditcard class object (REQUIRED)
    * @param array                       $options
-   * 
+   *
    * @return Merchant_Billing_Response
    */
   public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options=array()) {
@@ -86,7 +83,7 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
    *
    * @param string $identification
    * @param array  $options
-   * 
+   *
    * @return Merchant_Billing_Response
    */
   public function void($identification, $options = array()) {
@@ -101,7 +98,7 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
    */
   private function commit() {
     $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
-    
+
     $post_data = 'APACScommand=NewRequest&data='.trim($this->xml);
     $response = $this->parse($this->ssl_post($url, $post_data));
 
@@ -171,7 +168,7 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
 
   /**
    *
-   * @param Merchant_Billing_CreditCard $creditcard 
+   * @param Merchant_Billing_CreditCard $creditcard
    */
   private function build_payment_info(Merchant_Billing_CreditCard $creditcard) {
     $month = $this->cc_format($creditcard->month, 'two_digits');
