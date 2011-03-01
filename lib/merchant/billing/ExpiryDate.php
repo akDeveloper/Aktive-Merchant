@@ -2,6 +2,16 @@
 /**
  * Description of Date
  *
+ * Usage:
+ * <code>
+ * $expire_date = new Merchant_Billing_ExpiryDate(5, 2010);
+ * </code>
+ * Public methods:
+ * + is_expired() returns a boolean about expiration of given data
+ * + expiration() returns expiration date as Unix timestamp
+ *
+ *
+ *
  * @package Aktive Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -21,7 +31,7 @@ class Merchant_Billing_ExpiryDate {
   }
 
   public function expiration (){
-    return strtotime($this->year."-".$this->month."-".$this->month_days()."23:59:59");
+    return strtotime($this->year."-".$this->month."-".$this->month_days()." 23:59:59");
   }
 
   private function month_days(){
@@ -36,6 +46,6 @@ class Merchant_Billing_ExpiryDate {
     if ( $time_array[4] == 1 ) return true;
     return false;
   }
-  
+
 }
 ?>
