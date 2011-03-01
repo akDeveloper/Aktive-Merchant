@@ -2,6 +2,15 @@
 /**
  * Description of CreditCard
  *
+ * Public methods:
+ * + expire_date() returns an Merchant_Billing_ExpiryDate instance
+ * + is_expired() returns a boolean value if creditcard is expired
+ * + name() returns the full name of cardholder
+ * + display_number() return a string of crediticard number with all digits hidden except the fout last digits. ex. XXXX-XXXX-XXXX-1234
+ * + last_digits() returns only the four last digits of creditcard number
+ * + is_valid() returns a boolean if creditcard is valid or not. If creditcard is not valid then we can get an array with errors. See below
+ * + errors() return an array with errors with key as error field and value as description
+ *
  * @package Aktive Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -20,7 +29,9 @@ class Merchant_Billing_CreditCard extends Merchant_Billing_CreditCardMethods {
   public $number;
   public $verification_value;
 
-  # Required for Switch / Solo cards
+  /**
+   * Required for Switch / Solo cards
+   */
   public $start_month;
   public $start_year;
   public $issue_number;
@@ -30,13 +41,13 @@ class Merchant_Billing_CreditCard extends Merchant_Billing_CreditCardMethods {
   public $require_verification_value = true;
 
   public function __construct($options) {
-    
+
     $this->first_name = $options['first_name'];
     $this->last_name  = $options['last_name'];
     $this->month      = $options['month'];
     $this->year       = $options['year'];
     $this->number     = $options['number'];
-    
+
     if ( isset($options['verification_value']) )
       $this->verification_value = $options['verification_value'];
 
@@ -133,7 +144,7 @@ class Merchant_Billing_CreditCard extends Merchant_Billing_CreditCardMethods {
 
         if ( self::valid_month($this->start_month) === false )
                 $this->errors->add('start month', 'is invalid');
-        if ( self::valid_month($this->start_year) === false )
+        if ( self::valid_start_year($this->start_year) === false )
                 $this->errors->add('start year', 'is invalid');
         if ( self::valid_issue_number($this->issue_number) === false )
                 $this->errors->add('issue number', 'cannot be empty');
