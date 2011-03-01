@@ -64,7 +64,7 @@ class Merchant_Billing_CreditCardMethods {
   }
 
   public static function mask($number) {
-    return "XXXX-XXXX-XXXX-" . self::last_digits($number);
+    return "XXXX-XXXX-XXXX-" . self::get_last_digits($number);
   }
 
   public static function matching_type($number, $type) {
@@ -90,7 +90,7 @@ class Merchant_Billing_CreditCardMethods {
    for ($i = 0; $i <= $last; $i++) {
       $sum += $map[$number[$last - $i] + ($i & 1) * 10];
    }
-   
+
    return ($sum % 10 == 0);
   }
 }
