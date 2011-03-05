@@ -7,6 +7,7 @@
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
+require_once 'Expect.php';
 abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect {
 
   protected $money_format = 'dollars'; # or cents
