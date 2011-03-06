@@ -64,7 +64,6 @@ class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase {
 
     $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
     $this->assert_success($response);
-    $this->assertTrue($response->test());
     $this->assertEquals('Approved.',$response->message());
   }
 
@@ -80,7 +79,6 @@ class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase {
 
     $capture = $this->gateway->capture($this->amount, $this->authorization, $this->options);
     $this->assert_success($capture);
-    $this->assertTrue($capture->test());
     $this->assertEquals('Approved.', $capture->message());
     $this->assertEquals('483e6382-7d13-3001-002b-0003bac00fc9', $capture->authorization());
     $this->assertEquals('A', $capture->transaction_status);
@@ -93,7 +91,6 @@ class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase {
 
     $capture = $this->gateway->capture($this->amount, $this->authorization, $this->options);
     $this->assert_failure($capture);
-    $this->assertTrue($capture->test());
     $this->assertEquals('Denied.', $capture->message());
     $this->assertEquals('483e6382-7d13-3001-002b-0003bac00fc9', $capture->authorization());
     $this->assertEquals('E', $capture->transaction_status);
@@ -136,7 +133,6 @@ class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase {
     $this->assert_failure($response);
     $this->assertTrue(null !== $response->fraud_review());
   }
-
 
   /**
    * Private methods

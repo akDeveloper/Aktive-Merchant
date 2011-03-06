@@ -78,49 +78,52 @@ class Merchant_Billing_HsbcSecureEpayments extends Merchant_Billing_Gateway {
   }
 
   public function authorize($amount, Merchant_Billing_CreditCard $creditcard, $options = array()) {
-    $this->build_xml($amount, $creditcard, 'PreAuth', $options);
+    $this->build_xml($amount, 'PreAuth', $creditcard, $options);
     return $this->commit(__FUNCTION__);
   }
 
   public function purchase($amount, Merchant_Billing_CreditCard $creditcard, $options = array()) {
-    $this->build_xml($amount, $creditcard, 'Auth', $options);
+    $this->build_xml($amount, 'Auth', $creditcard, $options);
     return $this->commit(__FUNCTION__);
   }
 
   public function capture($amount, $authorization, $options = array()) {
-    $options = array_merge($options, array('authorization', $authorization));
-    $this->build_xml($amount, $creditcard, 'PostAuth', $options);
+    $options = array_merge($options, array('authorization' => $authorization));
+    $this->build_xml($amount, 'PostAuth', null, $options);
+    return $this->commit(__FUNCTION__);
   }
 
   public function void($identification, $options = array()) {
-    $this->build_xml($amount, $creditcard, 'Void', $options);
+    $this->build_xml(null, 'Void', null, $options);
   }
 
-  private function build_xml($amount, Merchant_Billing_CreditCard $creditcard, $type, $options=array()) {
+  private function build_xml($amount, $type, $creditcard=null, $options=array()) {
     $this->start_xml();
     $this->insert_data($amount, $creditcard, $type, $options);
     $this->end_xml();
   }
 
-  private function insert_data($amount, Merchant_Billing_CreditCard $creditcard, $type, $options=array()) {
-    $month = $this->cc_format($creditcard->month, 'two_digits');
-    $year = $this->cc_format($creditcard->year, 'two_digits');
+  private function insert_data($amount, $creditcard, $type, $options=array()) {
+    if ( null !== $creditcard ) {
+      $month = $this->cc_format($creditcard->month, 'two_digits');
+      $year = $this->cc_format($creditcard->year, 'two_digits');
 
-    $this->xml .= <<<XML
-          <OrderFormDoc>
-            <Mode DataType="String">{$this->payment_mode}</Mode>
-            <Consumer>
-              <PaymentMech>
-                <Type DataType="String">{$this->payment_mech_type}</Type>
-                <CreditCard>
-                  <Number DataType="String">{$creditcard->number}</Number>
-                  <Expires DataType="ExpirationDate">{$month}/{$year}</Expires>
-                  <Cvv2Val DataType="String">{$creditcard->verification_value}</Cvv2Val>
-                  <Cvv2Indicator DataType="String">1</Cvv2Indicator>
-                </CreditCard>
-              </PaymentMech>
-            </Consumer>
+      $this->xml .= <<<XML
+            <OrderFormDoc>
+              <Mode DataType="String">{$this->payment_mode}</Mode>
+              <Consumer>
+                <PaymentMech>
+                  <Type DataType="String">{$this->payment_mech_type}</Type>
+                  <CreditCard>
+                    <Number DataType="String">{$creditcard->number}</Number>
+                    <Expires DataType="ExpirationDate">{$month}/{$year}</Expires>
+                    <Cvv2Val DataType="String">{$creditcard->verification_value}</Cvv2Val>
+                    <Cvv2Indicator DataType="String">1</Cvv2Indicator>
+                  </CreditCard>
+                </PaymentMech>
+              </Consumer>
 XML;
+    }
     $this->add_transaction_element($amount, $type, $options);
     $this->add_billing_address($options);
     $this->add_shipping_address($options);
@@ -145,7 +148,7 @@ XML;
         <Id DataType="String">{$options['authorization']}</Id>
         <CurrentTotals>
           <Totals>
-            <Total DataType="Money" Currency="{$this->CURRENCY_MAPPINGS[$this->currency]}">{$amount}</Total>
+            <Total DataType="Money" Currency="{$this->currency_lookup($this->default_currency)}">{$amount}</Total>
           </Totals>
         </CurrentTotals>
       </Transaction>
@@ -230,7 +233,14 @@ XML;
     $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
     $response = $this->parse($this->ssl_post($url, $this->xml));
 
-    return new Merchant_Billing_Response($this->success_from($action, $response), $this->message_from($response), $response, $this->options_from($response));
+    $r =  new Merchant_Billing_Response( $this->success_from($action, $response), 
+      $this->message_from($response), 
+      $response, 
+      $this->options_from($response)
+    );
+    
+    return $r;
+
   }
 
   private function parse($response_xml) {
@@ -300,18 +310,23 @@ XML;
       if (isset($transaction->CardProcResp->Cvv2Resp))
         $response['cvv2_resp'] = (string) $transaction->CardProcResp->Cvv2Resp;
     }
-
+    
     return $response;
   }
 
   private function options_from($response) {
     $options = array();
-    $options['authorization'] = $response['transaction_id'];
-    $options['test'] = empty($response['mode']) || $response['mode'] != 'P';
-    $options['fraud_review'] = in_array($response['return_code'], $this->FRAUDULENT);
-    if (!empty($response['cvv2_resp']))
-      $options['cvv_result'] = $this->HSBC_CVV_RESPONSE_MAPPINGS[$response['cvv2_resp']];
+    $options['authorization'] = isset( $response['transaction_id'] ) ? $response['transaction_id'] : null;
+    $options['test'] = (true == $this->is_test()) || empty($response['mode']) || $response['mode'] != 'P';
+    $options['fraud_review'] = isset( $response['return_code'] ) ? in_array($response['return_code'], $this->FRAUDULENT) : false;
+
+    if ( isset($response['cvv2_resp']) ){
+      if ( in_array($response['cvv2_resp'], $this->HSBC_CVV_RESPONSE_MAPPINGS) )
+        $options['cvv_result'] = $this->HSBC_CVV_RESPONSE_MAPPINGS[$response['cvv2_resp']];
+    }      
     $options['avs_result'] = $this->avs_code_from($response);
+
+    return $options;
   }
 
   private function success_from($action, $response) {
@@ -323,7 +338,7 @@ XML;
       $transaction_status = null;
     }
 
-    return ($response['return_code'] == self::APPROVED &&
+    return ( ( isset($response['return_code']) && $response['return_code'] == self::APPROVED ) &&
     $response['transaction_id'] != null &&
     $response['auth_code'] != null &&
     $response['transaction_status'] == $transaction_status);
