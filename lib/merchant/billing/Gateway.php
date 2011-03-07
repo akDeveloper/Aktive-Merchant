@@ -241,7 +241,7 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect {
     if (!is_numeric($money) || $money < 0) {
       throw new Exception('money amount must be a positive Integer in cents.');
     }
-    return ($this->money_format == 'cents') ? number_format($cents,0) : number_format($money,2);
+    return ($this->money_format == 'cents') ? number_format($cents,0,'','') : number_format($money,2);
   }
 
   protected function card_brand($source) {
