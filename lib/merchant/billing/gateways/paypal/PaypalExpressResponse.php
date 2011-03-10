@@ -14,10 +14,9 @@ class Merchant_Billing_PaypalExpressResponse extends Merchant_Billing_Response {
 
   public function name() {
     $first_name  = $this->params['FIRSTNAME'];
-    $middle_name = $this->params['MIDDLENAME'] != null
-      ? $this->params['MIDDLENAME'] : '';
+    $middle_name = isset($this->params['MIDDLENAME']) ? $this->params['MIDDLENAME'] : null;
     $last_name   = $this->params['LASTNAME'];
-    return implode(' ', array( $first_name,$middle_name,$last_name ));
+    return implode(' ', array_filter(array($first_name, $middle_name, $last_name)) );
   }
 
   public function token() {
@@ -48,6 +47,11 @@ class Merchant_Billing_PaypalExpressResponse extends Merchant_Billing_Response {
       'address_status' => $this->params['ADDRESSSTATUS']
     );
   }
+
+  public function note() {
+    return isset($this->params['NOTE']) ? $this->params['NOTE'] : null;
+  }
+
 
 }
 ?>
