@@ -262,7 +262,7 @@ XML;
    */
   private function message_from($response) {
     if ( $response['response_code'] == self::DECLINED ) {
-      if ( in_array( $response['card_code'], $this->$CARD_CODE_ERRORS ) ) {
+      if ( in_array( $response['card_code'], $this->CARD_CODE_ERRORS ) ) {
         $cvv_messages = Merchant_Billing_CvvResult::messages();
         return $cvv_messages[$response['card_code']];
       }
