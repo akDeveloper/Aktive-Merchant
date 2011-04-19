@@ -111,6 +111,12 @@ class Merchant_Billing_HsbcSecureEpayments extends Merchant_Billing_Gateway {
       $this->xml .= <<<XML
             <OrderFormDoc>
               <Mode DataType="String">{$this->payment_mode}</Mode>
+              
+XML;
+     if(array_key_exists('order_id', $options))
+        $this->xml .= "<Id DataType=\"String\">{$options['order_id']}</Id>\n";
+
+      $this->xml .= <<<XML
               <Consumer>
                 <PaymentMech>
                   <Type DataType="String">{$this->payment_mech_type}</Type>
@@ -121,12 +127,14 @@ class Merchant_Billing_HsbcSecureEpayments extends Merchant_Billing_Gateway {
                     <Cvv2Indicator DataType="String">1</Cvv2Indicator>
                   </CreditCard>
                 </PaymentMech>
-              </Consumer>
 XML;
+     $this->add_billing_address($options);
+     $this->add_shipping_address($options);
+     $this->xml .= '</Consumer>';
     }
+
     $this->add_transaction_element($amount, $type, $options);
-    $this->add_billing_address($options);
-    $this->add_shipping_address($options);
+    
   }
 
   private function add_transaction_element($amount, $type, $options) {
@@ -192,14 +200,13 @@ XML;
     $this->xml .= <<<XML
       <Address>
         <Name DataType="String">{$options['name']}</Name>
-        <Company DataType="String">{$options['company']}</Company>
         <Street1 DataType="String">{$options['address1']}</Street1>
         <Street2 DataType="String">{$options['address2']}</Street2>
         <City DataType="String" >{$options['city']}</City>
-        <StateProv DataType="String" >{$options['state']}</StateProv>
-        <Country DataType="String">{$this->COUNTRY_CODE_MAPPINGS[$options['country']]}</Country>
+        <StateProv DataType="String">{$options['state']}</StateProv>
         <PostalCode DataType="String">{$options['zip']}</PostalCode>
-      </Addresss>
+        <Country DataType="String">{$this->COUNTRY_CODE_MAPPINGS[$options['country']]}</Country>
+      </Address>
 XML;
   }
 
