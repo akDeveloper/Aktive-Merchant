@@ -104,17 +104,18 @@ class Merchant_Billing_HsbcSecureEpayments extends Merchant_Billing_Gateway {
   }
 
   private function insert_data($amount, $creditcard, $type, $options=array()) {
+
+    $this->xml .= <<<XML
+        <OrderFormDoc>
+          <Mode DataType="String">{$this->payment_mode}</Mode>
+XML;
+
     if ( null !== $creditcard ) {
       $month = $this->cc_format($creditcard->month, 'two_digits');
       $year = $this->cc_format($creditcard->year, 'two_digits');
 
-      $this->xml .= <<<XML
-            <OrderFormDoc>
-              <Mode DataType="String">{$this->payment_mode}</Mode>
-              
-XML;
-     if(array_key_exists('order_id', $options))
-        $this->xml .= "<Id DataType=\"String\">{$options['order_id']}</Id>\n";
+      if(array_key_exists('order_id', $options))
+        $this->xml .= "<Id DataType=\"String\">{$options['order_id']}</Id>";
 
       $this->xml .= <<<XML
               <Consumer>
@@ -161,9 +162,9 @@ XML;
 XML;
     } elseif ($type == 'PostAuth' || $type == 'Void') {
       $this->xml .= <<<XML
+      <Id DataType="String">{$options['authorization']}</Id>
       <Transaction>
         <Type DataType="String">{$type}</Type>
-        <Id DataType="String">{$options['authorization']}</Id>
         <CurrentTotals>
           <Totals>
             <Total DataType="Money" Currency="{$this->currency_lookup($this->default_currency)}">{$amount}</Total>
