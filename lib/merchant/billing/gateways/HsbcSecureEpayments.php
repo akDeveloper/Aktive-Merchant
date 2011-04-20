@@ -196,6 +196,8 @@ XML;
                         <ItemNumber DataType="S32">{$i}</ItemNumber>
                         <Desc DataType="String">{$description}</Desc>
                         <Qty DataType="S32">{$orderItem['quantity']}</Qty>
+                        <Price DataType="Money" Currency="{$this->currency_lookup($this->default_currency)}">{$orderItem['unit_price']}</Price>
+                        <Total DataType="Money" Currency="{$this->currency_lookup($this->default_currency)}">{$orderItem['total']}</Total>
                     </OrderItem>
 XML;
                 $i++;
