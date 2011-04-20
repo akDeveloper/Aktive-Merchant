@@ -114,7 +114,7 @@ XML;
       $month = $this->cc_format($creditcard->month, 'two_digits');
       $year = $this->cc_format($creditcard->year, 'two_digits');
 
-      if(array_key_exists('order_id', $options))
+      if(isset($options['order_id']))
         $this->xml .= "<Id DataType=\"String\">{$options['order_id']}</Id>";
 
       $this->xml .= <<<XML
@@ -135,7 +135,9 @@ XML;
     }
 
     $this->add_transaction_element($amount, $type, $options);
-    
+
+    if(is_null($creditcard))
+        $this->add_item_elemts ($options);
   }
 
   private function add_transaction_element($amount, $type, $options) {
@@ -144,7 +146,7 @@ XML;
       <Transaction>
         <Type DataType="String">{$type}</Type>
 XML;
-      if(array_key_exists('three_d_secure', $options)){
+      if(isset($options['three_d_secure'])){
           $this->xml .= <<<XML
               <PayerSecurityLevel DataType="S32">{$options['three_d_secure']['security_level']}</PayerSecurityLevel>
               <CardholderPresentCode DataType="S32">{$options['three_d_secure']['cardholder_present_code']}</CardholderPresentCode>
@@ -174,6 +176,34 @@ XML;
 XML;
     }
   }
+
+    private function add_item_elemts($options)
+    {
+        if(isset($options['order_items']))
+        {
+            $this->xml .= '<OrderItemList>';
+            
+            $i = 1;
+
+            foreach($options['order_items'] as $orderItem)
+            {
+                $description = strlen($orderItem['description']) > 63
+                    ? substr($orderItem['description'], 0, 60) . '...'
+                    : $orderItem['description'];
+                $this->xml .= <<<XML
+                    <OrderItem>
+                        <Id DataType="String">{$orderItem['id']}</Id>
+                        <ItemNumber DataType="S32">{$i}</ItemNumber>
+                        <Desc DataType="String">{$description}</Desc>
+                        <Qty DataType="S32">{$orderItem['quantity']}</Qty>
+                    </OrderItem>
+XML;
+                $i++;
+            }
+
+            $this->xml .= '</OrderItemList>';
+        }
+    }
 
   private function add_billing_address($options) {
     if (isset($options['billing_address'])) {
