@@ -142,6 +142,16 @@ XML;
       $this->xml .= <<<XML
       <Transaction>
         <Type DataType="String">{$type}</Type>
+XML;
+      if(array_key_exists('three_d_secure', $options)){
+          $this->xml .= <<<XML
+              <PayerSecurityLevel DataType="S32">{$options['three_d_secure']['security_level']}</PayerSecurityLevel>
+              <CardholderPresentCode DataType="S32">{$options['three_d_secure']['cardholder_present_code']}</CardholderPresentCode>
+              <PayerAuthenticationCode DataType="String">{$options['three_d_secure']['cavv']}</PayerAuthenticationCode>
+              <PayerTxnId DataType="String">{$options['three_d_secure']['xid']}</PayerTxnId>
+XML;
+      }
+      $this->xml .= <<<XML
         <CurrentTotals>
           <Totals>
             <Total DataType="Money" Currency="{$this->currency_lookup($this->default_currency)}">{$amount}</Total>
