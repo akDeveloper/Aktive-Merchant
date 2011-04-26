@@ -130,23 +130,21 @@ XML;
 
     $data = $this->ssl_post($url, $this->post_data($action, $parameters,array('timeout' => '10')));
 
+    $options = array('test' => $this->is_test());
+
     switch ($action) {
       case 'cmpi_lookup':
         $response = $this->parse_cmpi_lookup($data);
-        $options = array('authorization' => $response['transaction_id']);
+        $options['authorization'] = $response['transaction_id'];
         break;
       case 'cmpi_authenticate':
         $response = $this->parse_cmpi_authenticate($data);
-        $options = array();
         break;
 
       default:
         $response = $this->parse($data);
         break;
     }
-    
-
-    $test_mode = $this->is_test();
 
     return new Merchant_Billing_CentinelResponse($this->success_from($response),
             $this->message_from($response), $response, $options);
