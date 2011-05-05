@@ -1,0 +1,132 @@
+<?php
+
+require_once 'payflow/PayflowCommon.php';
+require_once 'payflow/PayflowResponse.php';
+
+class Merchant_Billing_Payflow extends Merchant_Billing_PayflowCommon
+{
+    protected $supported_cardtypes = array('add', 'modify', 'cancel', 'inquiry', 'reactivate', 'payment');
+    protected $homepage_url = 'https://www.paypal.com/cgi-bin/webscr?cmd=_payflow-pro-overview-outside';
+    protected $display_name = 'PayPal Payflow Pro';
+
+    function authorize($money, $credit_card_or_reference, $options = array())
+    {
+        $request = $this->build_sale_or_authorization_request('authorization', $money, $credit_card_or_reference, $options);
+        $this->commit($request);
+    }
+
+    function purchase($money, $credit_card_or_reference, $options = array())
+    {
+        $request = $this->build_sale_or_authorization_request('purchase', $money, $credit_card_or_reference, $options);
+        $this->commit($request);
+    }
+
+    private function build_sale_or_authorization_request($action, $money, $credit_card_or_reference, $options)
+    {
+        return is_string($credit_card_or_reference)
+            ? $this->build_reference_sale_or_authorization_request($action, $money, $credit_card_or_reference, $options)
+            : $this->build_credit_card_request($action, $money, $credit_card_or_reference, $options);
+    }
+
+    private function build_reference_sale_or_authorization_request($action, $money, $reference, $options)
+    {
+        $bodyXml = <<<XML
+             <{$action}>
+                <PayData>
+                    <Invoice>
+                        <TotalAmt Currency="{$this->currency_lookup($this->default_currency)}">
+                            {$this->amount($money)}
+                        </TotalAmt>
+                    </Invoice>
+                    <Tender>
+                        <Card>
+                            <ExtData Name="ORIGID" Value="{$reference}"></ExtData>
+                        </Card>
+                    </Tender>
+                </PayData>
+             </{$action}>
+XML;
+        return $this->build_request($bodyXml);
+    }
+
+    private function build_credit_card_request($action, $money, $credit_card, $options)
+    {
+        $bodyXml = <<<XML
+             <{$action}>
+                <PayData>
+                    <Invoice>
+XML;
+        if(isset($options['ip']))
+            $bodyXml .= "<CustIp>" . $options['ip'] . "</CustIp>";
+
+        if(isset($options['order_id']))
+        {
+            $orderId = preg_replace('/[^\w.]/', '', $options['order_id']);
+            $bodyXml .= "<InvNum>" . $orderId . "</InvNum>";
+        }
+
+        if(isset($options['description']))
+            $bodyXml .= "<Description>" . $options['description'] . "</Description>";
+
+        if(isset($options['billing_address']))
+            $bodyXml .= "<BillTo>" . $this->add_address($options['billing_address']) ."</BillTo>";
+        
+        if(isset($options['shipping_address']))
+            $bodyXml .= "<ShipTo>" . $this->add_address($options['shipping_address']) ."</ShipTo>";
+
+        $bodyXml .= <<<XML
+                        <TotalAmt Currency="{$this->currency_lookup($this->default_currency)}">
+                            {$this->amount($money)}
+                        </TotalAmt>
+                    </Invoice>
+                    <Tender>
+XML;
+        $bodyXml .= $this->add_credit_card($credit_card);
+        
+        $bodyXml .= <<<XML
+                    </Tender>
+                </PayData>
+             </{$action}>
+XML;
+        return $this->build_request($bodyXml);
+    }
+    
+    private function add_credit_card($creditcard)
+    {
+        $month = $this->cc_format($creditcard->month, 'two_digits');
+        $year = $this->cc_format($creditcard->year, 'four_digits');
+        
+        $xml = <<<XML
+        <Card>
+            <CardType>{$this->credit_card_type($creditcard)}</CardType>
+            <CardNum>{$creditcard->number}</CardNum>
+            <ExpDate>{$year}{$month}</ExpDate>
+            <NameOnCard>{$creditcard->first_name}</NameOnCard>
+            <CVNum>{$creditcard->verification_value}</CVNum>
+XML;
+         
+        if($this->requires_start_date_or_issue_number($creditcard))
+        {
+            if(!is_null($creditcard->start_month))
+            {
+                $startMonth = $this->cc_format($creditcard->start_month, 'two_digits');
+                $startYear = $this->cc_format($creditcard->start_year, 'four_digits');  
+                $xml .= '<ExtData Name="CardStart" Value="' . $startYear . $startMonth .'"></ExtData>';
+            }
+            
+            if(!is_null($creditcard->issue_number))
+                $xml .= '<ExtData Name="CardIssue" Value="' . $this->cc_format($creditcard->issue_number, 'two_digits') .'"></ExtData>';
+        }
+        
+        $xml .= '<ExtData Name="LASTNAME" Value="' . $creditcard->last_name .'"></ExtData>';
+        
+        return $xml;
+    }
+    
+    private function credit_card_type($credit_card)
+    {
+        return is_null($this->card_brand($credit_card))
+            ? ''
+            : $this->CARD_MAPPING[$this->card_brand($credit_card)];
+    }
+}
