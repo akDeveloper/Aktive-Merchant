@@ -24,8 +24,8 @@ class Merchant_Billing_PayflowCommon extends Merchant_Billing_Gateway
         'Service not Requested' => 'P'
     );
 
-    protected $default_currency = 'GBP';
-    protected $supported_countries = array('US', 'CA', 'GB', 'AU');
+    protected $default_currency = 'USD';
+    protected $supported_countries = array('US', 'CA', 'SG', 'AU');
 
     protected $options;
     protected $partner = 'PayPal';
@@ -57,13 +57,13 @@ class Merchant_Billing_PayflowCommon extends Merchant_Billing_Gateway
         $this->commit($request);
     }
 
-    private function build_request($body)
+    protected function build_request($body)
     {
         $this->xml .= <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <XMLPayRequest Timeout="{$this->timeout}" version="2.1" xmlns="{XMLNS}">
     <RequestData>
-        <Vendor>{$this->options['login'}</Vendor>
+        <Vendor>{$this->options['login']}</Vendor>
         <Partner>{$this->partner}</Partner>
         <Transactions>
             <Transaction>
@@ -87,7 +87,7 @@ XML;
 
     private function build_reference_request($action, $money, $authorization, $options)
     {
-        $xml = <<<XML
+        $bodyXml = <<<XML
              <{$action}>
                 <PNRef>
                     {$authorization}
@@ -96,7 +96,7 @@ XML;
 XML;
         if(!is_null($money))
         {
-            $xml .= <<< XML
+            $bodyXml .= <<< XML
                 <Invoice>
                     <TotalAmt Currency="{$this->currency_lookup($this->default_currency)}">
                         {$this->amount($money)}
@@ -105,10 +105,10 @@ XML;
 XML;
         }
 
-        return $xml;
+        return $this->build_request($bodyXml);
     }
 
-    private function add_address($options)
+    protected function add_address($options)
     {
         return <<<XML
             <Name>{$options['name']}</Name>
@@ -185,11 +185,10 @@ XML;
             "Content-Type" => "text/xml",
             "Content-Length" => $content_length,
             "X-VPS-Client-Timeout" => $this->timeout,
-            "X-VPS-VIT-Integration-Product" => "ActiveMerchant",
         );
     }
 
-    private function commit()
+    protected function commit()
     {
         $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
         $response = $this->parse($this->ssl_post($url, $this->xml));
