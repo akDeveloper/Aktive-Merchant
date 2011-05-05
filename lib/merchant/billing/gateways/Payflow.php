@@ -11,14 +11,14 @@ class Merchant_Billing_Payflow extends Merchant_Billing_PayflowCommon
 
     function authorize($money, $credit_card_or_reference, $options = array())
     {
-        $request = $this->build_sale_or_authorization_request('authorization', $money, $credit_card_or_reference, $options);
-        $this->commit($request);
+        $request = $this->build_sale_or_authorization_request('Authorization', $money, $credit_card_or_reference, $options);
+        return $this->commit($request);
     }
 
     function purchase($money, $credit_card_or_reference, $options = array())
     {
-        $request = $this->build_sale_or_authorization_request('purchase', $money, $credit_card_or_reference, $options);
-        $this->commit($request);
+        $request = $this->build_sale_or_authorization_request('Purchase', $money, $credit_card_or_reference, $options);
+        return $this->commit($request);
     }
 
     private function build_sale_or_authorization_request($action, $money, $credit_card_or_reference, $options)
@@ -69,10 +69,10 @@ XML;
             $bodyXml .= "<Description>" . $options['description'] . "</Description>";
 
         if(isset($options['billing_address']))
-            $bodyXml .= "<BillTo>" . $this->add_address($options['billing_address']) ."</BillTo>";
+            $bodyXml .= "<BillTo>" . $this->add_address($options, $options['billing_address']) ."</BillTo>";
         
         if(isset($options['shipping_address']))
-            $bodyXml .= "<ShipTo>" . $this->add_address($options['shipping_address']) ."</ShipTo>";
+            $bodyXml .= "<ShipTo>" . $this->add_address($options, $options['shipping_address']) ."</ShipTo>";
 
         $bodyXml .= <<<XML
                         <TotalAmt Currency="{$this->currency_lookup($this->default_currency)}">
@@ -118,8 +118,10 @@ XML;
                 $xml .= '<ExtData Name="CardIssue" Value="' . $this->cc_format($creditcard->issue_number, 'two_digits') .'"></ExtData>';
         }
         
-        $xml .= '<ExtData Name="LASTNAME" Value="' . $creditcard->last_name .'"></ExtData>';
-        
+        $xml .= <<<XML
+            <ExtData Name="LASTNAME" Value="{$creditcard->last_name}"></ExtData>
+        </Card>
+XML;
         return $xml;
     }
     
