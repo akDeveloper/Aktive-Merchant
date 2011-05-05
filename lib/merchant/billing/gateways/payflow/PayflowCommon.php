@@ -2,9 +2,9 @@
 
 class Merchant_Billing_PayflowCommon extends Merchant_Billing_Gateway
 {
-    const XMLNS = 'http://www.paypal.com/XMLPay';
     const TEST_URL = 'https://pilot-payflowpro.paypal.com';
     const LIVE_URL = 'https://payflowpro.paypal.com';
+    protected $XMLNS = 'http://www.paypal.com/XMLPay';
 
     protected $CARD_MAPPING = array(
         'visa' => 'Visa',
@@ -21,7 +21,7 @@ class Merchant_Billing_PayflowCommon extends Merchant_Billing_Gateway
         'Match' => 'M',
         'No Match' => 'N',
         'Service Not Available' => 'U',
-        'Service not Requested' => 'P'
+        'Service Not Requested' => 'P'
     );
 
     protected $default_currency = 'USD';
@@ -35,7 +35,7 @@ class Merchant_Billing_PayflowCommon extends Merchant_Billing_Gateway
 
     function __construct($options = array())
     {
-        $this->required_options(array('login', 'password', $options));
+        $this->required_options('login, password', $options);
 
         $this->options = $options;
         if(isset($options['partner']))
@@ -47,21 +47,21 @@ class Merchant_Billing_PayflowCommon extends Merchant_Billing_Gateway
 
     function capture($money, $authorization, $options)
     {
-        $request = $this->build_reference_request('capture', $money, $authorization, $options);
-        $this->commit($request);
+        $request = $this->build_reference_request('Capture', $money, $authorization, $options);
+        return $this->commit($request);
     }
 
     function void($authorization, $options)
     {
-        $request = $this->build_reference_request('void', null, $authorization, $options);
-        $this->commit($request);
+        $request = $this->build_reference_request('Void', null, $authorization, $options);
+        return $this->commit($request);
     }
 
     protected function build_request($body)
     {
         $this->xml .= <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
-<XMLPayRequest Timeout="{$this->timeout}" version="2.1" xmlns="{XMLNS}">
+<XMLPayRequest Timeout="{$this->timeout}" version="2.1" xmlns="{$this->XMLNS}">
     <RequestData>
         <Vendor>{$this->options['login']}</Vendor>
         <Partner>{$this->partner}</Partner>
@@ -70,6 +70,8 @@ class Merchant_Billing_PayflowCommon extends Merchant_Billing_Gateway
                 <Verbosity>MEDIUM</Verbosity>
 XML;
         $this->xml .= $body;
+        
+        $user = isset($this->options['user']) ? $this->options['user'] : $this->options['login'];
 
         $this->xml .= <<<XML
             </Transaction>
@@ -77,7 +79,7 @@ XML;
     </RequestData>
     <RequestAuth>
         <UserPass>
-            <User>{isset($this->options['user']) ? $this->options['user'] : $this->options['login']}</User>
+            <User>{$user}</User>
             <Password>{$this->options['password']}</Password>
         </UserPass>
     </RequestAuth>
@@ -108,19 +110,26 @@ XML;
         return $this->build_request($bodyXml);
     }
 
-    protected function add_address($options)
+    protected function add_address($options, $address)
     {
-        return <<<XML
-            <Name>{$options['name']}</Name>
-            <EMail>{$options['email']}</EMail>
+        $xml = '';
+        
+        if(isset($options['name']))
+            $xml .= "<Name>{$options['name']}</Name>";
+            
+        if(isset($options['email']))
+            $xml .= "<EMail>{$options['email']}</EMail>";
+        
+        $xml .= <<<XML
             <Address>
-                <Street1>{$options['address1']}</Street1>
-                <City>{$options['city']}</City>
-                <State>{$options['state']}</StateProv>
-                <Zip>{$options['zip']}</PostalCode>
-                <Country>{$options['country']}</Country>
+                <Street1>{$address['address1']}</Street1>
+                <City>{$address['city']}</City>
+                <State>{$address['state']}</State>
+                <Zip>{$address['zip']}</Zip>
+                <Country>{$address['country']}</Country>
             </Address>
 XML;
+        return $xml;
     }
 
     private function parse($response_xml)
@@ -130,9 +139,9 @@ XML;
         $response = array();
 
         $root = $xml->ResponseData;
-        $transaction = $root->TransactionResult;
+        $transactionAttrs = $root->TransactionResults->TransactionResult->attributes();
 
-        if(!is_null($transaction) && $transaction->Duplicate == 'true')
+        if(isset($transactionAttrs['Duplicate']) && $transactionAttrs['Duplicate'] == 'true')
             $response['duplicate'] = true;
 
         foreach($root->children() as $node)
@@ -174,18 +183,9 @@ XML;
                 break;
 
             default:
-                $response[$nodeName] = $node;
+                $response[$nodeName] = (string)$node;
 
         }
-    }
-
-    private function build_headers($content_length)
-    {
-        return array(
-            "Content-Type" => "text/xml",
-            "Content-Length" => $content_length,
-            "X-VPS-Client-Timeout" => $this->timeout,
-        );
     }
 
     protected function commit()
@@ -193,7 +193,22 @@ XML;
         $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
         $response = $this->parse($this->ssl_post($url, $this->xml));
 
-        //TODO: Add params
-        return new Merchant_Billing_Response($response['Result'] == 0, $response['Message']);
+        return new Merchant_Billing_Response(
+            $response['Result'] == 0, 
+            $response['Message'],
+            $response,
+            $this->options_from($response));
+    }
+    
+    private function options_from($response) 
+    {
+        $options = array();
+        $options['authorization'] = isset( $response['PNRef'] ) ? $response['PNRef'] : null;
+        $options['test'] = $this->is_test();
+        if(isset($response['CVResult']))
+            $options['cvv_result'] = $this->CVV_CODE[$response['CVResult']];
+        //TODO: AVS result
+
+        return $options;
     }
 }
