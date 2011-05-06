@@ -34,7 +34,7 @@ class Merchant_Billing_Payflow extends Merchant_Billing_PayflowCommon
              <{$action}>
                 <PayData>
                     <Invoice>
-                        <TotalAmt Currency="{$this->currency_lookup($this->default_currency)}">
+                        <TotalAmt Currency="{$this->default_currency}">
                             {$this->amount($money)}
                         </TotalAmt>
                     </Invoice>
@@ -75,7 +75,7 @@ XML;
             $bodyXml .= "<ShipTo>" . $this->add_address($options, $options['shipping_address']) ."</ShipTo>";
 
         $bodyXml .= <<<XML
-                        <TotalAmt Currency="{$this->currency_lookup($this->default_currency)}">
+                        <TotalAmt Currency="{$this->default_currency}">
                             {$this->amount($money)}
                         </TotalAmt>
                     </Invoice>
