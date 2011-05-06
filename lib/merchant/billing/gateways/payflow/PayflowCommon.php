@@ -91,21 +91,18 @@ XML;
     {
         $bodyXml = <<<XML
              <{$action}>
-                <PNRef>
-                    {$authorization}
-                </PNRef>
-             </{$action}>
+                <PNRef>{$authorization}</PNRef>
 XML;
         if(!is_null($money))
         {
             $bodyXml .= <<< XML
                 <Invoice>
-                    <TotalAmt Currency="{$this->currency_lookup($this->default_currency)}">
-                        {$this->amount($money)}
-                    </TotalAmt>
+                    <TotalAmt Currency="{$this->default_currency}">{$this->amount($money)}</TotalAmt>
                 </Invoice>
 XML;
         }
+        
+        $bodyXml .= "</{$action}>";
 
         return $this->build_request($bodyXml);
     }
@@ -114,11 +111,14 @@ XML;
     {
         $xml = '';
         
-        if(isset($options['name']))
-            $xml .= "<Name>{$options['name']}</Name>";
+        if(isset($address['name']))
+            $xml .= "<Name>{$address['name']}</Name>";
             
         if(isset($options['email']))
             $xml .= "<EMail>{$options['email']}</EMail>";
+            
+        if(isset($address['phone']))
+            $xml .= "<Phone>" . $address['phone'] . "</Phone>";
         
         $xml .= <<<XML
             <Address>
@@ -190,8 +190,11 @@ XML;
 
     protected function commit()
     {
+        var_dump($this->xml);
+        
         $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
         $response = $this->parse($this->ssl_post($url, $this->xml));
+        $this->xml = null;
 
         return new Merchant_Billing_Response(
             $response['Result'] == 0, 
