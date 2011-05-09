@@ -81,7 +81,7 @@ XML;
                     </Invoice>
                     <Tender>
 XML;
-        $bodyXml .= $this->add_credit_card($credit_card);
+        $bodyXml .= $this->add_credit_card($credit_card, $options);
         
         $bodyXml .= <<<XML
                     </Tender>
@@ -91,7 +91,7 @@ XML;
         return $this->build_request($bodyXml);
     }
     
-    private function add_credit_card($creditcard)
+    private function add_credit_card($creditcard, $options = array())
     {
         $month = $this->cc_format($creditcard->month, 'two_digits');
         $year = $this->cc_format($creditcard->year, 'four_digits');
@@ -118,10 +118,23 @@ XML;
                 $xml .= '<ExtData Name="CardIssue" Value="' . $this->cc_format($creditcard->issue_number, 'two_digits') .'"></ExtData>';
         }
         
-        $xml .= <<<XML
-            <ExtData Name="LASTNAME" Value="{$creditcard->last_name}"></ExtData>
-        </Card>
+        $xml .= "<ExtData Name=\"LASTNAME\" Value=\"{$creditcard->last_name}\"></ExtData>";
+        
+        if(isset($options['three_d_secure']))
+        {
+            $tds = $options['three_d_secure'];
+            $xml .= <<<XML
+                <BuyerAuthResult>
+                    <AUTHSTATUS3DS>{$tds['pares_status']}</AUTHSTATUS3DS>
+                    <MPIVENDOR3DS>{$tds['enrolled']}</MPIVENDOR3DS>
+                    <ECI3DS>{$tds['eci_flag']}</ECI3DS>
+                    <CAVV>{$tds['cavv']}</CAVV>
+                    <XID>{$tds['xid']}=</XID>
+                </BuyerAuthResult>
 XML;
+        }
+        
+        $xml .= "</Card>";
         return $xml;
     }
     
