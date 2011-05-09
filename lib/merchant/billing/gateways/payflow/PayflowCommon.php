@@ -189,9 +189,7 @@ XML;
     }
 
     protected function commit()
-    {
-        var_dump($this->xml);
-        
+    {       
         $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
         $response = $this->parse($this->ssl_post($url, $this->xml));
         $this->xml = null;
