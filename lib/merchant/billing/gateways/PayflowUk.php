@@ -9,7 +9,7 @@ class Merchant_Billing_PayflowUk extends Merchant_Billing_Payflow
     protected $supported_cardtypes = array('visa', 'master', 'american_express', 'discover', 'solo', 'switch');
     protected $supported_countries = array('GB');
     protected $homepage_url = 'https://www.paypal.com/uk/cgi-bin/webscr?cmd=_wp-pro-overview-outside';
-    protected $display_name = 'PayPal Website Payments Pro (UK)';
+    protected $display_name = 'PayPal Payflow Pro (UK)';
 }
 
 ?>
