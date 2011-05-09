@@ -127,9 +127,9 @@ XML;
                 <BuyerAuthResult>
                     <AUTHSTATUS3DS>{$tds['pares_status']}</AUTHSTATUS3DS>
                     <MPIVENDOR3DS>{$tds['enrolled']}</MPIVENDOR3DS>
-                    <ECI3DS>{$tds['eci_flag']}</ECI3DS>
+                    <ECI>{$tds['eci_flag']}</ECI>
                     <CAVV>{$tds['cavv']}</CAVV>
-                    <XID>{$tds['xid']}=</XID>
+                    <XID>{$tds['xid']}</XID>
                 </BuyerAuthResult>
 XML;
         }
