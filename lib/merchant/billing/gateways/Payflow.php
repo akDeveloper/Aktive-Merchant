@@ -81,6 +81,29 @@ XML;
                     </Invoice>
                     <Tender>
 XML;
+        
+        if(isset($options['order_items']))
+        {
+            $bodyXml .= "<Items>";
+            
+            foreach($options['order_items'] as $key => $item)
+            {
+                $count = $key+1;
+                $bodyXml .= <<<XML
+                    <Item Number="{$count}">
+                        <SKU>{$item['id']}</SKU>
+                        <UPC>{$item['id']}</UPC>
+                        <Description>{$item['description']}</Description>
+                        <Quantity>{$item['quantity']}</Quantity>
+                        <UnitPrice>{$item['unit_price']}</UnitPrice>
+                        <TotalAmt>{$item['total']}</TotalAmt>
+                    </Item>
+XML;
+            }
+            
+            $bodyXml .= "</Items>";
+        }
+        
         $bodyXml .= $this->add_credit_card($credit_card, $options);
         
         $bodyXml .= <<<XML
