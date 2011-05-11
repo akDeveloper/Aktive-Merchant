@@ -104,13 +104,20 @@ class Merchant_Billing_HsbcSecureEpayments extends Merchant_Billing_Gateway {
   }
 
   private function insert_data($amount, $creditcard, $type, $options=array()) {
+
+    $this->xml .= <<<XML
+        <OrderFormDoc>
+          <Mode DataType="String">{$this->payment_mode}</Mode>
+XML;
+
     if ( null !== $creditcard ) {
       $month = $this->cc_format($creditcard->month, 'two_digits');
       $year = $this->cc_format($creditcard->year, 'two_digits');
 
+      if(isset($options['order_id']))
+        $this->xml .= "<Id DataType=\"String\">{$options['order_id']}</Id>";
+
       $this->xml .= <<<XML
-            <OrderFormDoc>
-              <Mode DataType="String">{$this->payment_mode}</Mode>
               <Consumer>
                 <PaymentMech>
                   <Type DataType="String">{$this->payment_mech_type}</Type>
@@ -121,12 +128,16 @@ class Merchant_Billing_HsbcSecureEpayments extends Merchant_Billing_Gateway {
                     <Cvv2Indicator DataType="String">1</Cvv2Indicator>
                   </CreditCard>
                 </PaymentMech>
-              </Consumer>
 XML;
+     $this->add_billing_address($options);
+     $this->add_shipping_address($options);
+     $this->xml .= '</Consumer>';
     }
+
     $this->add_transaction_element($amount, $type, $options);
-    $this->add_billing_address($options);
-    $this->add_shipping_address($options);
+
+    if(is_null($creditcard))
+        $this->add_item_elemts ($options);
   }
 
   private function add_transaction_element($amount, $type, $options) {
@@ -134,6 +145,16 @@ XML;
       $this->xml .= <<<XML
       <Transaction>
         <Type DataType="String">{$type}</Type>
+XML;
+      if(isset($options['three_d_secure'])){
+          $this->xml .= <<<XML
+              <PayerSecurityLevel DataType="S32">{$options['three_d_secure']['security_level']}</PayerSecurityLevel>
+              <CardholderPresentCode DataType="S32">{$options['three_d_secure']['cardholder_present_code']}</CardholderPresentCode>
+              <PayerAuthenticationCode DataType="String">{$options['three_d_secure']['cavv']}</PayerAuthenticationCode>
+              <PayerTxnId DataType="String">{$options['three_d_secure']['xid']}</PayerTxnId>
+XML;
+      }
+      $this->xml .= <<<XML
         <CurrentTotals>
           <Totals>
             <Total DataType="Money" Currency="{$this->currency_lookup($this->default_currency)}">{$amount}</Total>
@@ -143,9 +164,9 @@ XML;
 XML;
     } elseif ($type == 'PostAuth' || $type == 'Void') {
       $this->xml .= <<<XML
+      <Id DataType="String">{$options['authorization']}</Id>
       <Transaction>
         <Type DataType="String">{$type}</Type>
-        <Id DataType="String">{$options['authorization']}</Id>
         <CurrentTotals>
           <Totals>
             <Total DataType="Money" Currency="{$this->currency_lookup($this->default_currency)}">{$amount}</Total>
@@ -155,6 +176,36 @@ XML;
 XML;
     }
   }
+
+    private function add_item_elemts($options)
+    {
+        if(isset($options['order_items']))
+        {
+            $this->xml .= '<OrderItemList>';
+            
+            $i = 1;
+
+            foreach($options['order_items'] as $orderItem)
+            {
+                $description = strlen($orderItem['description']) > 63
+                    ? substr($orderItem['description'], 0, 60) . '...'
+                    : $orderItem['description'];
+                $this->xml .= <<<XML
+                    <OrderItem>
+                        <Id DataType="String">{$orderItem['id']}</Id>
+                        <ItemNumber DataType="S32">{$i}</ItemNumber>
+                        <Desc DataType="String">{$description}</Desc>
+                        <Qty DataType="S32">{$orderItem['quantity']}</Qty>
+                        <Price DataType="Money" Currency="{$this->currency_lookup($this->default_currency)}">{$orderItem['unit_price']}</Price>
+                        <Total DataType="Money" Currency="{$this->currency_lookup($this->default_currency)}">{$orderItem['total']}</Total>
+                    </OrderItem>
+XML;
+                $i++;
+            }
+
+            $this->xml .= '</OrderItemList>';
+        }
+    }
 
   private function add_billing_address($options) {
     if (isset($options['billing_address'])) {
@@ -192,14 +243,13 @@ XML;
     $this->xml .= <<<XML
       <Address>
         <Name DataType="String">{$options['name']}</Name>
-        <Company DataType="String">{$options['company']}</Company>
         <Street1 DataType="String">{$options['address1']}</Street1>
         <Street2 DataType="String">{$options['address2']}</Street2>
         <City DataType="String" >{$options['city']}</City>
-        <StateProv DataType="String" >{$options['state']}</StateProv>
-        <Country DataType="String">{$this->COUNTRY_CODE_MAPPINGS[$options['country']]}</Country>
+        <StateProv DataType="String">{$options['state']}</StateProv>
         <PostalCode DataType="String">{$options['zip']}</PostalCode>
-      </Addresss>
+        <Country DataType="String">{$this->COUNTRY_CODE_MAPPINGS[$options['country']]}</Country>
+      </Address>
 XML;
   }
 

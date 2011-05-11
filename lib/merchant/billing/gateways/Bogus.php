@@ -25,10 +25,10 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway {
   public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options = array()) {
     switch ($creditcard->number) {
       case '1':
-        return new Response(true, self::SUCCESS_MESSAGE, array('authorized_amount'=>$money), array('test'=>true, 'authorization' => self::AUTHORIZATION ));
+        return new Merchant_Billing_Response(true, self::SUCCESS_MESSAGE, array('authorized_amount'=>$money), array('test'=>true, 'authorization' => self::AUTHORIZATION ));
         break;
       case '2':
-        return new Response(false, self::FAILURE_MESSAGE, array('authorized_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+        return new Merchant_Billing_Response(false, self::FAILURE_MESSAGE, array('authorized_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
         break;
       default:
         throw new Exception(self::ERROR_MESSAGE);
@@ -39,10 +39,10 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway {
   public function purchase($money, Merchant_Billing_CreditCard $creditcard, $options = array()) {
     switch ($creditcard->number) {
       case '1':
-        return new Response(true, self::SUCCESS_MESSAGE, array('paid_amount'=>$money), array('test'=>true));
+        return new Merchant_Billing_Response(true, self::SUCCESS_MESSAGE, array('paid_amount'=>$money), array('test'=>true));
         break;
       case '2':
-        return new Response(false, self::FAILURE_MESSAGE, array('paid_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+        return new Merchant_Billing_Response(false, self::FAILURE_MESSAGE, array('paid_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
         break;
       default:
         throw new Exception(self::ERROR_MESSAGE);
@@ -56,10 +56,10 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway {
         throw new Exception(self::CREDIT_ERROR_MESSAGE);
         break;
       case '2':
-        return new Response(false, self::FAILURE_MESSAGE, array('paid_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+        return new Merchant_Billing_Response(false, self::FAILURE_MESSAGE, array('paid_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
         break;
       default:
-        return new Response(true, self::SUCCESS_MESSAGE, array('paid_amount'=>$money), array('test'=>true));
+        return new Merchant_Billing_Response(true, self::SUCCESS_MESSAGE, array('paid_amount'=>$money), array('test'=>true));
         break;
     }
   }
@@ -70,10 +70,10 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway {
         throw new Exception(self::CREDIT_ERROR_MESSAGE);
         break;
       case '2':
-        return new Response(false, self::FAILURE_MESSAGE, array('paid_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+        return new Merchant_Billing_Response(false, self::FAILURE_MESSAGE, array('paid_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
         break;
       default:
-        return new Response(true, self::SUCCESS_MESSAGE, array('paid_amount'=>$money), array('test'=>true));
+        return new Merchant_Billing_Response(true, self::SUCCESS_MESSAGE, array('paid_amount'=>$money), array('test'=>true));
         break;
     }
   }
@@ -84,10 +84,10 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway {
         throw new Exception(self::VOID_ERROR_MESSAGE);
         break;
       case '2':
-        return new Response(false, self::FAILURE_MESSAGE, array('authorization' => $ident, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+        return new Merchant_Billing_Response(false, self::FAILURE_MESSAGE, array('authorization' => $ident, 'error' => self::FAILURE_MESSAGE), array('test' => true));
         break;
       default:
-        return new Response(true, self::SUCCESS_MESSAGE, array('authorization'=>$ident), array('test'=>true));
+        return new Merchant_Billing_Response(true, self::SUCCESS_MESSAGE, array('authorization'=>$ident), array('test'=>true));
         break;
     }
   }
@@ -95,10 +95,10 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway {
   public function store(Merchant_Billing_CreditCard $creditcard, $options = array()) {
     switch ($creditcard->number) {
       case '1':
-        return new Response(true, self::SUCCESS_MESSAGE, array('billingid' => '1'), array('test' => true, 'authorization' => self::AUTHORIZATION) );
+        return new Merchant_Billing_Response(true, self::SUCCESS_MESSAGE, array('billingid' => '1'), array('test' => true, 'authorization' => self::AUTHORIZATION) );
         break;
       case '2':
-        return new Response(false, self::FAILURE_MESSAGE, array('billingid' => null, 'error' => self::FAILURE_MESSAGE ), array('test' => true) );
+        return new Merchant_Billing_Response(false, self::FAILURE_MESSAGE, array('billingid' => null, 'error' => self::FAILURE_MESSAGE ), array('test' => true) );
         break;
 
       default:
@@ -110,10 +110,10 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway {
   public function unstore($identification, $options = array()) {
     switch ($identification) {
       case '1':
-        return new Response(true, self::SUCCESS_MESSAGE, array(), array('test' => true));
+        return new Merchant_Billing_Response(true, self::SUCCESS_MESSAGE, array(), array('test' => true));
         break;
       case '2':
-        return new Response(false, self::FAILURE_MESSAGE, array('error' => self::FAILURE_MESSAGE ), array('test' => true) );
+        return new Merchant_Billing_Response(false, self::FAILURE_MESSAGE, array('error' => self::FAILURE_MESSAGE ), array('test' => true) );
         break;
 
       default:
