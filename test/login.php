@@ -38,4 +38,14 @@ define('PAYPAL_SIG','');
 define('PAYPAL_PRO_LOGIN','');
 define('PAYPAL_PRO_PASS','');
 define('PAYPAL_PRO_SIG','');
+
+/**
+ * Piraeus
+ */
+define('acquire_id','' );
+define('merchant_id','' );
+define('pos_id','' );
+define('user','' );
+define('e_password','' );
+define('channel_type','' );
 ?>
