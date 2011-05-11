@@ -389,10 +389,9 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway {
     $this->xml->addAttribute('timestamp', $this->timestamp);
 
     $this->add_merchant_details($options);
-    
-    $this->xml->addChild('ref', $options['payment_method']);
-    $this->xml->addChild('payerref', $options['user']['id']);
-    $this->xml->addChild('expdate', $this->expiry_date($creditcard));
+    $card = $this->xml->addChild('card');
+    $card->addChild('ref', $options['payment_method']);
+    $card->addChild('payerref', $options['user']['id']);
 
     $digest = array(
       $this->timestamp,
@@ -606,7 +605,9 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway {
   private function add_signed_digest($values, $options)
   {
     $string = $this->stringify_values($values);
+		Merchant_Logger::log("stringified: " . $string);
     $this->xml->addChild('sha1hash', $this->sha1from($string, $options));
+		Merchant_Logger::log("stringified: " . $this->sha1from($string, $options));
   }
   
   private function auto_settle_flag($action)
