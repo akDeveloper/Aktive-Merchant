@@ -605,9 +605,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway {
   private function add_signed_digest($values, $options)
   {
     $string = $this->stringify_values($values);
-		Merchant_Logger::log("stringified: " . $string);
     $this->xml->addChild('sha1hash', $this->sha1from($string, $options));
-		Merchant_Logger::log("stringified: " . $this->sha1from($string, $options));
   }
   
   private function auto_settle_flag($action)
