@@ -5,9 +5,9 @@ require_once 'payflow/PayflowResponse.php';
 
 class Merchant_Billing_Payflow extends Merchant_Billing_PayflowCommon
 {
-    protected $supported_cardtypes = array('add', 'modify', 'cancel', 'inquiry', 'reactivate', 'payment');
-    protected $homepage_url = 'https://www.paypal.com/cgi-bin/webscr?cmd=_payflow-pro-overview-outside';
-    protected $display_name = 'PayPal Payflow Pro';
+    public static $supported_cardtypes = array('add', 'modify', 'cancel', 'inquiry', 'reactivate', 'payment');
+    public static $homepage_url = 'https://www.paypal.com/cgi-bin/webscr?cmd=_payflow-pro-overview-outside';
+    public static $display_name = 'PayPal Payflow Pro';
 
     function authorize($money, $credit_card_or_reference, $options = array())
     {
@@ -30,11 +30,12 @@ class Merchant_Billing_Payflow extends Merchant_Billing_PayflowCommon
 
     private function build_reference_sale_or_authorization_request($action, $money, $reference, $options)
     {
+        $default_currency = self::$default_currency;
         $bodyXml = <<<XML
              <{$action}>
                 <PayData>
                     <Invoice>
-                        <TotalAmt Currency="{$this->default_currency}">
+                        <TotalAmt Currency="{$default_currency}">
                             {$this->amount($money)}
                         </TotalAmt>
                     </Invoice>
@@ -75,7 +76,7 @@ XML;
             $bodyXml .= "<ShipTo>" . $this->add_address($options, $options['shipping_address']) ."</ShipTo>";
 
         $bodyXml .= <<<XML
-                        <TotalAmt Currency="{$this->default_currency}">
+                        <TotalAmt Currency="{$default_currency}">
                             {$this->amount($money)}
                         </TotalAmt>
                     </Invoice>
