@@ -13,7 +13,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon {
   const TEST_REDIRECT_URL = 'https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=';
   const LIVE_REDIRECT_URL = 'https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=';
 
-  private $version  = '59.0';
+  private $version  = '63.0';
 
   private $options = array();
   private $post = array();
@@ -94,11 +94,12 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon {
 
     $params = array(
         'METHOD' => 'SetExpressCheckout',
-        'AMT'           => $this->amount($money),
-        'RETURNURL'     => $options['return_url'],
-        'CANCELURL'     => $options['cancel_return_url']);
+        'PAYMENTREQUEST_0_AMT'     => $this->amount($money),
+        'EMAIL'                    => $options['email'],
+        'RETURNURL'                => $options['return_url'],
+        'CANCELURL'                => $options['cancel_return_url']);
 
-    $this->post = array_merge($this->post, $params);
+    $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
 
     Merchant_Logger::log("Commit Payment Action: $action, Paypal Method: SetExpressCheckout");
 
@@ -112,17 +113,43 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon {
     $this->required_options('token, payer_id', $options);
 
     $params = array(
-        'METHOD' => 'DoExpressCheckoutPayment',
-        'AMT'            => $this->amount($money),
-        'TOKEN'          => $options['token'],
-        'PAYERID'        => $options['payer_id']);
+        'METHOD'               => 'DoExpressCheckoutPayment',
+        'PAYMENTREQUEST_0_AMT' => $this->amount($money),
+        'TOKEN'                => $options['token'],
+        'PAYERID'              => $options['payer_id']);
 
-    $this->post = array_merge($this->post, $params);
+    $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
 
     Merchant_Logger::log("Commit Payment Action: $action, Paypal Method: DoExpressCheckoutPayment");
 
     return $this->commit($action );
 
+  }
+  
+  private function getOptionalParams($options)
+  {
+    $params = array();  
+      
+    if(isset ($options['payment_breakdown']))
+    {
+        $breakdown = $options['payment_breakdown'];
+        $params['PAYMENTREQUEST_0_ITEMAMT'] = $this->amount($breakdown['item_total']);
+        $params['PAYMENTREQUEST_0_SHIPPINGAMT'] = $this->amount($breakdown['shipping']);
+        $params['PAYMENTREQUEST_0_HANDLINGAMT'] = $this->amount($breakdown['handling']);
+    }
+    
+    if(isset ($options['items']))
+    {
+        foreach($options['items'] as $key => $item)
+        {
+            $params['L_PAYMENTREQUEST_0_NAME'.$key] = $item['description'];
+            $params['L_PAYMENTREQUEST_0_AMT'.$key] = $this->amount($item['unit_price']);
+            $params['L_PAYMENTREQUEST_0_QTY'.$key] = $item['quantity'];
+            $params['L_PAYMENTREQUEST_0_NUMBER'.$key] = $item['id'];
+        }
+    }
+    
+    return $params;
   }
 
   /**
@@ -169,12 +196,12 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon {
    */
   protected function post_data($action) {
     $params = array(
-        'PAYMENTACTION' => $action,
+        'PAYMENTREQUEST_0_PAYMENTACTION' => $action,
         'USER'          => $this->options['login'],
         'PWD'           => $this->options['password'],
         'VERSION'       => $this->version,
         'SIGNATURE'     => $this->options['signature'],
-        'CURRENCYCODE'  => $this->default_currency);
+        'PAYMENTREQUEST_0_CURRENCYCODE'  => $this->default_currency);
     
     $this->post = array_merge($this->post, $params);
 
