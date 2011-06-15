@@ -53,18 +53,18 @@ class Merchant_Billing_HsbcSecureEpayments extends Merchant_Billing_Gateway {
   private $payment_mode = "Y"; #Test mode
   private $payment_mech_type = "CreditCard";
 
-  protected $default_currency = 'EUR';
-  protected $supported_countries = array('US', 'GB');
-  protected $supported_cardtypes = array('visa', 'master', 'american_express', 'switch', 'solo', 'maestro');
-  protected $homepage_url = 'http://www.hsbc.co.uk/1/2/business/cards-payments/secure-epayments';
-  protected $display_name = 'HSBC Secure ePayments';
-  protected $money_format = 'cents';
+  public static $default_currency = 'EUR';
+  public static $supported_countries = array('US', 'GB');
+  public static $supported_cardtypes = array('visa', 'master', 'american_express', 'switch', 'solo', 'maestro');
+  public static $homepage_url = 'http://www.hsbc.co.uk/1/2/business/cards-payments/secure-epayments';
+  public static $display_name = 'HSBC Secure ePayments';
+  public static $money_format = 'cents';
 
   public function __construct($options = array()) {
     $this->required_options('login, password, client_id', $options);
 
     if (isset($options['currency']))
-      $this->default_currency = $options['currency'];
+      self::$default_currency = $options['currency'];
 
     $this->options = $options;
 
@@ -153,7 +153,7 @@ XML;
       $this->xml .= <<<XML
         <CurrentTotals>
           <Totals>
-            <Total DataType="Money" Currency="{$this->currency_lookup($this->default_currency)}">{$amount}</Total>
+            <Total DataType="Money" Currency="{$this->currency_lookup(self::$default_currency)}">{$amount}</Total>
           </Totals>
         </CurrentTotals>
       </Transaction>
@@ -165,7 +165,7 @@ XML;
         <Type DataType="String">{$type}</Type>
         <CurrentTotals>
           <Totals>
-            <Total DataType="Money" Currency="{$this->currency_lookup($this->default_currency)}">{$amount}</Total>
+            <Total DataType="Money" Currency="{$this->currency_lookup(self::$default_currency)}">{$amount}</Total>
           </Totals>
         </CurrentTotals>
       </Transaction>
@@ -192,8 +192,8 @@ XML;
                         <ItemNumber DataType="S32">{$i}</ItemNumber>
                         <Desc DataType="String">{$description}</Desc>
                         <Qty DataType="S32">{$orderItem['quantity']}</Qty>
-                        <Price DataType="Money" Currency="{$this->currency_lookup($this->default_currency)}">{$orderItem['unit_price']}</Price>
-                        <Total DataType="Money" Currency="{$this->currency_lookup($this->default_currency)}">{$orderItem['total']}</Total>
+                        <Price DataType="Money" Currency="{$this->currency_lookup(self::$default_currency)}">{$orderItem['unit_price']}</Price>
+                        <Total DataType="Money" Currency="{$this->currency_lookup(self::$default_currency)}">{$orderItem['total']}</Total>
                     </OrderItem>
 XML;
                 $i++;

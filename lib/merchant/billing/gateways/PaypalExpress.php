@@ -21,10 +21,10 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon {
   private $token;
   private $payer_id;
 
-  protected $default_currency = 'EUR';
-  protected $supported_countries = array('US');
-  protected $homepage_url = 'https://www.paypal.com/cgi-bin/webscr?cmd=xpt/merchant/ExpressCheckoutIntro-outside';
-  protected $display_name = 'PayPal Express Checkout';
+  public static $default_currency = 'EUR';
+  public static $supported_countries = array('US');
+  public static $homepage_url = 'https://www.paypal.com/cgi-bin/webscr?cmd=xpt/merchant/ExpressCheckoutIntro-outside';
+  public static $display_name = 'PayPal Express Checkout';
 
 
   public function __construct( $options = array() ) {
@@ -34,7 +34,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon {
     $this->options = $options;
 
     if( isset($options['version'])) $this->version = $options['version'];
-    if( isset($options['currency'])) $this->default_currency = $options['currency'];
+    if( isset($options['currency'])) self::$default_currency = $options['currency'];
   }
 
   /**
@@ -201,7 +201,8 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon {
         'PWD'           => $this->options['password'],
         'VERSION'       => $this->version,
         'SIGNATURE'     => $this->options['signature'],
-        'PAYMENTREQUEST_0_CURRENCYCODE'  => $this->default_currency);
+        'PAYMENTREQUEST_0_CURRENCYCODE'  => $this->default_currency),
+        'CURRENCYCODE'  => self::$default_currency);
     
     $this->post = array_merge($this->post, $params);
 

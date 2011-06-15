@@ -13,15 +13,15 @@ class Merchant_Billing_PiraeusPaycenter extends Merchant_Billing_Gateway {
   const LIVE_URL = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
 
   # The countries the gateway supports merchants from as 2 digit ISO country codes
-  protected $supported_countries = array('GR');
+  public static $supported_countries = array('GR');
 
   # The card types supported by the payment gateway
-  protected $homepage_url = 'http://www.piraeusbank.gr';
+  public static $homepage_url = 'http://www.piraeusbank.gr';
 
   # The homepage URL of the gateway
-  protected $display_name = 'Piraeus Paycenter';
+  public static $display_name = 'Piraeus Paycenter';
 
-  protected $default_currency  = 'EUR';
+  public static $default_currency  = 'EUR';
 
   private $options;
   private $post;
@@ -60,7 +60,7 @@ class Merchant_Billing_PiraeusPaycenter extends Merchant_Billing_Gateway {
     $this->required_options('acquire_id, merchant_id, pos_id, user, password, channel_type', $options);
 
     if ( isset( $options['currency'] ) )
-      $this->default_currency = $options['currency'];
+      self::$default_currency = $options['currency'];
 
     $this->options = $options;
   }
@@ -150,7 +150,7 @@ class Merchant_Billing_PiraeusPaycenter extends Merchant_Billing_Gateway {
     $this->post .= <<<XML
       <ns:MerchantReference>{$options['order_id']}</ns:MerchantReference>
       <ns:EntryType>KeyEntry</ns:EntryType>
-      <ns:CurrencyCode>{$this->CURRENCY_MAPPINGS[$this->default_currency]}</ns:CurrencyCode>
+      <ns:CurrencyCode>{$this->currency_lookup(self::$default_currency)}</ns:CurrencyCode>
       <ns:Amount>$amount</ns:Amount>
 XML;
 

@@ -24,8 +24,8 @@ class Merchant_Billing_PayflowCommon extends Merchant_Billing_Gateway
         'Service Not Requested' => 'P'
     );
 
-    protected $default_currency = 'USD';
-    protected $supported_countries = array('US', 'CA', 'SG', 'AU');
+    public static $default_currency = 'USD';
+    public static $supported_countries = array('US', 'CA', 'SG', 'AU');
 
     protected $options;
     protected $partner = 'PayPal';
@@ -42,7 +42,7 @@ class Merchant_Billing_PayflowCommon extends Merchant_Billing_Gateway
             $this->partner = $options['partner'];
 
         if(isset($options['currency']))
-            $this->default_currency = $options['currency'];
+            self::$default_currency = $options['currency'];
     }
 
     function capture($money, $authorization, $options)
@@ -95,9 +95,10 @@ XML;
 XML;
         if(!is_null($money))
         {
+            $default_currency = self::$default_currency;
             $bodyXml .= <<< XML
                 <Invoice>
-                    <TotalAmt Currency="{$this->default_currency}">{$this->amount($money)}</TotalAmt>
+                    <TotalAmt Currency="{$default_currency}">{$this->amount($money)}</TotalAmt>
                 </Invoice>
 XML;
         }

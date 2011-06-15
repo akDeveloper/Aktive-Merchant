@@ -61,13 +61,13 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway {
     'laser' => 'LASER'
   );
 
-  protected $supported_countries = array('IE', 'UK');
-  protected $supported_cardtypes  = array('visa', 'master', 'american_express', 'diners_club', 'switch', 'solo', 'laser' );
-  protected $homepage_url = 'http://www.realexpayments.com/';
-  protected $display_name = 'Realex';
+  public static $supported_countries = array('IE', 'UK');
+  public static $supported_cardtypes  = array('visa', 'master', 'american_express', 'diners_club', 'switch', 'solo', 'laser' );
+  public static $homepage_url = 'http://www.realexpayments.com/';
+  public static $display_name = 'Realex';
 
-  protected $default_currency  = 'USD';
-  protected $money_format = 'cents'; # or cents
+  public static $default_currency  = 'USD';
+  public static $money_format = 'cents'; # or cents
 
   private $options = array();
   private $xml;
@@ -86,7 +86,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway {
     $this->timestamp = strftime("%Y%m%d%H%M%S");
   
     if ( isset( $options['currency'] ) )
-      $this->default_currency = $options['currency'];
+      self::$default_currency = $options['currency'];
   
     $this->options = $options;
   }
@@ -298,7 +298,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway {
     $autosettle = $this->xml->addChild('autosettle');
     $autosettle->addAttribute('flag', $this->auto_settle_flag($action));
     
-    $currency = (isset($options['currency'])) ? $options['currency'] : $this->default_currency;
+    $currency = (isset($options['currency'])) ? $options['currency'] : self::$default_currency;
   
     $digest = array(
       $this->timestamp,
@@ -349,7 +349,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway {
     $autosettle->addAttribute('flag', 1);
     $this->xml->addChild('refundhash', $options['refund_hash']);
     
-    $currency = (isset($options['currency'])) ? $options['currency'] : $this->default_currency;
+    $currency = (isset($options['currency'])) ? $options['currency'] : self::$default_currency;
 
     $digest = array(
       $this->timestamp,
@@ -481,7 +481,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway {
     $autosettle = $this->xml->addChild('autosettle');
     $autosettle->addAttribute('flag', 1);
     
-    $currency = (isset($options['currency'])) ? $options['currency'] : $this->default_currency;
+    $currency = (isset($options['currency'])) ? $options['currency'] : self::$default_currency;
   
     $digest = array(
       $this->timestamp,
@@ -565,7 +565,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway {
   
   private function add_amount($money, $options)
   {
-    $currency = (isset($options['currency'])) ? $options['currency'] : $this->default_currency;
+    $currency = (isset($options['currency'])) ? $options['currency'] : self::$default_currency;
   
     $amount = $this->xml->addChild('amount', $this->amount($money));
     $amount->addAttribute('currency', $currency);

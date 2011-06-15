@@ -13,16 +13,16 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
   const LIVE_URL = 'https://example.com/live';
 
   # The countries the gateway supports merchants from as 2 digit ISO country codes
-  protected $supported_countries = array('US', 'GR');
+  public static $supported_countries = array('US', 'GR');
 
   # The card types supported by the payment gateway
-  protected $supported_cardtypes = array('visa', 'master', 'american_express', 'switch', 'solo', 'maestro');
+  public static $supported_cardtypes = array('visa', 'master', 'american_express', 'switch', 'solo', 'maestro');
 
   # The homepage URL of the gateway
-  protected $homepage_url = 'http://www.example.net';
+  public static $homepage_url = 'http://www.example.net';
 
   # The display name of the gateway
-  protected $display_name = 'New Gateway';
+  public static $display_name = 'New Gateway';
 
   private $options;
   private $post;

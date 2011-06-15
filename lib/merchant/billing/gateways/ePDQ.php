@@ -66,12 +66,12 @@ class Merchant_Billing_ePDQ extends Merchant_Billing_Gateway
 	private $payment_mode = "P"; #Production
 	private $payment_mech_type = "CreditCard";
 
-	protected $default_currency = 'GBP';
-	protected $supported_countries = array('US', 'GB');
-	protected $supported_cardtypes = array('visa', 'master', 'american_express', 'discover');
-	protected $homepage_url = 'http://www.barclaycard.co.uk/';
-	protected $display_name = 'ePDQ';
-	protected $money_format = 'cents';
+	public static $default_currency = 'GBP';
+	public static $supported_countries = array('US', 'GB');
+	public static $supported_cardtypes = array('visa', 'master', 'american_express', 'discover');
+	public static $homepage_url = 'http://www.barclaycard.co.uk/';
+	public static $display_name = 'ePDQ';
+	public static $money_format = 'cents';
 
 	/**
 	 * __constructor
@@ -82,7 +82,7 @@ class Merchant_Billing_ePDQ extends Merchant_Billing_Gateway
 
 		if (isset($options['currency']))
 		{
-			$this->default_currency = $options['currency'];
+			self::$default_currency = $options['currency'];
 		}
 
 		$this->options = $options;
@@ -197,6 +197,7 @@ XML;
 	 */
 	private function add_transaction_element($amount, $type, $options)
 	{
+
 		if ($type == 'PreAuth' || $type == 'Auth')
 		{
 			$this->xml .= <<<XML
@@ -204,7 +205,7 @@ XML;
 								<Type DataType="String">{$type}</Type>
 								<CurrentTotals>
 									<Totals>
-										<Total DataType="Money" Currency="{$this->currency_lookup($this->default_currency)}">{$amount}</Total>
+										<Total DataType="Money" Currency="{$this->currency_lookup(self::$default_currency)}">{$amount}</Total>
 									</Totals>
 								</CurrentTotals>
 							</Transaction>
@@ -218,7 +219,7 @@ XML;
 								<Id DataType="String">{$options['authorization']}</Id>
 								<CurrentTotals>
 									<Totals>
-										<Total DataType="Money" Currency="{$this->CURRENCY_MAPPINGS[$this->currency]}">{$amount}</Total>
+										<Total DataType="Money" Currency="{$this->currency_lookup(self::$default_currency)}">{$amount}</Total>
 									</Totals>
 								</CurrentTotals>
 							</Transaction>

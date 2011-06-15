@@ -9,25 +9,27 @@
  */
 require_once dirname(__FILE__) . "/paypal/PaypalCommon.php";
 class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
-
+  
+  public static $money_format = 'cents'; # or cents
+  
   # The countries the gateway supports merchants from as 2 digit ISO country codes
-  protected $supported_countries = array('US','UK');
+  public static $supported_countries = array('US','UK');
 
   # The card types supported by the payment gateway
-  protected $supported_cardtypes = array('visa', 'master', 'american_express', 'discover');
+  public static $supported_cardtypes = array('visa', 'master', 'american_express', 'discover');
 
   # The homepage URL of the gateway
-  protected $homepage_url = 'https://merchant.paypal.com/cgi-bin/marketingweb?cmd=_render-content&content_ID=merchant/wp_pro';
+  public static $homepage_url = 'https://merchant.paypal.com/cgi-bin/marketingweb?cmd=_render-content&content_ID=merchant/wp_pro';
 
   # The display name of the gateway
-  protected $display_name = 'PayPal Website Payments Pro';
+  public static $display_name = 'PayPal Website Payments Pro';
 
   private $options;
   private $post = array();
 
   private $version  = '59.0';
 
-  protected $default_currency = 'USD';
+  public static $default_currency = 'USD';
 
   private $credit_card_types = array(
         'visa'             => 'Visa',
@@ -47,7 +49,7 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
     $this->required_options('login, password, signature', $options);
 
     if ( isset( $options['currency'] ) )
-      $this->default_currency = $options['currency'];
+      self::$default_currency = $options['currency'];
 
     $this->options = $options;
   }
@@ -181,7 +183,7 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
     $this->post['CVV2']           = $creditcard->verification_value;
     $this->post['FIRSTNAME']      = $creditcard->first_name;
     $this->post['LASTNAME']       = $creditcard->last_name;
-    $this->post['CURRENCYCODE']   = $this->default_currency;
+    $this->post['CURRENCYCODE']   = self::default_currency;
 
   }
 

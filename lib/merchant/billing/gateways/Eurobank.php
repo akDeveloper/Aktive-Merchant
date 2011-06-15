@@ -13,12 +13,12 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
 
   private $options = array();
   private $xml;
-  protected  $default_currency  = 'EUR';
-  protected  $supported_countries = array('GR');
-  protected  $supported_cardtypes = array('visa', 'master');
-  protected  $homepage_url = 'http://www.eurobank.gr/online/home/generic.aspx?id=79&mid=635';
-  protected  $display_name = 'Eurobank Euro-Commerce';
-  protected  $money_format = 'cents';
+  public static  $default_currency  = 'EUR';
+  public static  $supported_countries = array('GR');
+  public static  $supported_cardtypes = array('visa', 'master');
+  public static  $homepage_url = 'http://www.eurobank.gr/online/home/generic.aspx?id=79&mid=635';
+  public static  $display_name = 'Eurobank Euro-Commerce';
+  public static  $money_format = 'cents';
 
 
   /**
@@ -32,7 +32,7 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway {
     $this->required_options('login, password', $options);
 
     if ( isset( $options['currency'] ) )
-      $this->default_currency = $options['currency'];
+      self::$default_currency = $options['currency'];
 
     $this->options = $options;
   }
@@ -211,7 +211,7 @@ XML;
             <Amount>{$this->amount($money)}</Amount>
             <MerchantRef>{$merchant_ref}</MerchantRef>
             <MerchantDesc>{$merchant_desc}</MerchantDesc>
-            <Currency>{$this->currency_lookup($this->default_currency)}</Currency>
+            <Currency>{$this->currency_lookup(self::$default_currency)}</Currency>
             <CustomerEmail>{$customer_email}</CustomerEmail>
             <Var1 />
             <Var2 />
