@@ -6,7 +6,7 @@
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-#require_once dirname(__FILE__) . "/../common.php";
+
 class Merchant_Billing_Base {
 
   public static $gateway_mode;
@@ -27,7 +27,10 @@ class Merchant_Billing_Base {
 
   public static function gateway($gateway=null, $options = array()) {
     $gateway = "Merchant_Billing_" . Inflect::camelize($gateway);
-    return new $gateway($options);
+    
+    if (class_exists($gateway)) return new $gateway($options);
+
+    throw new Exception("Unable to load class: {$gateway}.");
   }
 
 }
