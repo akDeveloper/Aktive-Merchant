@@ -208,7 +208,8 @@ XML;
         $options['test'] = $this->is_test();
         if(isset($response['CVResult']))
             $options['cvv_result'] = $this->CVV_CODE[$response['CVResult']];
-        //TODO: AVS result
+        if(isset($response['AVSResult']))
+            $options['avs_result'] = array('code' => $response['AVSResult']);
 
         return $options;
     }
