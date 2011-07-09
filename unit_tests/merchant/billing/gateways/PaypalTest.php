@@ -62,15 +62,9 @@ class PaypalTest extends PHPUnit_Framework_TestCase {
     $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
     $this->assert_success($response);
     $this->assertTrue($response->test());
-    $this->assertEquals('Success', $response->message());
-  }
-
-  public function testFailedPurchase() {
-    $this->creditcard->number = '234234234234';
-    $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
-    $this->assert_failure($response);
-    $this->assertTrue($response->test());
-    $this->assertEquals('This transaction cannot be processed. Please enter a valid credit card number and type.', $response->message());
+    $params = $response->params();
+    $this->assertEquals('100.00', $params['AMT']);
+    $this->assertEquals('USD', $params['CURRENCYCODE']);
   }
 
   public function testSuccessfulAuthorization(){
@@ -81,6 +75,13 @@ class PaypalTest extends PHPUnit_Framework_TestCase {
     $this->assertEquals('USD', $params['CURRENCYCODE']);
   }
 
+  public function testFailedPurchase() {
+    $this->creditcard->number = '234234234234';
+    $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
+    $this->assert_failure($response);
+    $this->assertTrue($response->test());
+    $this->assertEquals('This transaction cannot be processed. Please enter a valid credit card number and type.', $response->message());
+  }
 
   public function testFailedAuthorization() {
     $this->creditcard->number = '234234234234';

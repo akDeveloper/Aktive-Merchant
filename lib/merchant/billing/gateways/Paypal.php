@@ -10,7 +10,7 @@
 require_once dirname(__FILE__) . "/paypal/PaypalCommon.php";
 class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
   
-  public static $money_format = 'cents'; # or cents
+  public static $money_format = 'dollars'; # or cents
   
   # The countries the gateway supports merchants from as 2 digit ISO country codes
   public static $supported_countries = array('US','UK');
@@ -183,7 +183,7 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon {
     $this->post['CVV2']           = $creditcard->verification_value;
     $this->post['FIRSTNAME']      = $creditcard->first_name;
     $this->post['LASTNAME']       = $creditcard->last_name;
-    $this->post['CURRENCYCODE']   = self::default_currency;
+    $this->post['CURRENCYCODE']   = self::$default_currency;
 
   }
 
