@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Description of ExpireDateTest
  *
@@ -13,26 +14,33 @@
  */
 require_once dirname(__FILE__) . '/../../config.php';
 
-class CreditCardTest extends PHPUnit_Framework_TestCase {
-  public $expire_date;
-  public $not_expire_date;
+class CreditCardTest extends PHPUnit_Framework_TestCase
+{
 
-  public function setUp() {
-    $this->expire_date = new Merchant_Billing_ExpiryDate(5, 2010);
-    $this->not_expire_date = new Merchant_Billing_ExpiryDate(12, date('Y',time() + 1 ) );
-  }
+    public $expire_date;
+    public $not_expire_date;
 
-  public function testSuccessfulExpireDate(){
-    $this->assertTrue($this->expire_date->is_expired() );
-  }
+    public function setUp()
+    {
+        $this->expire_date = new Merchant_Billing_ExpiryDate(5, 2010);
+        $this->not_expire_date = new Merchant_Billing_ExpiryDate(12, date('Y', time() + 1));
+    }
 
-  public function testFailedExpireDate() {
-    $this->assertFalse($this->not_expire_date->is_expired() );
-  }
+    public function testSuccessfulExpireDate()
+    {
+        $this->assertTrue($this->expire_date->is_expired());
+    }
 
-  public function testSuccessfulReturnExpirationTime(){
-    $this->assertEquals('1275339599', $this->expire_date->expiration() );
-  }
+    public function testFailedExpireDate()
+    {
+        $this->assertFalse($this->not_expire_date->is_expired());
+    }
+
+    public function testSuccessfulReturnExpirationTime()
+    {
+        $this->assertEquals('1275339599', $this->expire_date->expiration());
+    }
+
 }
 
 ?>

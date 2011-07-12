@@ -2,6 +2,7 @@
 
 class Merchant_Billing_PayflowResponse extends Merchant_Billing_Response
 {
+
     function profileId()
     {
         return $this->params['profileId'];
@@ -9,9 +10,10 @@ class Merchant_Billing_PayflowResponse extends Merchant_Billing_Response
 
     function paymentHistory()
     {
-        if(is_array($this->params['rpPaymentResult']))
+        if (is_array($this->params['rpPaymentResult']))
             return $this->params['rpPaymentResult'];
         else
             return array();
     }
+
 }

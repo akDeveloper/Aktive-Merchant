@@ -1,57 +1,67 @@
 <?php
+
 require_once "../merchant.php";
 
-class GatewaySupport {
-  private $supported_gateways = array();
-  private $actions = array("purchase", "authorize", "capture", "void", "credit", "recurring");
+class GatewaySupport
+{
 
-  public function __construct(){
-    $dir_path = realpath('../merchant/billing/gateways');
-    if ($handle = opendir($dir_path)) {
-      while (false !== ($file = readdir($handle))) {
-        if (is_dir($dir_path ."/". $file) || $file === "." || $file === ".." ) continue;
-        $this->supported_gateways[] = "Merchant_Billing_" . str_replace(".php","",$file);
-      }
-    }
-    sort($this->supported_gateways);
-  }
+    private $supported_gateways = array();
+    private $actions = array("purchase", "authorize", "capture", "void", "credit", "recurring");
 
-  public function supported_gateways() {
-    return $this->supported_gateways;
-  }
-
-  public function features(){
-    $tabs = "\t\t\t";
-    print "Name$tabs";
-    foreach ( $this->actions as $action ){
-      print $action . $tabs;
-    }
-    print "\n";
-    foreach( $this->supported_gateways as $gateway ){
-      $methods = array();
-      $ref = new ReflectionClass($gateway);
-      print $ref->getStaticPropertyValue('display_name').$tabs;
-      foreach ( $this->actions as $action ){
-        if (method_exists($gateway, $action ) ){
-          print "Y".$tabs;
-        } else {
-          print "N".$tabs;
+    public function __construct()
+    {
+        $dir_path = realpath('../merchant/billing/gateways');
+        if ($handle = opendir($dir_path)) {
+            while (false !== ($file = readdir($handle))) {
+                if (is_dir($dir_path . "/" . $file) || $file === "." || $file === "..")
+                    continue;
+                $this->supported_gateways[] = "Merchant_Billing_" . str_replace(".php", "", $file);
+            }
         }
-      }
-      print "\n";
+        sort($this->supported_gateways);
     }
-  }
 
-  public function __toString(){
-    $to_string = "";
-    foreach( $this->supported_gateways as $gateway ){
-      $ref = new ReflectionClass($gateway);
-      $to_string .= $ref->getStaticPropertyValue('display_name') ." - ".
-        $ref->getStaticPropertyValue('homepage_url') ." ".
-        "[" . join(", ", $ref->getStaticPropertyValue('supported_countries')) .
-        "]\n";
+    public function supported_gateways()
+    {
+        return $this->supported_gateways;
     }
-    return $to_string;
-  }
+
+    public function features()
+    {
+        $tabs = "\t\t\t";
+        print "Name$tabs";
+        foreach ($this->actions as $action) {
+            print $action . $tabs;
+        }
+        print "\n";
+        foreach ($this->supported_gateways as $gateway) {
+            $methods = array();
+            $ref = new ReflectionClass($gateway);
+            print $ref->getStaticPropertyValue('display_name') . $tabs;
+            foreach ($this->actions as $action) {
+                if (method_exists($gateway, $action)) {
+                    print "Y" . $tabs;
+                } else {
+                    print "N" . $tabs;
+                }
+            }
+            print "\n";
+        }
+    }
+
+    public function __toString()
+    {
+        $to_string = "";
+        foreach ($this->supported_gateways as $gateway) {
+            $ref = new ReflectionClass($gateway);
+            $to_string .= $ref->getStaticPropertyValue('display_name') . " - " .
+                $ref->getStaticPropertyValue('homepage_url') . " " .
+                "[" . join(", ", $ref->getStaticPropertyValue('supported_countries')) .
+                "]\n";
+        }
+        return $to_string;
+    }
+
 }
+
 ?>

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Description of Gateway
  *
@@ -18,12 +19,16 @@
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_Expect {
+class Merchant_Billing_Expect
+{
 
-  protected $expects = array();
+    protected $expects = array();
 
-  public function expects($method, $return_value) {
-    $this->expects[$method] = $return_value;
-  }
+    public function expects($method, $return_value)
+    {
+        $this->expects[$method] = $return_value;
+    }
+
 }
+
 ?>

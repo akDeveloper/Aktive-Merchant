@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Description of HsbcSecureEpaymentsTest
  *
@@ -13,141 +14,153 @@
  */
 require_once dirname(__FILE__) . '/../../../config.php';
 
-class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase {
-  public $gateway;
-  public $amount;
-  public $options;
-  public $creditcard;
+class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase
+{
 
-  /**
-   * Setup
-   */
-  function setUp() {
-    Merchant_Billing_Base::mode('test');
+    public $gateway;
+    public $amount;
+    public $options;
+    public $creditcard;
 
-    $options = array(
-                  'login' => 'x',
-                  'password' => 'y',
-                  'client_id' => 'z',
-                  'currency' => 'EUR'
-                  );
-    $this->gateway = new Merchant_Billing_HsbcSecureEpayments($options);
+    /**
+     * Setup
+     */
+    function setUp()
+    {
+        Merchant_Billing_Base::mode('test');
 
-    $this->amount = 100;
-    $this->creditcard = new Merchant_Billing_CreditCard( array(
-        "first_name" => "John",
-        "last_name" => "Doe",
-        "number" => "4111111111111111",
-        "month" => "01",
-        "year" => "2015",
-        "verification_value" => "000"
-      )
-    );
-    $this->options = array(
-      'order_id' => 'REF' . $this->gateway->generate_unique_id(),
-      'description' => 'Test Transaction',
-      'country' => 'US',
-      'address' => array(
-        'address1' => '1234 Street',
-        'zip' => '98004',
-        'state' => 'WA'
-      )
-    );
-    $this->authorization = '483e6382-7d13-3001-002b-0003bac00fc9';
-  }
+        $options = array(
+            'login' => 'x',
+            'password' => 'y',
+            'client_id' => 'z',
+            'currency' => 'EUR'
+        );
+        $this->gateway = new Merchant_Billing_HsbcSecureEpayments($options);
 
-  /**
-   * Tests
-   */
-  public function testSuccessfulAuthorization() {
-    $this->gateway->expects('ssl_post', $this->successful_authorize_response() );
+        $this->amount = 100;
+        $this->creditcard = new Merchant_Billing_CreditCard(array(
+                "first_name" => "John",
+                "last_name" => "Doe",
+                "number" => "4111111111111111",
+                "month" => "01",
+                "year" => "2015",
+                "verification_value" => "000"
+                )
+        );
+        $this->options = array(
+            'order_id' => 'REF' . $this->gateway->generate_unique_id(),
+            'description' => 'Test Transaction',
+            'country' => 'US',
+            'address' => array(
+                'address1' => '1234 Street',
+                'zip' => '98004',
+                'state' => 'WA'
+            )
+        );
+        $this->authorization = '483e6382-7d13-3001-002b-0003bac00fc9';
+    }
 
-    $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
-    $this->assert_success($response);
-    $this->assertEquals('Approved.',$response->message());
-  }
+    /**
+     * Tests
+     */
+    public function testSuccessfulAuthorization()
+    {
+        $this->gateway->expects('ssl_post', $this->successful_authorize_response());
 
-  public function testUnsuccessfulAuthorization() {
-    $this->gateway->expects('ssl_post', $this->failed_authorize_response() );
+        $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
+        $this->assert_success($response);
+        $this->assertEquals('Approved.', $response->message());
+    }
 
-    $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
-    $this->assert_failure($response);
-  }
+    public function testUnsuccessfulAuthorization()
+    {
+        $this->gateway->expects('ssl_post', $this->failed_authorize_response());
 
-  public function testSuccessfulCapture() {
-    $this->gateway->expects('ssl_post', $this->successful_capture_response() );
+        $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
+        $this->assert_failure($response);
+    }
 
-    $capture = $this->gateway->capture($this->amount, $this->authorization, $this->options);
-    $this->assert_success($capture);
-    $this->assertEquals('Approved.', $capture->message());
-    $this->assertEquals('483e6382-7d13-3001-002b-0003bac00fc9', $capture->authorization());
-    $this->assertEquals('A', $capture->transaction_status);
-    $this->assertEquals('1', $capture->return_code);
-    $this->assertEquals('797220', $capture->auth_code);
-  }
+    public function testSuccessfulCapture()
+    {
+        $this->gateway->expects('ssl_post', $this->successful_capture_response());
 
-  public function testUnsuccessfulCapture() {
-    $this->gateway->expects('ssl_post', $this->failed_capture_response() );
+        $capture = $this->gateway->capture($this->amount, $this->authorization, $this->options);
+        $this->assert_success($capture);
+        $this->assertEquals('Approved.', $capture->message());
+        $this->assertEquals('483e6382-7d13-3001-002b-0003bac00fc9', $capture->authorization());
+        $this->assertEquals('A', $capture->transaction_status);
+        $this->assertEquals('1', $capture->return_code);
+        $this->assertEquals('797220', $capture->auth_code);
+    }
 
-    $capture = $this->gateway->capture($this->amount, $this->authorization, $this->options);
-    $this->assert_failure($capture);
-    $this->assertEquals('Denied.', $capture->message());
-    $this->assertEquals('483e6382-7d13-3001-002b-0003bac00fc9', $capture->authorization());
-    $this->assertEquals('E', $capture->transaction_status);
-    $this->assertEquals('1067', $capture->return_code);
-    $this->assertNull($capture->auth_code);
-  }
+    public function testUnsuccessfulCapture()
+    {
+        $this->gateway->expects('ssl_post', $this->failed_capture_response());
 
-  public function testInvalidCredentialsRejected() {
-    $this->gateway->expects('ssl_post', $this->auth_fail_response() );
+        $capture = $this->gateway->capture($this->amount, $this->authorization, $this->options);
+        $this->assert_failure($capture);
+        $this->assertEquals('Denied.', $capture->message());
+        $this->assertEquals('483e6382-7d13-3001-002b-0003bac00fc9', $capture->authorization());
+        $this->assertEquals('E', $capture->transaction_status);
+        $this->assertEquals('1067', $capture->return_code);
+        $this->assertNull($capture->auth_code);
+    }
 
-    $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
-    $this->assert_failure($response);
-    $this->assertEquals('Insufficient permissions to perform requested operation.', $response->message());
-  }
+    public function testInvalidCredentialsRejected()
+    {
+        $this->gateway->expects('ssl_post', $this->auth_fail_response());
 
-  public function testFraudulentTransactionAvs() {
-    $this->gateway->expects('ssl_post', $this->avs_result("NN", "500") );
+        $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
+        $this->assert_failure($response);
+        $this->assertEquals('Insufficient permissions to perform requested operation.', $response->message());
+    }
 
-    $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
-    $this->assert_failure($response);
-    $this->assertTrue(null !== $response->fraud_review());
+    public function testFraudulentTransactionAvs()
+    {
+        $this->gateway->expects('ssl_post', $this->avs_result("NN", "500"));
 
-    $this->gateway->expects('ssl_post', $this->avs_result("NN", "501") );
+        $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
+        $this->assert_failure($response);
+        $this->assertTrue(null !== $response->fraud_review());
 
-    $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
-    $this->assert_failure($response);
-    $this->assertTrue(null !== $response->fraud_review());
+        $this->gateway->expects('ssl_post', $this->avs_result("NN", "501"));
 
-    $this->gateway->expects('ssl_post', $this->avs_result("NN", "502") );
+        $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
+        $this->assert_failure($response);
+        $this->assertTrue(null !== $response->fraud_review());
 
-    $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
-    $this->assert_failure($response);
-    $this->assertTrue(null !== $response->fraud_review());
-  }
+        $this->gateway->expects('ssl_post', $this->avs_result("NN", "502"));
 
-  public function testFraudulentTransactionCvv() {
-    $this->gateway->expects('ssl_post', $this->cvv_result("NN", "1055") );
+        $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
+        $this->assert_failure($response);
+        $this->assertTrue(null !== $response->fraud_review());
+    }
 
-    $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
-    $this->assert_failure($response);
-    $this->assertTrue(null !== $response->fraud_review());
-  }
+    public function testFraudulentTransactionCvv()
+    {
+        $this->gateway->expects('ssl_post', $this->cvv_result("NN", "1055"));
 
-  /**
-   * Private methods
-   */
+        $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
+        $this->assert_failure($response);
+        $this->assertTrue(null !== $response->fraud_review());
+    }
 
-  private function assert_success($response) {
-    $this->assertTrue($response->success());
-  }
+    /**
+     * Private methods
+     */
+    private function assert_success($response)
+    {
+        $this->assertTrue($response->success());
+    }
 
-  private function assert_failure($response) {
-    $this->assertFalse($response->success());
-  }
+    private function assert_failure($response)
+    {
+        $this->assertFalse($response->success());
+    }
 
-  private function successful_authorize_response() {
-    return <<<XML
+    private function successful_authorize_response()
+    {
+        return <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
     <EngineDocList>
      <DocVersion DataType="String">1.0</DocVersion>
@@ -165,11 +178,12 @@ class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase {
      </EngineDoc>
     </EngineDocList>
 XML;
-    return $xml;
-  }
+        return $xml;
+    }
 
-  private function failed_authorize_response() {
-    return <<<XML
+    private function failed_authorize_response()
+    {
+        return <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
     <EngineDocList>
      <DocVersion DataType="String">1.0</DocVersion>
@@ -194,10 +208,11 @@ XML;
      </EngineDoc>
     </EngineDocList>
 XML;
-  }
+    }
 
-  private function successful_capture_response() {
-    return <<<XML
+    private function successful_capture_response()
+    {
+        return <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
     <EngineDocList>
      <DocVersion DataType="String">1.0</DocVersion>
@@ -229,10 +244,11 @@ XML;
      </EngineDoc>
     </EngineDocList>
 XML;
-  }
+    }
 
-  private function failed_capture_response() {
-    return <<<XML
+    private function failed_capture_response()
+    {
+        return <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
     <EngineDocList>
      <DocVersion DataType="String">1.0</DocVersion>
@@ -261,11 +277,11 @@ XML;
      </EngineDoc>
     </EngineDocList>
 XML;
-  }
+    }
 
-
-  private function avs_result($avs_display, $cc_err_code = '1') {
-    return <<<XML
+    private function avs_result($avs_display, $cc_err_code = '1')
+    {
+        return <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
     <EngineDocList>
       <DocVersion DataType="String">1.0</DocVersion>
@@ -286,10 +302,11 @@ XML;
       </EngineDoc>
     </EngineDocList>
 XML;
-  }
+    }
 
-  private function cvv_result($cvv2_resp, $cc_err_code = '1'){
-    return <<<XML
+    private function cvv_result($cvv2_resp, $cc_err_code = '1')
+    {
+        return <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
     <EngineDocList>
       <DocVersion DataType="String">1.0</DocVersion>
@@ -310,10 +327,11 @@ XML;
       </EngineDoc>
     </EngineDocList>
 XML;
-  }
+    }
 
-  private function auth_fail_response() {
-    return <<<XML
+    private function auth_fail_response()
+    {
+        return <<<XML
 <?xml version='1.0' encoding='UTF-8'?>
     <EngineDocList>
      <DocVersion DataType='String'>1.0</DocVersion>
@@ -331,6 +349,8 @@ XML;
      </EngineDoc>
     </EngineDocList>
 XML;
-  }
+    }
+
 }
+
 ?>
