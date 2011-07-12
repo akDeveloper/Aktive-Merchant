@@ -8,6 +8,7 @@ The aim is to develop a PHP application to includes payments gateway under a com
 
 * [Authorize.net](http://www.authorize.net)
 * [Centinel 3D Secure](http://www.cardinalcommerce.com)
+* [CardStream](http://www.cardstream.com)
 * [Eurobank Payment](http://www.eurobank.gr/online/home/generic.aspx?id=79&mid=635)
 * [Hsbc Secure e-Payment](http://www.hsbc.co.uk/1/2/business/cards-payments/secure-epayments)
 * [Paypal Express Checkout](https://cms.paypal.com/us/cgi-bin/?cmd=_render-content&content_ID=developer/e_howto_api_ECGettingStarted)
