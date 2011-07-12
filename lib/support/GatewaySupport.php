@@ -1,8 +1,8 @@
-<?php 
+<?php
 require_once "../merchant.php";
 
 class GatewaySupport {
-  private $supported_geteways = array();
+  private $supported_gateways = array();
   private $actions = array("purchase", "authorize", "capture", "void", "credit", "recurring");
 
   public function __construct(){
@@ -11,9 +11,13 @@ class GatewaySupport {
       while (false !== ($file = readdir($handle))) {
         if (is_dir($dir_path ."/". $file) || $file === "." || $file === ".." ) continue;
         $this->supported_gateways[] = "Merchant_Billing_" . str_replace(".php","",$file);
-      }    
+      }
     }
     sort($this->supported_gateways);
+  }
+
+  public function supported_gateways() {
+    return $this->supported_gateways;
   }
 
   public function features(){
@@ -37,13 +41,13 @@ class GatewaySupport {
       print "\n";
     }
   }
-  
+
   public function __toString(){
     $to_string = "";
     foreach( $this->supported_gateways as $gateway ){
       $ref = new ReflectionClass($gateway);
       $to_string .= $ref->getStaticPropertyValue('display_name') ." - ".
-        $ref->getStaticPropertyValue('homepage_url') ." ". 
+        $ref->getStaticPropertyValue('homepage_url') ." ".
         "[" . join(", ", $ref->getStaticPropertyValue('supported_countries')) .
         "]\n";
     }
