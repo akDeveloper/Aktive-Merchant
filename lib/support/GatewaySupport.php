@@ -28,24 +28,24 @@ class GatewaySupport
 
     public function features()
     {
-        $tabs = "\t\t\t";
-        print "Name$tabs";
+        print "Name" . str_repeat(' ', 26);
         foreach ($this->actions as $action) {
-            print $action . $tabs;
+            print $action . str_repeat(' ', 30 - strlen($action));
         }
-        print "\n";
+        print "\r";
         foreach ($this->supported_gateways as $gateway) {
             $methods = array();
             $ref = new ReflectionClass($gateway);
-            print $ref->getStaticPropertyValue('display_name') . $tabs;
+            $display_name = $ref->getStaticPropertyValue('display_name');
+            print $display_name . str_repeat(' ', 30 - strlen($display_name));
             foreach ($this->actions as $action) {
                 if (method_exists($gateway, $action)) {
-                    print "Y" . $tabs;
+                    print "Y" . str_repeat(' ', 29);
                 } else {
-                    print "N" . $tabs;
+                    print "N" . str_repeat(' ', 29);
                 }
             }
-            print "\n";
+            print "\r";
         }
     }
 
