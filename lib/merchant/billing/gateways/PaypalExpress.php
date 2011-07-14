@@ -20,7 +20,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
     private $post = array();
     private $token;
     private $payer_id;
-    public static $default_currency = 'EUR';
+    public static $default_currency = 'USD';
     public static $supported_countries = array('US');
     public static $homepage_url = 'https://www.paypal.com/cgi-bin/webscr?cmd=xpt/merchant/ExpressCheckoutIntro-outside';
     public static $display_name = 'PayPal Express Checkout';
@@ -99,11 +99,11 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
         $this->required_options('return_url, cancel_return_url', $options);
 
         $params = array(
-            'METHOD' => 'SetExpressCheckout',
+            'METHOD'               => 'SetExpressCheckout',
             'PAYMENTREQUEST_0_AMT' => $this->amount($money),
-            'EMAIL' => $options['email'],
-            'RETURNURL' => $options['return_url'],
-            'CANCELURL' => $options['cancel_return_url']);
+            'RETURNURL'            => $options['return_url'],
+            'CANCELURL'            => $options['cancel_return_url']
+        );
 
         $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
 
@@ -114,18 +114,22 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
 
     private function do_action($money, $action, $options = array())
     {
-        if (!isset($options['token']))
+        if (!isset($options['token'])) {
             $options['token'] = $this->token;
-        if (!isset($options['payer_id']))
+        }
+        
+        if (!isset($options['payer_id'])) {
             $options['payer_id'] = $this->payer_id;
+        }
 
         $this->required_options('token, payer_id', $options);
 
         $params = array(
-            'METHOD' => 'DoExpressCheckoutPayment',
+            'METHOD'               => 'DoExpressCheckoutPayment',
             'PAYMENTREQUEST_0_AMT' => $this->amount($money),
-            'TOKEN' => $options['token'],
-            'PAYERID' => $options['payer_id']);
+            'TOKEN'                => $options['token'],
+            'PAYERID'              => $options['payer_id']
+        );
 
         $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
 
@@ -152,6 +156,10 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
                 $params['L_PAYMENTREQUEST_0_QTY' . $key] = $item['quantity'];
                 $params['L_PAYMENTREQUEST_0_NUMBER' . $key] = $item['id'];
             }
+        }
+        
+        if (isset($options['email'])) {
+            $params['EMAIL'] = $options['email'];
         }
 
         return $params;
@@ -204,15 +212,14 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
     {
         $params = array(
             'PAYMENTREQUEST_0_PAYMENTACTION' => $action,
-            'USER' => $this->options['login'],
-            'PWD' => $this->options['password'],
-            'VERSION' => $this->version,
-            'SIGNATURE' => $this->options['signature'],
-            'PAYMENTREQUEST_0_CURRENCYCODE' => self::$default_currency,
-            'CURRENCYCODE' => self::$default_currency);
+            'USER'                           => $this->options['login'],
+            'PWD'                            => $this->options['password'],
+            'VERSION'                        => $this->version,
+            'SIGNATURE'                      => $this->options['signature'],
+            'PAYMENTREQUEST_0_CURRENCYCODE'  => self::$default_currency
+        );
 
         $this->post = array_merge($this->post, $params);
-
         return $this->urlize($this->post);
     }
 
@@ -225,7 +232,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
      *
      * @return Merchant_Billing_PaypalExpressResponse
      */
-    protected function build_response($success, $message, $response, $options=array())
+    protected function build_response($success, $message, $response, $options = array())
     {
         return new Merchant_Billing_PaypalExpressResponse($success, $message, $response, $options);
     }
