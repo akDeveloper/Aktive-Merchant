@@ -46,7 +46,7 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
         return $ref->getStaticPropertyValue('homepage_url');
     }
 
-    public function gateway_key()
+    public function factory_name()
     {
         $class = str_replace('Merchant_Billing_', '', get_class($this));
         return Inflect::underscore($class);
