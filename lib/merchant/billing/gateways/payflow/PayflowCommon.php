@@ -122,7 +122,7 @@ XML;
         
         $xml .= <<<XML
             <Address>
-                <Street1>{$address['address1']}</Street1>
+                <Street>{$address['address1']}</Street>
                 <City>{$address['city']}</City>
                 <State>{$address['state']}</State>
                 <Zip>{$address['zip']}</Zip>
