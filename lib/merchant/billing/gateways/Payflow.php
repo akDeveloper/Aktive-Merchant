@@ -61,8 +61,8 @@ XML;
 
         if(isset($options['order_id']))
         {
-            $orderId = preg_replace('/[^\w.]/', '', $options['order_id']);
-            $bodyXml .= "<InvNum>" . $orderId . "</InvNum>";
+            $bodyXml .= "<InvNum>" . $options['order_id'] . "</InvNum>";
+            $bodyXml .= "<Comment>" . $options['order_id'] . "</Comment>";
         }
 
         if(isset($options['description']))
