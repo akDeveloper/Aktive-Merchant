@@ -99,7 +99,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway
      * @return Merchant_Billing_Response
      * @author Simon Hamilton
      */
-    public function authorize($money, Merchant_Billing_CreditCard $creditcard)
+    public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options)
     {
         $this->required_options('order_id', $options);
         $this->build_purchase_or_authorization_request('authorisation', $money, $creditcard, $options);
