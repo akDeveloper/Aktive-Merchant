@@ -49,7 +49,7 @@ class Merchant_Billing_PaypalCommon extends Merchant_Billing_Gateway
         $options['authorization'] = $this->authorization_from($response);
         $options['fraud_review'] = $this->fraud_review_from($response);
         $options['avs_result'] = $this->avs_result_from($response);
-        $options['cvv_result'] = isset($response['CVV2CODE']) ? $response['CVV2CODE'] : null;
+        $options['cvv_result'] = isset($response['CVV2MATCH']) ? $response['CVV2MATCH'] : null;
 
         return $this->build_response($this->success_from($response), $this->message_from($response), $response, $options);
     }
