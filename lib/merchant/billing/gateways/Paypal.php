@@ -190,6 +190,17 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon
         $this->post['FIRSTNAME'] = $creditcard->first_name;
         $this->post['LASTNAME'] = $creditcard->last_name;
         $this->post['CURRENCYCODE'] = self::$default_currency;
+
+        if ($this->requires_start_date_or_issue_number($creditcard)) {
+            if (!is_null($creditcard->start_month)) {
+                $startMonth = $this->cc_format($creditcard->start_month, 'two_digits');
+                $startYear = $this->cc_format($creditcard->start_year, 'four_digits');
+                $this->post['STARTDATE'] = $startYear . $startMonth;
+            }
+
+            if (!is_null($creditcard->issue_number))
+                $this->post['ISSUENUMBER'] = $this->cc_format($creditcard->issue_number, 'two_digits');
+        }
     }
 
     /**
