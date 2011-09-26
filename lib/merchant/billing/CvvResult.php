@@ -28,7 +28,7 @@ class Merchant_Billing_CvvResult
         if ($code != "")
             $this->code = $code;
 
-        $this->message = self::$MESSAGES[$this->code];
+        $this->message = isset(self::$MESSAGES[$this->code]) ? self::$MESSAGES[$this->code] : 'Unknown';
     }
 
     public static function messages()
