@@ -10,7 +10,7 @@
 require_once dirname(__FILE__) . "/centinel/CentinelResponse.php";
 class Merchant_Billing_Centinel extends Merchant_Billing_Gateway {
   const TEST_URL = 'https://centineltest.cardinalcommerce.com/maps/txns.asp';
-  const LIVE_URL = 'https://centinel.cardinalcommerce.com/maps/txns.asp';
+  const LIVE_URL = 'https://paypal.cardinalcommerce.com/maps/txns.asp';
 
   # The countries the gateway supports merchants from as 2 digit ISO country codes
   protected $supported_countries = array('US', 'GR');
