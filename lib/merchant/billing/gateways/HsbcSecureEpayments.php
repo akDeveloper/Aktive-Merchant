@@ -68,8 +68,7 @@ class Merchant_Billing_HsbcSecureEpayments extends Merchant_Billing_Gateway {
 
     $this->options = $options;
 
-    $mode = $this->mode();
-    if ($mode == 'live')
+    if (!$this->is_test())
       $this->payment_mode = 'P';#Production mode
   }
 
