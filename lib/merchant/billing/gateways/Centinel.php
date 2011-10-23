@@ -151,7 +151,10 @@ XML;
   }
 
   private function success_from($response) {
-    return $response['error_no'] == '0' && in_array($response['pares_status'], array('Y', 'A'));
+    if(isset($response['pares_status']) && !in_array($response['pares_status'], array('Y', 'A')))
+      return false;
+
+    return $response['error_no'] == '0';
   }
 
   private function message_from($response) {
