@@ -366,7 +366,7 @@ XML;
     $options['fraud_review'] = isset( $response['return_code'] ) ? in_array($response['return_code'], $this->FRAUDULENT) : false;
 
     if ( isset($response['cvv2_resp']) ){
-      if ( in_array($response['cvv2_resp'], $this->HSBC_CVV_RESPONSE_MAPPINGS) )
+      if ( array_key_exists($response['cvv2_resp'], $this->HSBC_CVV_RESPONSE_MAPPINGS) )
         $options['cvv_result'] = $this->HSBC_CVV_RESPONSE_MAPPINGS[$response['cvv2_resp']];
     }      
     $options['avs_result'] = $this->avs_code_from($response);
