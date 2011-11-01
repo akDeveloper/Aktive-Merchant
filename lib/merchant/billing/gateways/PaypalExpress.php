@@ -162,6 +162,10 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             $params['EMAIL'] = $options['email'];
         }
 
+        if(isset($options['currency'])) {
+        	$params['PAYMENTREQUEST_0_CURRENCYCODE'] = $options['currency'];
+        }
+        
         return $params;
     }
 
@@ -219,7 +223,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             'PAYMENTREQUEST_0_CURRENCYCODE'  => self::$default_currency
         );
 
-        $this->post = array_merge($this->post, $params);
+        $this->post = array_merge($params, $this->post);
         return $this->urlize($this->post);
     }
 
