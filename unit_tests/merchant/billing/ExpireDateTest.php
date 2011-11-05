@@ -17,30 +17,42 @@ require_once dirname(__FILE__) . '/../../config.php';
 class CreditCardTest extends PHPUnit_Framework_TestCase
 {
 
-    public $expire_date;
-    public $not_expire_date;
+    private $given;
 
     public function setUp()
     {
-        $this->expire_date = new Merchant_Billing_ExpiryDate(5, 2010);
-        $this->not_expire_date = new Merchant_Billing_ExpiryDate(12, date('Y', time() + 1));
+        
+        $this->given['Date']['Expired'] = array(
+            'Year'  => date('Y', strtotime('-1 year')),
+            'Month' => date('m'),
+        );
+        $this->given['Date']['Valid'] = array(
+            'Year'  => date('Y', strtotime('+5 years')),
+            'Month' => date('m'),
+        );
+        
+        $expired = new Merchant_Billing_ExpiryDate($this->given['Date']['Expired']['Month'], $this->given['Date']['Expired']['Year']);
+        $valid = new Merchant_Billing_ExpiryDate($this->given['Date']['Valid']['Month'], $this->given['Date']['Valid']['Year']);
+        
+        $this->given['MerchantDate']['Expired'] = $expired;
+        $this->given['MerchantDate']['Valid']   = $valid;
     }
 
     public function testSuccessfulExpireDate()
     {
-        $this->assertTrue($this->expire_date->is_expired());
+        $this->assertTrue($this->given['MerchantDate']['Expired']->is_expired());
     }
 
     public function testFailedExpireDate()
     {
-        $this->assertFalse($this->not_expire_date->is_expired());
+        $this->assertFalse($this->given['MerchantDate']['Valid']->is_expired());
     }
 
     public function testSuccessfulReturnExpirationTime()
     {
-        $this->assertEquals('1275339599', $this->expire_date->expiration());
+        $this->assertEquals(
+            $this->given['Date']['Expired']['Year'] . "-" . $this->given['Date']['Expired']['Month'],
+            date('Y-m', $this->given['MerchantDate']['Expired']->expiration()));
     }
 
 }
-
-?>
