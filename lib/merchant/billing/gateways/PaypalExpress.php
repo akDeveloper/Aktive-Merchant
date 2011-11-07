@@ -130,7 +130,6 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             'TOKEN'                => $options['token'],
             'PAYERID'              => $options['payer_id']
         );
-
         $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
 
         Merchant_Logger::log("Commit Payment Action: $action, Paypal Method: DoExpressCheckoutPayment");
@@ -214,17 +213,17 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
      */
     protected function post_data($action)
     {
-        $params = array(
+    	$params = array(
             'PAYMENTREQUEST_0_PAYMENTACTION' => $action,
             'USER'                           => $this->options['login'],
             'PWD'                            => $this->options['password'],
             'VERSION'                        => $this->version,
             'SIGNATURE'                      => $this->options['signature'],
-            'PAYMENTREQUEST_0_CURRENCYCODE'  => self::$default_currency
+        	'PAYMENTREQUEST_0_CURRENCYCODE'  => $this->options['currency'],
         );
-
-        $this->post = array_merge($params, $this->post);
-        return $this->urlize($this->post);
+    	unset($this->post['PAYMENTREQUEST_0_PAYMENTACTION']);
+    	$this->post = array_merge($this->post, $params);
+       	return $this->urlize($this->post);
     }
 
     /**
