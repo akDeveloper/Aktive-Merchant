@@ -104,8 +104,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             'RETURNURL'            => $options['return_url'],
             'CANCELURL'            => $options['cancel_return_url']
         );
-
-        $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
+		$this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
 
         Merchant_Logger::log("Commit Payment Action: $action, Paypal Method: SetExpressCheckout");
 
@@ -128,7 +127,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             'METHOD'               => 'DoExpressCheckoutPayment',
             'PAYMENTREQUEST_0_AMT' => $this->amount($money),
             'TOKEN'                => $options['token'],
-            'PAYERID'              => $options['payer_id']
+            'PAYERID'              => $options['payer_id'],
         );
         $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
 
@@ -165,6 +164,10 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
         	$params['PAYMENTREQUEST_0_CURRENCYCODE'] = $options['currency'];
         }
         
+        if(isset($options['subject'])) {
+        	$params['SUBJECT'] = $options['subject'];
+        }
+        
         return $params;
     }
 
@@ -187,7 +190,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
      *
      * @return Merchant_Billing_Response
      */
-    public function get_details_for($token, $payer_id)
+    public function get_details_for($token, $payer_id, $options = array())
     {
 
         $this->payer_id = urldecode($payer_id);
@@ -197,7 +200,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             'METHOD' => 'GetExpressCheckoutDetails',
             'TOKEN' => $token
         );
-        $this->post = array_merge($this->post, $params);
+        $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
 
         Merchant_Logger::log("Commit Paypal Method: GetExpressCheckoutDetails");
         return $this->commit($this->urlize($this->post));
@@ -219,7 +222,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             'PWD'                            => $this->options['password'],
             'VERSION'                        => $this->version,
             'SIGNATURE'                      => $this->options['signature'],
-        	'PAYMENTREQUEST_0_CURRENCYCODE'  => $this->options['currency'],
+        	//'PAYMENTREQUEST_0_CURRENCYCODE'  => $this->options['currency'],
         );
     	unset($this->post['PAYMENTREQUEST_0_PAYMENTACTION']);
     	$this->post = array_merge($this->post, $params);
