@@ -151,7 +151,7 @@ XML;
   }
 
   private function success_from($response) {
-    if(isset($reponse['acs_url']) && empty($response['acs_url']))
+    if(isset($response['acs_url']) && empty($response['acs_url']))
         return false;
       
     if(isset($response['pares_status']) && !in_array($response['pares_status'], array('Y', 'A')))
