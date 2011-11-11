@@ -98,6 +98,9 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon {
         'EMAIL'                    => $options['email'],
         'RETURNURL'                => $options['return_url'],
         'CANCELURL'                => $options['cancel_return_url']);
+    
+    if(isset($options['header_image']))
+        $params['HDRIMG'] = $options['header_image'];
 
     $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
 
