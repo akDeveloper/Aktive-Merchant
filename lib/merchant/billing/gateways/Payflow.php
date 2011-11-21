@@ -148,11 +148,9 @@ XML;
             $tds = $options['three_d_secure'];
             $xml .= <<<XML
                 <BuyerAuthResult>
-                    <Version>59.0</Version>
-                    <AuthStatus3ds>{$tds['pares_status']}</AuthStatus3ds>
-                    <MpiVendor3ds>{$tds['enrolled']}</MpiVendor3ds>
-                    <Eci3ds>{$tds['eci_flag']}</Eci3ds>
-                    <Cavv>{$tds['cavv']}</Cavv>
+                    <Status>{$tds['pares_status']}</Status>
+                    <ECI>{$tds['eci_flag']}</ECI>
+                    <CAVV>{$tds['cavv']}</CAVV>
                     <XID>{$tds['xid']}</XID>
                 </BuyerAuthResult>
 XML;
