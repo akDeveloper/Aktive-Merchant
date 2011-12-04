@@ -167,6 +167,26 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
         if(isset($options['subject'])) {
         	$params['SUBJECT'] = $options['subject'];
         }
+
+        if(isset($options['addroverride'])) {
+        	$params['ADDROVERRIDE'] = $options['addroverride'];
+        }
+
+        if(isset($options['address'])) {
+        	$params['PAYMENTREQUEST_0_SHIPTONAME'] 			= $options['address']['name'];
+        	$params['PAYMENTREQUEST_0_SHIPTOSTREET'] 		= $options['address']['address1'];
+        	$params['PAYMENTREQUEST_0_SHIPTOSTREET2'] 		= $options['address']['address2'];
+
+        	$params['PAYMENTREQUEST_0_SHIPTOCITY'] 			= $options['address']['city'];
+        	$params['PAYMENTREQUEST_0_SHIPTOSTATE'] 		= $options['address']['state'];
+
+        	$params['PAYMENTREQUEST_0_SHIPTOZIP'] 			= $options['address']['zip'];
+        	$params['PAYMENTREQUEST_0_SHIPTOCOUNTRYCODE'] 	= $options['address']['countrycode'];
+        	$params['PAYMENTREQUEST_0_SHIPTOPHONENUM'] 		= $options['address']['phone'];
+
+
+        }
+
         
         return $params;
     }
@@ -222,9 +242,9 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             'PWD'                            => $this->options['password'],
             'VERSION'                        => $this->version,
             'SIGNATURE'                      => $this->options['signature'],
-        	//'PAYMENTREQUEST_0_CURRENCYCODE'  => $this->options['currency'],
+        	'PAYMENTREQUEST_0_CURRENCYCODE'  => self::$default_currency
         );
-    	unset($this->post['PAYMENTREQUEST_0_PAYMENTACTION']);
+    	
     	$this->post = array_merge($this->post, $params);
        	return $this->urlize($this->post);
     }
