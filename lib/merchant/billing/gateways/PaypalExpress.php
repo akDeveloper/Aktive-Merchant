@@ -242,7 +242,6 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             'PWD'                            => $this->options['password'],
             'VERSION'                        => $this->version,
             'SIGNATURE'                      => $this->options['signature'],
-        	'PAYMENTREQUEST_0_CURRENCYCODE'  => self::$default_currency
         );
     	
     	$this->post = array_merge($this->post, $params);
