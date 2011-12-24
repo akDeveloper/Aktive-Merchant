@@ -17,8 +17,8 @@ try {
   if ( isset($_GET['pay']) ) {
 
     $response = $gateway->setup_purchase($_POST['amount'], array(
-      'return_url' => 'http://localhost/merchant/test/paypal_express/index.php',
-      'cancel_return_url' => 'http://localhost/merchant/test/paypal_express/index.php?cancel=1',
+      'return_url' => 'http://localhost/Aktive-Merchant/test/paypal_express/index.php',
+      'cancel_return_url' => 'http://localhost/Aktive-Merchant/test/paypal_express/index.php?cancel=1',
       )
     );
 
@@ -55,7 +55,7 @@ try {
 }
 
 ?>
-<form method="post" action="/merchant/test/paypal_express/index.php?pay=1">
+<form method="post" action="/Aktive-Merchant/test/paypal_express/index.php?pay=1">
   <label for="amount">Amount</label>
   <input type="text" name="amount" value="1" id="amount" />
   <input type="submit" />
