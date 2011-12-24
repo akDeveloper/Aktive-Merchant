@@ -26,14 +26,38 @@ class Merchant_Logger
             . RESET_SEQ);
     }
 
+    private static function _pad_exception($exception){
+        $trace_string = "\n";
+        $trace = "\n".print_r($exception->getTraceAsString(), true)."\n";
+        
+        $pieces = explode("\n", $trace);
+        
+        unset($pieces[0]);              // Empty line
+        unset($pieces[count($pieces)]); // Empty last line
+        
+        foreach ($pieces as $piece) {
+            $trace_string .= '    '.$piece."\n"; // Pad 4 spaces
+        }
+        return $trace_string;
+    }
+    
     static public function log($string)
     {
-        if (null === self::$path)
+        $trace_string = '';
+        if ($string instanceof Exception) {
+            $trace_string = $this->_pad_exception($string);
+        }
+        
+        if (null === self::$path) {
             self::$path = dirname(__FILE__) . '/../../../log/';
-
-        if (!is_writable(self::$path . self::$filename))
+        }
+        
+        if (!is_writable(self::$path)) {
+            $exception = new Exception('AktiveMerchant - Cannot write to path '.  realpath(self::$path));
+            error_log($exception->getMessage()."\n".self::_pad_exception($exception));
             return;
-
+        }
+        
         $fp = fopen(self::$path . self::$filename, 'a');
         fwrite($fp, $string . "\n");
         fclose($fp);
