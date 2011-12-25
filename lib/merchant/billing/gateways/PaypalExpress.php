@@ -104,8 +104,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             'RETURNURL'            => $options['return_url'],
             'CANCELURL'            => $options['cancel_return_url']
         );
-
-        $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
+		$this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
 
         Merchant_Logger::log("Commit Payment Action: $action, Paypal Method: SetExpressCheckout");
 
@@ -128,9 +127,8 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             'METHOD'               => 'DoExpressCheckoutPayment',
             'PAYMENTREQUEST_0_AMT' => $this->amount($money),
             'TOKEN'                => $options['token'],
-            'PAYERID'              => $options['payer_id']
+            'PAYERID'              => $options['payer_id'],
         );
-
         $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
 
         Merchant_Logger::log("Commit Payment Action: $action, Paypal Method: DoExpressCheckoutPayment");
@@ -162,6 +160,34 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             $params['EMAIL'] = $options['email'];
         }
 
+        if(isset($options['currency'])) {
+        	$params['PAYMENTREQUEST_0_CURRENCYCODE'] = $options['currency'];
+        }
+        
+        if(isset($options['subject'])) {
+        	$params['SUBJECT'] = $options['subject'];
+        }
+
+        if(isset($options['addroverride'])) {
+        	$params['ADDROVERRIDE'] = $options['addroverride'];
+        }
+
+        if(isset($options['address'])) {
+        	$params['PAYMENTREQUEST_0_SHIPTONAME'] 			= $options['address']['name'];
+        	$params['PAYMENTREQUEST_0_SHIPTOSTREET'] 		= $options['address']['address1'];
+        	$params['PAYMENTREQUEST_0_SHIPTOSTREET2'] 		= $options['address']['address2'];
+
+        	$params['PAYMENTREQUEST_0_SHIPTOCITY'] 			= $options['address']['city'];
+        	$params['PAYMENTREQUEST_0_SHIPTOSTATE'] 		= $options['address']['state'];
+
+        	$params['PAYMENTREQUEST_0_SHIPTOZIP'] 			= $options['address']['zip'];
+        	$params['PAYMENTREQUEST_0_SHIPTOCOUNTRYCODE'] 	= $options['address']['countrycode'];
+        	$params['PAYMENTREQUEST_0_SHIPTOPHONENUM'] 		= $options['address']['phone'];
+
+
+        }
+
+        
         return $params;
     }
 
@@ -184,7 +210,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
      *
      * @return Merchant_Billing_Response
      */
-    public function get_details_for($token, $payer_id)
+    public function get_details_for($token, $payer_id, $options = array())
     {
 
         $this->payer_id = urldecode($payer_id);
@@ -194,7 +220,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             'METHOD' => 'GetExpressCheckoutDetails',
             'TOKEN' => $token
         );
-        $this->post = array_merge($this->post, $params);
+        $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
 
         Merchant_Logger::log("Commit Paypal Method: GetExpressCheckoutDetails");
         return $this->commit($this->urlize($this->post));
@@ -210,17 +236,16 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
      */
     protected function post_data($action)
     {
-        $params = array(
+    	$params = array(
             'PAYMENTREQUEST_0_PAYMENTACTION' => $action,
             'USER'                           => $this->options['login'],
             'PWD'                            => $this->options['password'],
             'VERSION'                        => $this->version,
             'SIGNATURE'                      => $this->options['signature'],
-            'PAYMENTREQUEST_0_CURRENCYCODE'  => self::$default_currency
         );
-
-        $this->post = array_merge($this->post, $params);
-        return $this->urlize($this->post);
+    	
+    	$this->post = array_merge($this->post, $params);
+       	return $this->urlize($this->post);
     }
 
     /**
