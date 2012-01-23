@@ -119,7 +119,7 @@ class Merchant_Logger
           self::$response_file = $self::$path . '/' . self::$response_file;
         }
         
-        if (!is_writable($response_file) OR !file_exists($response_file)) {
+        if (!is_writable(self::$response_file) OR !file_exists(self::$response_file)) {
             return;
         }
 
