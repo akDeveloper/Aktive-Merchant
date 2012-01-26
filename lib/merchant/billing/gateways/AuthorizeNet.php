@@ -1,20 +1,19 @@
 <?php
 
 /**
- * Description of Merchant_Billing_AuthorizeNet
+ * Merchant driver for {link http://authorize.net/ Authorize.net}.
  *
  * @package Aktive Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
+ * @see http://authorize.net/
  */
-class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway
+class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge, Merchant_Billing_Gateway_Credit, Merchant_Billing_Gateway_Recurring, Merchant_Billing_Gateway_Recurring_Update
 {
     const API_VERSION = "3.1";
 
-    const TEST_URL = "https://test.authorize.net/gateway/transact.dll";
-    const LIVE_URL = "https://secure.authorize.net/gateway/transact.dll";
-    const ARB_TEST_URL = 'https://apitest.authorize.net/xml/v1/request.api';
-    const ARB_LIVE_URL = 'https://api.authorize.net/xml/v1/request.api';
+    protected static $URL = "https://secure.authorize.net/gateway/transact.dll";
+    protected static $ARB_URL = 'https://api.authorize.net/xml/v1/request.api';
 
     public $duplicate_window;
 
@@ -30,6 +29,14 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway
     const TRANSACTION_ID = 6;
     const CARD_CODE_RESPONSE_CODE = 38;
 
+    const RESPONSE_REASON_CARD_INVALID = 6;
+    const RESPONSE_REASON_CARD_EXPIRATION_INVALID = 7;
+    const RESPONSE_REASON_CARD_EXPIRED = 8;
+    const RESPONSE_REASON_ABA_INVALID = 9;
+    const RESPONSE_REASON_ACCOUNT_INVALID = 10;
+    const RESPONSE_REASON_DUPLICATE = 11;
+    const RESPONSE_REASON_AUTHCODE_REQUIRED = 12;
+    
     public static $supported_countries = array('US');
     public static $supported_cardtypes = array('visa', 'master', 'american_express', 'discover');
     public static $homepage_url = 'http://www.authorize.net/';
@@ -210,18 +217,54 @@ XML;
      */
     private function commit($action, $money, $parameters = array())
     {
-        if ($action != 'VOID')
-            $parameters['amount'] = $this->amount($money);
-
+        $url = static::$URL;
+      
+        if ($action != 'VOID') {
+          $parameters['amount'] = $this->amount($money);
+        }
+        
         /* Request a test response */
-        # $parameters['test_request'] = $this->is_test() ? 'TRUE' : 'FALSE';
+        if ($this->is_test()) {
+          $parameters['test_request'] = 'TRUE';
+        }
 
-        $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
-
-        $data = $this->ssl_post($url, $this->post_data($action, $parameters));
+        // Log request, but mask real user information
+        $log_post = $this->post;
+        if (isset($log_post['card_num'])) $log_post['card_num'] = $this->mask_cardnum($log_post['card_num']);
+        if (isset($log_post['card_code'])) $log_post['card_code'] = $this->mask_cvv($log_post['card_code']);
+        Merchant_Logger::log("Sending POST to $url:\n" . $this->post_data($action, $parameters, $log_post));
+        
+        $data = $this->ssl_post($url, $this->post_data($action, $parameters, $this->post));
 
         $response = $this->parse($data);
-
+        
+        // Check the response code, and throw an exception if necessary
+        if (empty($response['response_code'])) throw new Merchant_Billing_Exception("Error parsing merchant response: No status information");
+        switch($response['response_code']) {
+          case self::ERROR:
+            switch($response['response_reason_code']) {
+              case self::RESPONSE_REASON_CARD_INVALID:
+              case self::RESPONSE_REASON_CARD_EXPIRATION_INVALID:
+              case self::RESPONSE_REASON_CARD_EXPIRED:
+              case self::RESPONSE_REASON_ABA_INVALID:
+              case self::RESPONSE_REASON_ACCOUNT_INVALID:
+              case self::RESPONSE_REASON_DUPLICATE:
+              case self::RESPONSE_REASON_AUTHCODE_REQUIRED:
+                // These should be treated like a decline
+                break;
+              default:
+                throw new Merchant_Billing_Exception("Merchant error: $response[response_reason_text] (code $response[response_code]/$response[response_reason_code])");
+            }
+            break;
+	      case self::APPROVED: 
+	      case self::DECLINED:
+	      case self::FRAUD_REVIEW:
+	        // These are OK
+	        break;
+	      default:
+	        throw new Merchant_Billing_Exception("Merchant error: Unknown status '$response[response_code]'");	        
+        }
+        
         $message = $this->message_from($response);
 
         $test_mode = $this->is_test();
@@ -292,7 +335,9 @@ XML;
      */
     private function parse($body)
     {
+        if (empty($body)) throw new Merchant_Billing_Exception('Error parsing credit card response: Empty response');
         $fields = explode('|', $body);
+        if (count($fields) < 39) throw new Merchant_Billing_Exception('Error parsing credit card response: Too few fields');
         $response = array(
             'response_code' => $fields[self::RESPONSE_CODE],
             'response_reason_code' => $fields[self::RESPONSE_REASON_CODE],
@@ -302,25 +347,26 @@ XML;
             'card_code' => $fields[self::CARD_CODE_RESPONSE_CODE]
         );
 
+        
         return $response;
     }
 
-    private function post_data($action, $parameters = array())
+    private function post_data($action, $parameters = array(), $post = NULL)
     {
+        if ($post === NULL) $post = $this->post;
+        $post['version'] = self::API_VERSION;
+        $post['login'] = $this->options['login'];
+        $post['tran_key'] = $this->options['password'];
+        $post['relay_response'] = 'FALSE';
+        $post['type'] = $action;
+        $post['delim_data'] = 'TRUE';
+        $post['delim_char'] = '|';
 
-        $this->post['version'] = self::API_VERSION;
-        $this->post['login'] = $this->options['login'];
-        $this->post['tran_key'] = $this->options['password'];
-        $this->post['relay_response'] = 'FALSE';
-        $this->post['type'] = $action;
-        $this->post['delim_data'] = 'TRUE';
-        $this->post['delim_char'] = '|';
-
-        $this->post = array_merge($this->post, $parameters);
+        $post = array_merge($post, $parameters);
         $request = "";
 
         #Add x_ prefix to all keys
-        foreach ($this->post as $k => $v) {
+        foreach ($post as $k => $v) {
             $request .= 'x_' . $k . '=' . urlencode($v) . '&';
         }
         return rtrim($request, '& ');
@@ -389,7 +435,7 @@ XML;
 
     private function recurring_commit($action, $parameters=array())
     {
-        $url = $this->is_test() ? self::ARB_TEST_URL : self::ARB_LIVE_URL;
+        $url = static::$ARB_URL;
 
         $headers = array("Content-type: text/xml");
 
