@@ -31,7 +31,8 @@ class Merchant_Billing_Centinel extends Merchant_Billing_Gateway
 
     public function __construct($options = array())
     {
-        $this->required_options('login, password, processor_id', $options);
+      parent::__construct($options);
+      $this->required_options('login, password, processor_id', $options);
 
         if (isset($options['currency']))
             self::$default_currency = $options['currency'];

@@ -27,7 +27,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
 
     public function __construct($options = array())
     {
-
+        parent::__construct($options);    
         $this->required_options('login, password, signature', $options);
 
         $this->options = $options;

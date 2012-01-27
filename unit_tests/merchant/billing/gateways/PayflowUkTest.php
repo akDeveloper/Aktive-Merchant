@@ -46,6 +46,11 @@ class PayflowUkTest extends PHPUnit_Framework_TestCase
         );
     }
 
+    public function testInitialization() {
+      $this->assertNotNull($this->gateway);
+      $this->assertNotNull($this->creditcard);
+    }
+    
     function testAuthorizationAndCapture()
     {
         $auth = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);

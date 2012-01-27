@@ -6,7 +6,7 @@
  * @package default
  * @author Simon Hamilton
  */
-class Merchant_Billing_Realex extends Merchant_Billing_Gateway
+class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge, Merchant_Billing_Gateway_Credit, Merchant_Billing_Gateway_Recurring, Merchant_Billing_Gateway_Store
 {
     /*
      * For more information on the Realex Payment Gateway visit their site http://realexpayments.com.
@@ -79,7 +79,8 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway
      */
     public function __construct($options)
     {
-        $this->required_options('login, password', $options);
+      parent::__construct($options);
+      $this->required_options('login, password', $options);
 
         $this->timestamp = strftime("%Y%m%d%H%M%S");
 
