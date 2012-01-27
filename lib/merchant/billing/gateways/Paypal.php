@@ -3,13 +3,13 @@
 /**
  * Description of Merchant_Billing_Paypal
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
 require_once dirname(__FILE__) . "/paypal/PaypalCommon.php";
 
-class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon
+class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon implements Merchant_Billing_Gateway_Charge, Merchant_Billing_Gateway_Credit
 {
 
     public static $money_format = 'dollars'; # or cents
@@ -44,7 +44,8 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon
      */
     public function __construct($options = array())
     {
-        $this->required_options('login, password, signature', $options);
+      parent::__construct($options);
+      $this->required_options('login, password, signature', $options);
 
         if (isset($options['currency']))
             self::$default_currency = $options['currency'];

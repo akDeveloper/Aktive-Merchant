@@ -7,7 +7,7 @@
  *   Navigate, from terminal, to folder where this files is located
  *   run phpunit AuthorizeNetTest.php
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  *
@@ -32,7 +32,7 @@ class AuthorizeNetTest extends PHPUnit_Framework_TestCase
         $login_info = array(
             'login' => AUTH_NET_LOGIN,
             'password' => AUTH_NET_PASS);
-        $this->gateway = new Merchant_Billing_AuthorizeNet($login_info);
+        $this->gateway = new Merchant_Billing_AuthorizeNetTest($login_info);
 
         $this->amount = 100;
         $this->creditcard = new Merchant_Billing_CreditCard(array(
@@ -71,11 +71,21 @@ class AuthorizeNetTest extends PHPUnit_Framework_TestCase
     /**
      * Tests
      */
+    
+    public function testInitialization() {
+      $this->assertNotNull($this->gateway);
+      $this->assertInstanceOf('Merchant_Billing_Gateway', $this->gateway);
+      $this->assertInstanceOf('Merchant_Billing_Gateway_Charge', $this->gateway);
+      $this->assertInstanceOf('Merchant_Billing_Gateway_Credit', $this->gateway);
+      $this->assertInstanceOf('Merchant_Billing_Gateway_Recurring', $this->gateway);
+      $this->assertInstanceOf('Merchant_Billing_Gateway_Recurring_Update', $this->gateway);
+      $this->assertNotNull($this->creditcard);
+    }
+    
     public function testSuccessfulPurchase()
     {
         $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
         $this->assert_success($response);
-        $this->assertTrue($response->test());
         $this->assertEquals('This transaction has been approved.', $response->message());
     }
 
@@ -83,7 +93,6 @@ class AuthorizeNetTest extends PHPUnit_Framework_TestCase
     {
         $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
         $this->assert_success($response);
-        $this->assertTrue($response->test());
         $this->assertEquals('This transaction has been approved.', $response->message());
     }
 

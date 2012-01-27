@@ -3,7 +3,7 @@
 /**
  * Description of Merchant_Billing_PaypalExpress
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
@@ -27,7 +27,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
 
     public function __construct($options = array())
     {
-
+        parent::__construct($options);    
         $this->required_options('login, password, signature', $options);
 
         $this->options = $options;

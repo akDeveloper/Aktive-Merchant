@@ -3,11 +3,11 @@
 /**
  * Description of Merchant_Billing_Eurobank
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway
+class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge, Merchant_Billing_Gateway_Credit
 {
     const TEST_URL = 'https://eptest.eurocommerce.gr/proxypay/apacsonline';
     const LIVE_URL = 'https://ep.eurocommerce.gr/proxypay/apacsonline';
@@ -30,7 +30,8 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway
      */
     public function __construct($options)
     {
-        $this->required_options('login, password', $options);
+      parent::__construct($options);
+      $this->required_options('login, password', $options);
 
         if (isset($options['currency']))
             self::$default_currency = $options['currency'];

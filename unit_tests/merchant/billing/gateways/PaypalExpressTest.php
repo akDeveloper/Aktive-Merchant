@@ -52,6 +52,12 @@ class PaypalExpressTest extends PHPUnit_Framework_TestCase
     /**
      * Tests
      */
+    
+    public function testInitialization() {
+      $this->assertNotNull($this->gateway);
+      $this->assertInstanceOf('Merchant_Billing_Gateway', $this->gateway);
+    }
+    
     public function testSetExpressAuthorization()
     {
         $options = array(

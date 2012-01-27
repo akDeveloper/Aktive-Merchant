@@ -6,8 +6,9 @@
  * This class allows modify the return value of ssl_get and ssl_post method of
  * a gateway.
  *
- * Used for unit testing purpose only, when we want to test a gateway response
- * without actually make a request to payment server.
+ * Used directly for unit testing purpose only, when we want to test a gateway response
+ * without actually make a request to payment server.  It is also the parent class
+ * of many gateway implemenation classes.
  *
  * Usage:
  * $gateway->expects(<method>, <response_value> );
@@ -15,7 +16,7 @@
  * <method> can be ssl_post or ssl_get
  *
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */

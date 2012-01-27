@@ -7,7 +7,7 @@
  *   Navigate, from terminal, to folder where this files is located
  *   run phpunit CardstreamTest.php
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  *
@@ -55,6 +55,14 @@ class CardstreamTest extends PHPUnit_Framework_TestCase
         );
     }
 
+    public function testInitialization() {
+      $this->assertNotNull($this->gateway);
+      $this->assertNotNull($this->creditcard);
+      $this->assertInstanceOf('Merchant_Billing_Gateway', $this->gateway);
+      $this->assertInstanceOf('Merchant_Billing_Gateway_Charge', $this->gateway);
+      $this->assertInstanceOf('Merchant_Billing_Gateway_Credit', $this->gateway);
+    }
+    
     public function testSuccessfulPurchase()
     {
         $this->gateway->expects('ssl_post', $this->successful_purchase_response());
