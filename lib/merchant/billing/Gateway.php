@@ -1,12 +1,18 @@
 <?php
 
 /**
- * Description of Gateway
- *
- * @package Aktive Merchant
+ * Contains gateway base class, interfaces, exception class.
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
- * @todo Revamp test mode
+ */
+
+/**
+ * Description of Gateway
+ *
+ * @package Aktive-Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
 {
@@ -488,6 +494,7 @@ interface Merchant_Billing_Gateway_Charge {
   *                              </ul>
   * @return Merchant_Billing_Response Response object
   * @throws Merchant_Billing_Exception If the request fails
+  * @package Aktive-Merchant
   */
   public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options = array());
   
@@ -512,6 +519,7 @@ interface Merchant_Billing_Gateway_Charge {
    * @param array $options Additional options to the driver.  For details see {@link authorize()}.
    * @return Merchant_Billing_Response Response object
    * @throws Merchant_Billing_Exception If the request fails
+   * @package Aktive-Merchant
    */
   public function capture($money, $authorization, $options = array());
   
@@ -521,12 +529,14 @@ interface Merchant_Billing_Gateway_Charge {
    * @param string $authorization Authorization transaction ID (from {@link Merchant_Billing_Response::authorization()})
    * @param array $options Additional options to the driver.  For details see {@link authorize()}.
    * @return Merchant_Billing_Response Response object
+   * @package Aktive-Merchant
    */
   public function void($authorization, $options = array());
 }
 
 /**
  * Interface for a merchant gateway that supports credit.
+ * @package Aktive-Merchant
  */
 interface Merchant_Billing_Gateway_Credit {
   /**
@@ -537,19 +547,38 @@ interface Merchant_Billing_Gateway_Credit {
   * @param array $options Additional options to the driver.  For details see {@link authorize()}.
   * @return Merchant_Billing_Response Response object
   * @throws Merchant_Billing_Exception If the request fails
+  * @package Aktive-Merchant
   */
   public function credit($money, $identification, $options = array());
 }
 
+/**
+ * Recurring billing interface
+ * 
+ * @package Aktive-Merchant
+ * @todo Needs documentation
+ */
 interface Merchant_Billing_Gateway_Recurring {
   public function recurring($money, Merchant_Billing_CreditCard $creditcard, $options=array());
 }
 
+/**
+ * Recurring billing update interface
+ * 
+ * @package Aktive-Merchant
+ * @todo Needs documentation
+ */
 interface Merchant_Billing_Gateway_Recurring_Update {
   public function update_recurring($subscription_id, Merchant_Billing_CreditCard $creditcard);
   public function cancel_recurring($subscription_id);
 }
 
+/**
+ * Credit card storage interface
+ * 
+ * @package Aktive-Merchant
+ * @todo Needs documentation
+ */
 interface Merchant_Billing_Gateway_Store {
   public function store(Merchant_Billing_CreditCard $creditcard, $options);
   public function unstore(Merchant_Billing_CreditCard $creditcard, $options);
@@ -557,7 +586,7 @@ interface Merchant_Billing_Gateway_Store {
 
 /**
  * Exception for merchant billing-related errors.
- *
+ * @package Aktive-Merchant
  */
 class Merchant_Billing_Exception extends Exception {
   

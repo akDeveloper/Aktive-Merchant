@@ -12,7 +12,7 @@
  * + is_valid() returns a boolean if creditcard is valid or not. If creditcard is not valid then we can get an array with errors. See below
  * + errors() return an array with errors with key as error field and value as description
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */

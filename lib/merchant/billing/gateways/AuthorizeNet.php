@@ -3,7 +3,7 @@
 /**
  * Merchant driver for {link http://authorize.net/ Authorize.net}.
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  * @see http://authorize.net/

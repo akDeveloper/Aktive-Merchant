@@ -3,7 +3,7 @@
 /**
  * AktiveMerchant Barclay's ePDQ Gateway Library
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Kieran Graham (AirPOS Ltd.)
  */
 class Merchant_Billing_ePDQ extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge

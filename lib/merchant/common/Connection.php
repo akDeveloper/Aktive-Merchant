@@ -5,7 +5,7 @@
  * 
  * Used to send an HTTP or HTTPS request to a URL.
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */

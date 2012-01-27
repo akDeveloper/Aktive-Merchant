@@ -7,7 +7,7 @@
  *   Navigate, from terminal, to folder where this files is located
  *   run phpunit PsigateTest.php
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Scott Gifford <sgifford@suspectclass.com>
  * @license http://www.opensource.org/licenses/mit-license.php
  *

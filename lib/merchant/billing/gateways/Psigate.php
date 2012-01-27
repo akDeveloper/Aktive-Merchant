@@ -2,7 +2,7 @@
 /**
  * Merchant driver for {link http://www.psigate.com/ PSiGate}.
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Scott Gifford
  * @license http://www.opensource.org/licenses/mit-license.php
  * @see http://www.psigate.com/

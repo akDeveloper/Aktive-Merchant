@@ -1,13 +1,32 @@
 <?php
+/**
+ * Contains merchant logger class
+ * 
+ * @package Aktive-Merchant
+ */
 
+/**
+ * ANSI sequence to reset colors
+ * @var string
+ */
 define('RESET_SEQ', "\033[0m");
+
+/**
+ * ANSI sequence to activate a color
+ * @var string
+ */
 define('COLOR_SEQ', "\033[");
+
+/**
+ * ANSI sequence to begin bold
+ * @var string
+ */
 define('BOLD_SEQ', "\033[1m");
 
 /**
  * Description of Logger
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */

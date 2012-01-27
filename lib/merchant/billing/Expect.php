@@ -16,7 +16,7 @@
  * <method> can be ssl_post or ssl_get
  *
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
