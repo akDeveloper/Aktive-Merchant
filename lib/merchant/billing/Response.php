@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Description of Response
+ * Response to a merchant request.
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
@@ -21,10 +21,20 @@ class Merchant_Billing_Response
 
     /**
      *
-     * @param boolean $success
-     * @param string $message
-     * @param array $params
-     * @param array $options
+     * @param boolean $success Whether the request was successfull or not
+     * @param string $message Human-readable message provided
+     * @param array $params Parameters that should be copied into the properties as-is
+     * @param array $options Options that should be interepreted by the response.  Valid
+     *                       options are:
+     *                       <ul>
+     *                       	<li>test - If true, this is a test transaction.
+     *                          <li>authorization - Set the authorization property
+     *                          <li>fraud_review - Set the fraud_review property
+     *                          <li>avs_result - If set, passed to the {@link Merchant_Billing_AvsResult} constructor, 
+     *                              and the resulting object is stored in the avs_result property 
+     *                          <li>cvv_result - If set, passed to the {@link Merchant_Billing_CvvResult} constructor,
+     *                              and the resulting object is stored in the cvv_result property
+     *                       </ul>
      */
     public function __construct($success, $message, $params = array(), $options = array())
     {
@@ -45,8 +55,9 @@ class Merchant_Billing_Response
     }
 
     /**
-     *
-     * @return boolean
+     * Check if the transaction was successful or not
+     * 
+     * @return boolean Whether this transaction was successful or not
      */
     public function success()
     {
@@ -55,43 +66,53 @@ class Merchant_Billing_Response
 
     /**
      *
-     * @return boolean
+     * @return boolean Whether this was a test transaction
      */
     public function test()
     {
         return $this->test;
     }
 
+    /** @return boolean Whether the request was flagged for fraud review */
     public function fraud_review()
     {
         return $this->fraud_review;
     }
 
+    /** @return string|null Authorization identifier, or null if unavailable.
+     *
+     *  This string should contain any information required to complete, refund, or
+     *  void a transaction.  If multiple identifiers are required, they should all be
+     *  encoded into one string here, and decoded as necessary.
+     */
     public function authorization()
     {
         return $this->authorization;
     }
 
+    /** @return string Human-readable message provided with the response */
     public function message()
     {
         return $this->message;
     }
 
-    public function params()
-    {
-        return $this->params;
-    }
-
+    /** @return Merchant_Billing_AvsResult|null Address verification result, or null if unavailable */
     public function avs_result()
     {
         return $this->avs_result;
     }
 
+    /** @return Merchant_Billing_CvvResult|null Card verification value result, or null if unavailable */
     public function cvv_result()
     {
         return $this->cvv_result;
     }
-
+    
+    /** @return array All additional parameters available for this response */
+    public function params()
+    {
+      return $this->params;
+    }
 }
 
 ?>

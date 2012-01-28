@@ -3,11 +3,11 @@
 /**
  * Description of Merchant_Billing_Bogus
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_Bogus extends Merchant_Billing_Gateway
+class Merchant_Billing_Bogus extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge, Merchant_Billing_Gateway_Credit, Merchant_Billing_Gateway_Store
 {
     const AUTHORIZATION = '53433';
 

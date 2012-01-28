@@ -1,9 +1,15 @@
 <?php
 
+/** Contains merchant country class 
+ * @package Aktive-Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
+ */
+
 /**
  * Description of Country
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */

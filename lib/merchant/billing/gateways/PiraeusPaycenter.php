@@ -3,11 +3,11 @@
 /**
  * Description of Merchant_Billing_PiraeusPaycenter
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_PiraeusPaycenter extends Merchant_Billing_Gateway
+class Merchant_Billing_PiraeusPaycenter extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge, Merchant_Billing_Gateway_Credit
 {
     const TEST_URL = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
     const LIVE_URL = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
@@ -54,7 +54,8 @@ class Merchant_Billing_PiraeusPaycenter extends Merchant_Billing_Gateway
      */
     public function __construct($options = array())
     {
-        $this->required_options('acquire_id, merchant_id, pos_id, user, password, channel_type', $options);
+      parent::__construct($options);
+      $this->required_options('acquire_id, merchant_id, pos_id, user, password, channel_type', $options);
 
         if (isset($options['currency']))
             self::$default_currency = $options['currency'];

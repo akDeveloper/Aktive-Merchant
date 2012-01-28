@@ -1,9 +1,14 @@
 <?php
 
 /**
+ * Contains merchant error class
+ * @package Aktive-Merchant
+ */
+
+/**
  * Description of Error
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */

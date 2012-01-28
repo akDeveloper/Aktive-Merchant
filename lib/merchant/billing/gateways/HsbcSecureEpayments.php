@@ -3,11 +3,11 @@
 /**
  * Description of Merchant_Billing_HsbcSecureEpayments
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_HsbcSecureEpayments extends Merchant_Billing_Gateway
+class Merchant_Billing_HsbcSecureEpayments extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge
 {
     const TEST_URL = 'https://www.secure-epayments.apixml.hsbc.com';
     const LIVE_URL = 'https://www.secure-epayments.apixml.hsbc.com';
@@ -59,7 +59,8 @@ class Merchant_Billing_HsbcSecureEpayments extends Merchant_Billing_Gateway
 
     public function __construct($options = array())
     {
-        $this->required_options('login, password, client_id', $options);
+      parent::__construct($options);
+      $this->required_options('login, password, client_id', $options);
 
         if (isset($options['currency']))
             self::$default_currency = $options['currency'];

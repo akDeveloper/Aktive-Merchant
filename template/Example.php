@@ -3,7 +3,7 @@
 /**
  * Description of Example
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  <your name>
  * @license http://www.opensource.org/licenses/mit-license.php
  */

@@ -3,10 +3,10 @@
 /**
  * AktiveMerchant Barclay's ePDQ Gateway Library
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Kieran Graham (AirPOS Ltd.)
  */
-class Merchant_Billing_ePDQ extends Merchant_Billing_Gateway
+class Merchant_Billing_ePDQ extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge
 {
     const TEST_URL = 'https://secure2.mde.epdq.co.uk:11500';
     const LIVE_URL = 'https://secure2.mde.epdq.co.uk:11500';
@@ -74,7 +74,8 @@ class Merchant_Billing_ePDQ extends Merchant_Billing_Gateway
      */
     public function __construct($options = array())
     {
-        $this->required_options('login, password, client_id', $options);
+      parent::__construct($options);
+      $this->required_options('login, password, client_id', $options);
 
         if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];

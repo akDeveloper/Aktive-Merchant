@@ -61,6 +61,15 @@ class PaypalTest extends PHPUnit_Framework_TestCase
     /**
      * Tests
      */
+    
+    public function testInitialization() {
+      $this->assertNotNull($this->gateway);
+      $this->assertNotNull($this->creditcard);
+      $this->assertInstanceOf('Merchant_Billing_Gateway', $this->gateway);
+      $this->assertInstanceOf('Merchant_Billing_Gateway_Charge', $this->gateway);
+      $this->assertInstanceOf('Merchant_Billing_Gateway_Credit', $this->gateway);
+    }
+    
     public function testSuccessfulPurchase()
     {
         $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);

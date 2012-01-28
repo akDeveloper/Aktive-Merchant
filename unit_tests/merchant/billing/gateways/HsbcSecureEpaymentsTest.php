@@ -7,7 +7,7 @@
  *   Navigate, from terminal, to folder where this files is located
  *   run phpunit HsbcSecureEpaymentsTest.php
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  *
@@ -60,6 +60,13 @@ class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase
         $this->authorization = '483e6382-7d13-3001-002b-0003bac00fc9';
     }
 
+    public function testInitialization() {
+      $this->assertNotNull($this->gateway);
+      $this->assertNotNull($this->creditcard);
+      $this->assertInstanceOf('Merchant_Billing_Gateway', $this->gateway);
+      $this->assertInstanceOf('Merchant_Billing_Gateway_Charge', $this->gateway);
+    }
+    
     /**
      * Tests
      */

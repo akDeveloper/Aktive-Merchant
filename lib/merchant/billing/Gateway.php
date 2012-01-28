@@ -1,9 +1,16 @@
 <?php
 
 /**
+ * Contains gateway base class, interfaces, exception class.
+ * @package Aktive-Merchant
+ * @author  Andreas Kollaros
+ * @license http://www.opensource.org/licenses/mit-license.php
+ */
+
+/**
  * Description of Gateway
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
@@ -17,7 +24,12 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
     public static $homepage_url;
     public static $display_name;
     private $DEBIT_CARDS = array('switch', 'solo');
-
+    protected $gateway_mode;
+    
+    public function __construct($options) {
+      $this->gateway_mode = Merchant_Billing_Base::$gateway_mode;
+    }
+    
     public function money_format()
     {
         $class = get_class($this);
@@ -66,12 +78,24 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
 
     public function is_test()
     {
-        return (Merchant_Billing_Base::$gateway_mode == 'test');
+        return $this->mode() == 'test';
     }
 
-    public function mode()
+    /**
+     * Get and/or set the gateway mode.
+     * 
+     * Valid values are "test" and "live";
+     * 
+     * @param string $newmode New value for gateway mode (unset or NULL to keep current value)
+     * @return string Current gateway mode, or previous mode if $newmode is set
+     */
+    public function mode($newmode = NULL)
     {
-        return Merchant_Billing_Base::$gateway_mode;
+        $oldmode = $this->gateway_mode;
+        if ($newmode !== NULL) {
+          $this->gateway_mode = $newmode;
+        }
+        return $oldmode;
     }
 
     public function amount($money)
@@ -81,7 +105,7 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
 
         $cents = $money * 100;
         if (!is_numeric($money) || $money < 0) {
-            throw new Exception('money amount must be a positive Integer in cents.');
+            throw new Merchant_Billing_Exception('money amount must be a positive Integer in cents.');
         }
         return ($this->money_format() == 'cents') ? number_format($cents, 0, '', '') : number_format($money, 2);
     }
@@ -101,7 +125,13 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
     }
 
     /**
-     * PostsData
+     * Send an HTTPS GET request to a remote server, and return the response.
+     * 
+     * @param string $endpoint URL of remote endpoint to connect to
+     * @param string $data Body to include with the request 
+     * @param array $options Additional options for the request (see {@link Merchant_Connection::request()})
+	 * @return string Response from server
+     * @throws Merchant_Billing_Exception If the request fails at the HTTP layer
      */
     protected function ssl_get($endpoint, $data, $options = array())
     {
@@ -110,6 +140,15 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
         return $this->ssl_request('get', $endpoint, $data, $options);
     }
 
+    /**
+     * Send an HTTPS POST request to a remote server, and return the response.
+     * 
+     * @param string $endpoint URL of remote endpoint to connect to
+     * @param string $data Body to include with the request 
+     * @param array $options Additional options for the request (see {@link Merchant_Connection::request()})
+	 * @return string Response from server
+     * @throws Merchant_Billing_Exception If the request fails at the HTTP layer
+     */
     protected function ssl_post($endpoint, $data, $options = array())
     {
         if (isset($this->expects[__FUNCTION__]))
@@ -117,6 +156,16 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
         return $this->ssl_request('post', $endpoint, $data, $options);
     }
 
+    /**
+     * Send a request to a remote server, and return the response.
+     * 
+     * @param string $method Method to use ('post' or 'get')
+     * @param string $endpoint URL of remote endpoint to connect to
+     * @param string $data Body to include with the request 
+     * @param array $options Additional options for the request (see {@link Merchant_Connection::request()})
+	 * @return string Response from server
+     * @throws Merchant_Billing_Exception If the request fails at the HTTP layer
+     */
     private function ssl_request($method, $endpoint, $data, $options = array())
     {
         $connection = new Merchant_Connection($endpoint);
@@ -153,13 +202,14 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
      * RequiresParameters
      * @param string comma seperated parameters. Represent keys of $options array
      * @param array the key/value hash of options to compare with
+     * @throws Merchant_Billing_Exception If a required parameter is missing
      */
     protected function required_options($required, $options = array())
     {
         $required = explode(',', $required);
         foreach ($required as $r) {
             if (!array_key_exists(trim($r), $options)) {
-                throw new Exception($r . " parameter is required!");
+                throw new Merchant_Billing_Exception($r . " parameter is required!");
                 break;
                 return false;
             }
@@ -190,6 +240,32 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
     }
 
     /**
+     * Mask a credit card number.
+     * 
+     * Makes the card safe for logging and storing, by replacing all but the
+     * first 2 and last 4 digits with x's.
+     * 
+     * @param string $cardnum Card number to mask
+     * @return string Masked card number
+     */
+    protected function mask_cardnum($cardnum) {
+      return substr($cardnum,0,2) . preg_replace('/./','x',substr($cardnum,2,-4)) . substr($cardnum,-4,4);
+    }
+    
+    /**
+     * Mask a card verification value;
+     * 
+     * Makes a card verification value safe for logging and storing, by replacing all
+     * characters with x's.
+     *
+     * @param string $cardverifier Card verification value to mask
+     * @return string Masked card verification value
+     */
+    protected function mask_cvv($cvv) {
+      return preg_replace('/./','x',$cvv);
+    }
+    
+    /**
      * Numeric Currency Codes
      *
      * Return numeric represantation of currency codes
@@ -200,7 +276,7 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
             return;
         return $this->CURRENCY_CODES[$code];
     }
-
+            
     private $CURRENCY_CODES = array(
         "XPT" => "962",
         "SAR" => "682",
@@ -384,6 +460,136 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
         "GHS" => "936"
     );
 
+}
+
+/**
+ * Interface for a merchant gateway that supports authorize, purchase, capture, and void.
+ */
+interface Merchant_Billing_Gateway_Charge {
+  /**
+  * Authorize a transaction without actually charging the card.
+  *
+  * The authorization can be charged with the {@link capture()} method.
+  *
+  * @param float $money Amount of money to authorize
+  * @param Merchant_Billing_CreditCard $creditcard Credit card to authorize
+  * @param array $options Additional options to the driver.  Common options include:
+  *                              <ul>
+  *                              	<li>description - Description that should appear on the card owner's bill
+  *                              	<li>invoice_num - Invoice number to reference
+  *                              	<li>billing_address - Billing address entered by the user.  Includes the following fields:
+  *                              		<ul>
+  *                              			<li>address1 - First line of address
+  *                              			<li>address2 - Second line of address
+  *                              			<li>company - Company being billed
+  *                              			<li>phone - Phone number
+  *                              			<li>zip - Billing ZIP code
+  *                              			<li>city - Billing city
+  *                              			<li>country - Billing country
+  *                              			<li>state - Billing state
+  *                              		</ul>
+  *                              	<li>email - Email address of customer
+  *                              	<li>customer - Customer ID
+  *                              	<li>ip - IP address of customer
+  *                              </ul>
+  * @return Merchant_Billing_Response Response object
+  * @throws Merchant_Billing_Exception If the request fails
+  * @package Aktive-Merchant
+  */
+  public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options = array());
+  
+  /**
+   * Charge a credit card.
+   *
+   * @param float $money Amount of money to charge
+   * @param Merchant_Billing_CreditCard $creditcard Credit card to charge
+   * @param array $options Additional options to the driver.  For details see {@link authorize()}.
+   * @return Merchant_Billing_Response Response object
+   * @throws Merchant_Billing_Exception If the request fails
+   */
+  public function purchase($money, Merchant_Billing_CreditCard $creditcard, $options = array());
+  
+  /**
+   * Charge a credit card after prior authorization.
+   *
+   * Charges a card after a prior authorization by {@link authorize()}.
+   *
+   * @param float $money Amount of money to charge
+   * @param string $authorization Authorization transaction ID (from {@link Merchant_Billing_Response::authorization()})
+   * @param array $options Additional options to the driver.  For details see {@link authorize()}.
+   * @return Merchant_Billing_Response Response object
+   * @throws Merchant_Billing_Exception If the request fails
+   * @package Aktive-Merchant
+   */
+  public function capture($money, $authorization, $options = array());
+  
+  /**
+   * Void an earlier transaction that has not yet been settled.
+   *
+   * @param string $authorization Authorization transaction ID (from {@link Merchant_Billing_Response::authorization()})
+   * @param array $options Additional options to the driver.  For details see {@link authorize()}.
+   * @return Merchant_Billing_Response Response object
+   * @package Aktive-Merchant
+   */
+  public function void($authorization, $options = array());
+}
+
+/**
+ * Interface for a merchant gateway that supports credit.
+ * @package Aktive-Merchant
+ */
+interface Merchant_Billing_Gateway_Credit {
+  /**
+  * Credit a charge back to an account.
+  *
+  * @param float $money Amount of money to charge
+  * @param string $identification Authorization transaction ID (from {@link Merchant_Billing_Response::authorization()})
+  * @param array $options Additional options to the driver.  For details see {@link authorize()}.
+  * @return Merchant_Billing_Response Response object
+  * @throws Merchant_Billing_Exception If the request fails
+  * @package Aktive-Merchant
+  */
+  public function credit($money, $identification, $options = array());
+}
+
+/**
+ * Recurring billing interface
+ * 
+ * @package Aktive-Merchant
+ * @todo Needs documentation
+ */
+interface Merchant_Billing_Gateway_Recurring {
+  public function recurring($money, Merchant_Billing_CreditCard $creditcard, $options=array());
+}
+
+/**
+ * Recurring billing update interface
+ * 
+ * @package Aktive-Merchant
+ * @todo Needs documentation
+ */
+interface Merchant_Billing_Gateway_Recurring_Update {
+  public function update_recurring($subscription_id, Merchant_Billing_CreditCard $creditcard);
+  public function cancel_recurring($subscription_id);
+}
+
+/**
+ * Credit card storage interface
+ * 
+ * @package Aktive-Merchant
+ * @todo Needs documentation
+ */
+interface Merchant_Billing_Gateway_Store {
+  public function store(Merchant_Billing_CreditCard $creditcard, $options);
+  public function unstore(Merchant_Billing_CreditCard $creditcard, $options);
+}
+
+/**
+ * Exception for merchant billing-related errors.
+ * @package Aktive-Merchant
+ */
+class Merchant_Billing_Exception extends Exception {
+  
 }
 
 ?>

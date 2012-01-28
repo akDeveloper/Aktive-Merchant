@@ -3,11 +3,11 @@
 /**
  * Description of Merchant_Billing_ Cardstream
  *
- * @package Aktive Merchant
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway
+class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge, Merchant_Billing_Gateway_Credit
 {
     const TEST_URL = 'https://gateway.cardstream.com/process.ashx';
     const LIVE_URL = 'https://gateway.cardstream.com/process.ashx';
@@ -77,7 +77,8 @@ class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway
      */
     public function __construct($options = array())
     {
-        $this->required_options('login, password', $options);
+      parent::__construct($options);
+      $this->required_options('login, password', $options);
 
         if (isset($options['currency']))
             self::$default_currency = $options['currency'];
