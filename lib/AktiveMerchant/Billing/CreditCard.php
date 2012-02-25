@@ -1,5 +1,9 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing;
+
 /**
  * Description of CreditCard
  *
@@ -19,7 +23,7 @@
 require_once dirname(__FILE__) . "/CreditCardMethods.php";
 require_once dirname(__FILE__) . "/ExpiryDate.php";
 
-class Merchant_Billing_CreditCard extends Merchant_Billing_CreditCardMethods
+class CreditCard extends CreditCardMethods
 {
 
     public $first_name;

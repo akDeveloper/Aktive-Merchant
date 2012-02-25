@@ -1,5 +1,9 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing;
+
 /**
  * Response to a merchant request.
  *
@@ -7,17 +11,17 @@
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_Response
+class Response
 {
 
-    private $success;
-    private $message;
+    protected $success;
+    protected $message;
     protected $params;
-    private $test;
-    private $authorization;
-    private $avs_result;
-    private $cvv_result;
-    private $fraud_review;
+    protected $test;
+    protected $authorization;
+    protected $avs_result;
+    protected $cvv_result;
+    protected $fraud_review;
 
     /**
      *
@@ -107,12 +111,10 @@ class Merchant_Billing_Response
     {
         return $this->cvv_result;
     }
-    
+
     /** @return array All additional parameters available for this response */
     public function params()
     {
-      return $this->params;
+        return $this->params;
     }
 }
-
-?>

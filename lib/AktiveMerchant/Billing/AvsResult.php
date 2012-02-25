@@ -1,5 +1,9 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing;
+
 /**
  * Description of AvsResult
  *
@@ -14,7 +18,7 @@
  * http://imgserver.skipjack.com/imgServer/5293710/AVS%20and%20CVV2.pdf
  * http://www.emsecommerce.net/avs_cvv2_response_codes.htm
  */
-class Merchant_Billing_AvsResult
+class AvsResult
 {
 
     private static $MESSAGES = array(
@@ -122,5 +126,3 @@ class Merchant_Billing_AvsResult
     }
 
 }
-
-?>

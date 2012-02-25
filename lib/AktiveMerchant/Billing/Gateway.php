@@ -61,9 +61,14 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
     public function factory_name()
     {
         $class = str_replace('Merchant_Billing_', '', get_class($this));
-        return Inflect::underscore($class);
+        return $this->underscore($class);
     }
-    
+
+    private function underscore($string)
+    {
+        return strtolower(preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $string));
+    }
+
     public function display_name()
     {
         $class = get_class($this);
@@ -582,14 +587,6 @@ interface Merchant_Billing_Gateway_Recurring_Update {
 interface Merchant_Billing_Gateway_Store {
   public function store(Merchant_Billing_CreditCard $creditcard, $options);
   public function unstore(Merchant_Billing_CreditCard $creditcard, $options);
-}
-
-/**
- * Exception for merchant billing-related errors.
- * @package Aktive-Merchant
- */
-class Merchant_Billing_Exception extends Exception {
-  
 }
 
 ?>
