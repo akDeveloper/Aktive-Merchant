@@ -12,9 +12,12 @@ class Merchant_Billing_AuthorizeNet extends Merchant_Billing_Gateway implements 
 {
     const API_VERSION = "3.1";
 
-    protected static $URL = "https://secure.authorize.net/gateway/transact.dll";
-    protected static $ARB_URL = 'https://api.authorize.net/xml/v1/request.api';
-
+    const LIVE_URL = "https://secure.authorize.net/gateway/transact.dll";
+    const LIVE_ARB_URL = 'https://api.authorize.net/xml/v1/request.api';
+    
+    const TEST_URL = "https://test.authorize.net/gateway/transact.dll";
+    const TEST_ARB_URL = 'https://apitest.authorize.net/xml/v1/request.api';
+    
     public $duplicate_window;
 
     const APPROVED = 1;
@@ -217,7 +220,7 @@ XML;
      */
     private function commit($action, $money, $parameters = array())
     {
-        $url = static::$URL;
+        $url = $this->is_test() ? self::LIVE_URL : self::TEST_URL;
       
         if ($action != 'VOID') {
           $parameters['amount'] = $this->amount($money);
@@ -435,7 +438,7 @@ XML;
 
     private function recurring_commit($action, $parameters=array())
     {
-        $url = static::$ARB_URL;
+        $url = $this->is_test() ? self::TEST_ARB_URL : self::LIVE_ARB_URL;
 
         $headers = array("Content-type: text/xml");
 
