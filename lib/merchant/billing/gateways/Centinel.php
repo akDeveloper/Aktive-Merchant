@@ -26,7 +26,7 @@ class Merchant_Billing_Centinel extends Merchant_Billing_Gateway {
   public  $money_format = 'cents';
   public  $default_currency = 'EUR';
 
-  
+
   private $VERSION = '1.7';
 
   public function __construct($options = array()) {
@@ -47,7 +47,7 @@ class Merchant_Billing_Centinel extends Merchant_Billing_Gateway {
     return $this->commit('cmpi_lookup', $money, array());
   }
 
-  public function authenticate($options=array()) {    
+  public function authenticate($options=array()) {
     $this->required_options('payload, transaction_id', $options);
     $this->add_cmpi_lookup_data($options);
 
@@ -95,7 +95,7 @@ XML;
 
   private function parse_cmpi_lookup ($body) {
     $xml = simplexml_load_string($body);
-    
+
     $response = array();
     $response['transaction_id'] = (string) $xml->TransactionId;
     $response['error_no'] = (string) $xml->ErrorNo;
@@ -109,19 +109,19 @@ XML;
     return $response;
   }
 
-  private function parse_cmpi_authenticate($body) {   
-    $xml = simplexml_load_string($body); 
+  private function parse_cmpi_authenticate($body) {
+    $xml = simplexml_load_string($body);
 
     $response = array();
-    
+
     $response['eci_flag'] = (string) $xml->EciFlag;
     $response['pares_status'] = (string) $xml->PAResStatus;
     $response['signature_verification'] = (string) $xml->SignatureVerification;
-    $response['xid'] = (string) $xml->Xid; 
+    $response['xid'] = (string) $xml->Xid;
     $response['error_desc'] = (string) $xml->ErrorDesc;
     $response['error_no'] = (string) $xml->ErrorNo;
-    $response['cavv'] = (string) $xml->Cavv;  
-    
+    $response['cavv'] = (string) $xml->Cavv;
+
     return $response;
   }
 
@@ -146,14 +146,18 @@ XML;
         break;
     }
 
-    return new Merchant_Billing_CentinelResponse($this->success_from($response),
+    $responseClass = $action == 'cmpi_lookup'
+      ? 'Merchant_Billing_CentinelCmpiLookupResponse'
+      : 'Merchant_Billing_CentinelResponse';
+
+    return new $responseClass($this->success_from($response),
             $this->message_from($response), $response, $options);
   }
 
   private function success_from($response) {
     if(isset($response['acs_url']) && empty($response['acs_url']))
         return false;
-      
+
     if(isset($response['pares_status']) && !in_array($response['pares_status'], array('Y', 'A')))
       return false;
 
@@ -181,6 +185,6 @@ XML;
 XML;
     return "cmpi_msg=" . urlencode(trim($data));
   }
-  
+
 }
 ?>
