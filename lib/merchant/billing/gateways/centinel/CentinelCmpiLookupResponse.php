@@ -2,8 +2,8 @@
 
 class Merchant_Billing_CentinelCmpiLookupResponse extends Merchant_Billing_CentinelResponse {
 
-  function __construct() {
-    parent::__construct();
+  function __construct($success, $message, $params = array(), $options = array()) {
+    parent::__construct($success, $message, $params, $options);
     $this->params['liability_shifted'] = $this->params['enrolled'] == 'N';
   }
 
