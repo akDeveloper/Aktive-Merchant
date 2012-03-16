@@ -161,6 +161,10 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
         if (isset($options['email'])) {
             $params['EMAIL'] = $options['email'];
         }
+        
+        if (isset($options['extra_options'])) {
+            $params = array_merge($params, $options['extra_options']);
+        }
 
         return $params;
     }
