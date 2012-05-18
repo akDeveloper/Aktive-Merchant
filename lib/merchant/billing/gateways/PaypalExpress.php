@@ -27,7 +27,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
 
     public function __construct($options = array())
     {
-        parent::__construct($options);    
+        parent::__construct($options);
         $this->required_options('login, password, signature', $options);
 
         $this->options = $options;
@@ -36,6 +36,22 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             $this->version = $options['version'];
         if (isset($options['currency']))
             self::$default_currency = $options['currency'];
+    }
+
+    /**
+     * method from Merchant_Billing_Gateway
+     * overridden to allow negative values
+     */
+    public function amount($money)
+    {
+        if (null === $money)
+            return null;
+
+        $cents = $money * 100;
+        if (!is_numeric($money)) {
+            throw new Merchant_Billing_Exception('money amount must be a positive Integer in cents.');
+        }
+        return ($this->money_format() == 'cents') ? number_format($cents, 0, '', '') : number_format($money, 2);
     }
 
     /**
@@ -117,7 +133,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
         if (!isset($options['token'])) {
             $options['token'] = $this->token;
         }
-        
+
         if (!isset($options['payer_id'])) {
             $options['payer_id'] = $this->payer_id;
         }
@@ -157,11 +173,11 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
                 $params['L_PAYMENTREQUEST_0_NUMBER' . $key] = $item['id'];
             }
         }
-        
+
         if (isset($options['email'])) {
             $params['EMAIL'] = $options['email'];
         }
-        
+
         if (isset($options['extra_options'])) {
             $params = array_merge($params, $options['extra_options']);
         }
