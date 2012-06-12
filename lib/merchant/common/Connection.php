@@ -7,7 +7,7 @@
  * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Merchant_Connection {
-  
+
   private $endpoint;
 
   public function __construct($endpoint) {
@@ -15,7 +15,7 @@ class Merchant_Connection {
   }
 
   public function request ($method, $body, $options = array()){
-    
+
     $timeout    = isset($options['timeout']) ? $options['timeout'] : '0';
     $user_agent = isset($options['user_agent']) ? $options['user_agent'] : null;
     $headers    = isset($options['headers']) ? $options['headers'] : array();
@@ -31,7 +31,7 @@ class Merchant_Connection {
       $headers[] = 'Authorization: Basic ' . base64_encode($server['user'] . ':' . $server['pass']);
 
     $transaction_url = $server['scheme'] . '://' . $server['host'] . $server['path'] . (isset($server['query']) ? '?' . $server['query'] : '');
-    
+
     Merchant_Logger::save_request($body);
 
     if ( function_exists('curl_init') ) {
@@ -41,6 +41,8 @@ class Merchant_Connection {
       curl_setopt($curl, CURLOPT_HEADER, 0);
       curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
       curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+      curl_setopt($curl, CURLOPT_SSLVERSION, 3);
+      curl_setopt($curl, CURLOPT_SSL_CIPHER_LIST, 'RC4-MD5');
       curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
       curl_setopt($curl, CURLOPT_FORBID_REUSE, 1);
       curl_setopt($curl, CURLOPT_FRESH_CONNECT, 1);
@@ -53,7 +55,7 @@ class Merchant_Connection {
       curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
 
       $response = curl_exec($curl);
-      
+
       curl_close($curl);
 
       Merchant_Logger::log($response);
