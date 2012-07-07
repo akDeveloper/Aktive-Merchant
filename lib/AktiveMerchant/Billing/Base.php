@@ -5,7 +5,6 @@
 namespace AktiveMerchant\Billing;
 
 /**
- * Description of MerchantBase
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
@@ -14,32 +13,58 @@ namespace AktiveMerchant\Billing;
 class Base
 {
 
-    public static    $gateway_mode;
-    public static    $integration_mode;
-    protected static $mode = 'production';
+    /**
+     * @var string
+     */
+    public static $gateway_mode;
+
+    /**
+     * @var string
+     */
+    public static $integration_mode;
+    
+    /**
+     * @var string live | test
+     */
+    protected static $mode = 'live';
+
 
     public static function mode($mode)
     {
-        self::$mode = $mode;
-        self::$gateway_mode = $mode;
+        self::$mode             = $mode;
+        self::$gateway_mode     = $mode;
         self::$integration_mode = $mode;
     }
 
+    /**
+     * Checks if we are in test mode
+     *
+     * @returns boolean true if we are ina test mode, false if not.
+     */
     public static function is_test()
     {
         return self::$gateway_mode == 'test';
     }
 
     /**
+     * Factory method for gateways.
+     * 
      * Return the matching gateway for the provider
      * $name must be the name of the gateway class in underscore format
      * for AuthorizeNet gateway will be authorize_net
      *
+     * <code>
      * AktiveMerchant\Billing\Base::gateway('authorize_net');
+     * </code>
+     * 
+     * @param  string $name the underscored name of the gateway
+     * @param  array  $options
+     *
+     * @return AktiveMerchant\Billing\Gateway the gateway instance
      */
     public static function gateway($name=null, $options = array())
     {
-        $gateway = "\\Merchant\\Billing\\" . self::camelize($name);
+        $gateway = "\\AktiveMerchant\\Billing\\Gateways\\" . self::_camelize($name);
 
         if (class_exists($gateway))
             return new $gateway($options);
@@ -47,7 +72,7 @@ class Base
         throw new Exception("Unable to load class: {$gateway}.");
     }
 
-    private static function camelize($string)
+    private static function _camelize($string)
     {
         return str_replace(' ', '', ucwords(str_replace('_', ' ', $string)));
     }

@@ -1,13 +1,17 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing;
+
 /**
- * Description of CreditCardMethods
+ * Convenience methods that can be included into a custom Credit Card object.
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_CreditCardMethods
+class CreditCardMethods
 {
 
     private static $CARD_COMPANIES = array(
@@ -24,83 +28,89 @@ class Merchant_Billing_CreditCardMethods
         'forbrugsforeningen' => '/^600722\d{10}$/',
         'laser' => '/^(6304|6706|6771|6709)\d{8}(\d{4}|\d{6,7})?$/');
 
-    public static function valid_month($month)
+    public static function isValidMonth($month)
     {
         $month = (int) $month;
         return ($month >= 1 && $month <= 12);
     }
 
-    public static function valid_expiry_year($year)
+    public static function isValidExpiryYear($year)
     {
         $year_now = date("Y", time());
         return ($year >= $year_now && $year <= ($year_now + 20) );
     }
 
-    public static function valid_start_year($year)
+    public static function isValidStartYear($year)
     {
         return (preg_match("/^\d{4}$/", $year) && $year > 1987);
     }
 
-    public static function valid_issue_number($number)
+    public static function isValidIssueNumber($number)
     {
         return preg_match("/^\d{1,2}$/", $number);
     }
 
-    public static function CARD_COMPANIES()
+    public static function getCardCompanies()
     {
         return self::$CARD_COMPANIES;
     }
 
-    public static function valid_number($number)
+    public static function isValidNumber($number)
     {
-        return ( ( self::valid_card_number_length($number) &&
-        self::valid_checksum($number) ) );
+        return ((self::_is_valid_card_number_length($number) && 
+            self::_is_valid_checksum($number)));
     }
 
     public static function type($number)
     {
-        if (self::valid_test_mode_card_number($number))
+        if (self::_is_valid_test_mode_card_number($number))
             return 'bogus';
+
         foreach (self::$CARD_COMPANIES as $name => $pattern) {
             if ($name == 'maestro')
                 continue;
             if (preg_match($pattern, $number))
                 return $name;
         }
+
         if (preg_match(self::$CARD_COMPANIES['maestro'], $number))
             return 'maestro';
     }
 
-    public static function get_last_digits($number)
+    public static function getLastDigits($number)
     {
         return strlen($number) <= 4 ? $number : substr($number, -4);
     }
 
     public static function mask($number)
     {
-        return "XXXX-XXXX-XXXX-" . self::get_last_digits($number);
+        return "XXXX-XXXX-XXXX-" . self::getLastDigits($number);
     }
 
-    public static function matching_type($number, $type)
+    public static function isMatchingType($number, $type)
     {
         return (self::type($number) == $type);
     }
 
-    private static function valid_card_number_length($number)
+    private static function _is_valid_card_number_length($number)
     {
         return ( strlen($number) >= 12 );
     }
 
-    private static function valid_test_mode_card_number($number)
+    private static function _is_valid_test_mode_card_number($number)
     {
-        return Merchant_Billing_Base::is_test() && in_array($number, array('1', '2', '3', 'success', 'failure', 'error'));
+        return Base::is_test() && in_array($number, array('1', '2', '3', 'success', 'failure', 'error'));
     }
 
     /**
      * Checks the validity of a card number by use of the the Luhn Algorithm.
      * Please see http://en.wikipedia.org/wiki/Luhn_algorithm for details.
+     *
+     * @param integer $number the number to check
+     *
+     * @return boolean if given number has valid checksum
      */
-    private static function valid_checksum($number)
+    private static function _is_valid_checksum($number)
     {
         $map = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 2, 4, 6, 8, 1, 3, 5, 7, 9);
         $sum = 0;

@@ -1,5 +1,9 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Common;
+
 /** Contains merchant country class 
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
@@ -13,7 +17,7 @@
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Country
+class Country
 {
 
     protected $name;
@@ -272,7 +276,7 @@ class Merchant_Country
         $this->name = $options['name'];
         unset($options['name']);
         foreach ($options as $k => $v) {
-            $this->codes[] = new Merchant_CountryCode($v);
+            $this->codes[] = new CountryCode($v);
         }
     }
 
@@ -297,7 +301,7 @@ class Merchant_Country
 
         if (strlen($name) == 2 || strlen($name) == 3) {
             $upcase_name = strtoupper($name);
-            $country_code = new Merchant_CountryCode($name);
+            $country_code = new CountryCode($name);
             $country_format = $country_code->format();
             foreach (self::$COUNTRIES as $c) {
                 if ($c[$country_format] == $upcase_name) {
@@ -316,12 +320,12 @@ class Merchant_Country
         if (!isset($country))
             throw new Exception("No country could be found for name {$name}");
 
-        return new Merchant_Country($country);
+        return new Country($country);
     }
 
 }
 
-class Merchant_CountryCode
+class CountryCode
 {
 
     protected $value;
@@ -375,5 +379,3 @@ function required_options($required, $options = array())
     }
     return true;
 }
-
-?>

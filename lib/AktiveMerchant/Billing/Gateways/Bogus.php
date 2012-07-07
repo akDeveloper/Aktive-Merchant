@@ -1,13 +1,22 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Interfaces as Interfaces;
+use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Billing\Response;
+
 /**
- * Description of Merchant_Billing_Bogus
+ * Description of \AktiveMerchant\Billing\Bogus
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_Bogus extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge, Merchant_Billing_Gateway_Credit, Merchant_Billing_Gateway_Store
+class Bogus extends Gateway implements Interfaces\Charge, Interfaces\Credit, Interfaces\Store
 {
     const AUTHORIZATION = '53433';
 
@@ -24,14 +33,14 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway implements Merchan
     public static $homepage_url = 'http://example.com';
     public static $display_name = 'Bogus';
 
-    public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options = array())
+    public function authorize($money, CreditCard $creditcard, $options = array())
     {
         switch ($creditcard->number) {
             case '1':
-                return new Merchant_Billing_Response(true, self::SUCCESS_MESSAGE, array('authorized_amount' => $money), array('test' => true, 'authorization' => self::AUTHORIZATION));
+                return new Response(true, self::SUCCESS_MESSAGE, array('authorized_amount' => $money), array('test' => true, 'authorization' => self::AUTHORIZATION));
                 break;
             case '2':
-                return new Merchant_Billing_Response(false, self::FAILURE_MESSAGE, array('authorized_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+                return new Response(false, self::FAILURE_MESSAGE, array('authorized_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
                 break;
             default:
                 throw new Exception(self::ERROR_MESSAGE);
@@ -39,14 +48,14 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway implements Merchan
         }
     }
 
-    public function purchase($money, Merchant_Billing_CreditCard $creditcard, $options = array())
+    public function purchase($money, CreditCard $creditcard, $options = array())
     {
         switch ($creditcard->number) {
             case '1':
-                return new Merchant_Billing_Response(true, self::SUCCESS_MESSAGE, array('paid_amount' => $money), array('test' => true));
+                return new Response(true, self::SUCCESS_MESSAGE, array('paid_amount' => $money), array('test' => true));
                 break;
             case '2':
-                return new Merchant_Billing_Response(false, self::FAILURE_MESSAGE, array('paid_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+                return new Response(false, self::FAILURE_MESSAGE, array('paid_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
                 break;
             default:
                 throw new Exception(self::ERROR_MESSAGE);
@@ -61,10 +70,10 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway implements Merchan
                 throw new Exception(self::CREDIT_ERROR_MESSAGE);
                 break;
             case '2':
-                return new Merchant_Billing_Response(false, self::FAILURE_MESSAGE, array('paid_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+                return new Response(false, self::FAILURE_MESSAGE, array('paid_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
                 break;
             default:
-                return new Merchant_Billing_Response(true, self::SUCCESS_MESSAGE, array('paid_amount' => $money), array('test' => true));
+                return new Response(true, self::SUCCESS_MESSAGE, array('paid_amount' => $money), array('test' => true));
                 break;
         }
     }
@@ -76,10 +85,10 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway implements Merchan
                 throw new Exception(self::CREDIT_ERROR_MESSAGE);
                 break;
             case '2':
-                return new Merchant_Billing_Response(false, self::FAILURE_MESSAGE, array('paid_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+                return new Response(false, self::FAILURE_MESSAGE, array('paid_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
                 break;
             default:
-                return new Merchant_Billing_Response(true, self::SUCCESS_MESSAGE, array('paid_amount' => $money), array('test' => true));
+                return new Response(true, self::SUCCESS_MESSAGE, array('paid_amount' => $money), array('test' => true));
                 break;
         }
     }
@@ -91,22 +100,22 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway implements Merchan
                 throw new Exception(self::VOID_ERROR_MESSAGE);
                 break;
             case '2':
-                return new Merchant_Billing_Response(false, self::FAILURE_MESSAGE, array('authorization' => $ident, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+                return new Response(false, self::FAILURE_MESSAGE, array('authorization' => $ident, 'error' => self::FAILURE_MESSAGE), array('test' => true));
                 break;
             default:
-                return new Merchant_Billing_Response(true, self::SUCCESS_MESSAGE, array('authorization' => $ident), array('test' => true));
+                return new Response(true, self::SUCCESS_MESSAGE, array('authorization' => $ident), array('test' => true));
                 break;
         }
     }
 
-    public function store(Merchant_Billing_CreditCard $creditcard, $options = array())
+    public function store(CreditCard $creditcard, $options = array())
     {
         switch ($creditcard->number) {
             case '1':
-                return new Merchant_Billing_Response(true, self::SUCCESS_MESSAGE, array('billingid' => '1'), array('test' => true, 'authorization' => self::AUTHORIZATION));
+                return new Response(true, self::SUCCESS_MESSAGE, array('billingid' => '1'), array('test' => true, 'authorization' => self::AUTHORIZATION));
                 break;
             case '2':
-                return new Merchant_Billing_Response(false, self::FAILURE_MESSAGE, array('billingid' => null, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+                return new Response(false, self::FAILURE_MESSAGE, array('billingid' => null, 'error' => self::FAILURE_MESSAGE), array('test' => true));
                 break;
 
             default:
@@ -119,10 +128,10 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway implements Merchan
     {
         switch ($identification) {
             case '1':
-                return new Merchant_Billing_Response(true, self::SUCCESS_MESSAGE, array(), array('test' => true));
+                return new Response(true, self::SUCCESS_MESSAGE, array(), array('test' => true));
                 break;
             case '2':
-                return new Merchant_Billing_Response(false, self::FAILURE_MESSAGE, array('error' => self::FAILURE_MESSAGE), array('test' => true));
+                return new Response(false, self::FAILURE_MESSAGE, array('error' => self::FAILURE_MESSAGE), array('test' => true));
                 break;
 
             default:
@@ -132,5 +141,3 @@ class Merchant_Billing_Bogus extends Merchant_Billing_Gateway implements Merchan
     }
 
 }
-
-?>

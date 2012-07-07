@@ -1,20 +1,21 @@
 <?php
 
-/**
- * Contains gateway base class, interfaces, exception class.
- * @package Aktive-Merchant
- * @author  Andreas Kollaros
- * @license http://www.opensource.org/licenses/mit-license.php
- */
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing;
+
+use AktiveMerchant\Billing\Base;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Common\Connection;
 
 /**
- * Description of Gateway
- *
+ * AktiveMerchant\Billing\Gateway
+ * 
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
+abstract class Gateway
 {
 
     public static $money_format = 'dollars'; # or cents
@@ -26,35 +27,36 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
     private $DEBIT_CARDS = array('switch', 'solo');
     protected $gateway_mode;
     
-    public function __construct($options) {
-      $this->gateway_mode = Merchant_Billing_Base::$gateway_mode;
+    public function __construct($options) 
+    {
+      $this->gateway_mode = Base::$gateway_mode;
     }
     
     public function money_format()
     {
         $class = get_class($this);
-        $ref = new ReflectionClass($class);
+        $ref = new \ReflectionClass($class);
         return $ref->getStaticPropertyValue('money_format');
     }
 
     public function supported_countries()
     {
         $class = get_class($this);
-        $ref = new ReflectionClass($class);
+        $ref = new \ReflectionClass($class);
         return $ref->getStaticPropertyValue('supported_countries');
     }
 
     public function supported_cardtypes()
     {
         $class = get_class($this);
-        $ref = new ReflectionClass($class);
+        $ref = new \ReflectionClass($class);
         return $ref->getStaticPropertyValue('supported_cardtypes');
     }
 
     public function homepage_url()
     {
         $class = get_class($this);
-        $ref = new ReflectionClass($class);
+        $ref = new \ReflectionClass($class);
         return $ref->getStaticPropertyValue('homepage_url');
     }
 
@@ -72,7 +74,7 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
     public function display_name()
     {
         $class = get_class($this);
-        $ref = new ReflectionClass($class);
+        $ref = new \ReflectionClass($class);
         return $ref->getStaticPropertyValue('display_name');
     }
 
@@ -81,28 +83,17 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
         return in_array($card_type, $this->supported_cardtypes());
     }
 
-    public function is_test()
+    public function isTest()
     {
-        return $this->mode() == 'test';
+        return Base::$gateway_mode == 'test';
     }
 
     /**
-     * Get and/or set the gateway mode.
-     * 
-     * Valid values are "test" and "live";
-     * 
-     * @param string $newmode New value for gateway mode (unset or NULL to keep current value)
-     * @return string Current gateway mode, or previous mode if $newmode is set
+     * @throws AktiveMerchant\Billing\Exception
+     *
+     * @access public 
+     * @return integer|float
      */
-    public function mode($newmode = NULL)
-    {
-        $oldmode = $this->gateway_mode;
-        if ($newmode !== NULL) {
-          $this->gateway_mode = $newmode;
-        }
-        return $oldmode;
-    }
-
     public function amount($money)
     {
         if (null === $money)
@@ -110,9 +101,12 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
 
         $cents = $money * 100;
         if (!is_numeric($money) || $money < 0) {
-            throw new Merchant_Billing_Exception('money amount must be a positive Integer in cents.');
+            throw new \AktiveMerchant\Billing\Exception('money amount must be a positive Integer in cents.');
         }
-        return ($this->money_format() == 'cents') ? number_format($cents, 0, '', '') : number_format($money, 2);
+        
+        return ($this->money_format() == 'cents') 
+            ? number_format($cents, 0, '', '') 
+            : number_format($money, 2);
     }
 
     protected function card_brand($source)
@@ -121,7 +115,7 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
         return strtolower($result);
     }
 
-    public function requires_start_date_or_issue_number(Merchant_Billing_CreditCard $creditcard)
+    public function requires_start_date_or_issue_number(CreditCard $creditcard)
     {
         $card_band = $this->card_brand($creditcard);
         if (empty($card_band))
@@ -140,8 +134,6 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
      */
     protected function ssl_get($endpoint, $data, $options = array())
     {
-        if (isset($this->expects[__FUNCTION__]))
-            return $this->expects[__FUNCTION__];
         return $this->ssl_request('get', $endpoint, $data, $options);
     }
 
@@ -156,41 +148,39 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
      */
     protected function ssl_post($endpoint, $data, $options = array())
     {
-        if (isset($this->expects[__FUNCTION__]))
-            return $this->expects[__FUNCTION__];
         return $this->ssl_request('post', $endpoint, $data, $options);
     }
 
     /**
      * Send a request to a remote server, and return the response.
      * 
+     * @throws Merchant_Billing_Exception If the request fails at the HTTP layer
+     *
      * @param string $method Method to use ('post' or 'get')
      * @param string $endpoint URL of remote endpoint to connect to
      * @param string $data Body to include with the request 
      * @param array $options Additional options for the request (see {@link Merchant_Connection::request()})
 	 * @return string Response from server
-     * @throws Merchant_Billing_Exception If the request fails at the HTTP layer
      */
     private function ssl_request($method, $endpoint, $data, $options = array())
     {
-        $connection = new Merchant_Connection($endpoint);
+        $connection = new Connection($endpoint);
         return $connection->request($method, $data, $options);
     }
 
-    /**
-     * Utils
-     */
+    
+    // Utils
+     
     public function generate_unique_id()
     {
         return substr(uniqid(rand(), true), 0, 10);
     }
 
-    /**
-     * PostData
-     */
+    // PostData
 
     /**
      * Convert an associative array to url parameters
+     *
      * @params array key/value hash of parameters
      * @return string
      */
@@ -205,16 +195,18 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
 
     /**
      * RequiresParameters
+     *
+     * @throws AktiveMerchant\Billing\Exception If a required parameter is missing
+     *
      * @param string comma seperated parameters. Represent keys of $options array
      * @param array the key/value hash of options to compare with
-     * @throws Merchant_Billing_Exception If a required parameter is missing
      */
     protected function required_options($required, $options = array())
     {
         $required = explode(',', $required);
         foreach ($required as $r) {
             if (!array_key_exists(trim($r), $options)) {
-                throw new Merchant_Billing_Exception($r . " parameter is required!");
+                throw new \AktiveMerchant\Billing\Exception($r . " parameter is required!");
                 break;
                 return false;
             }
@@ -466,127 +458,4 @@ abstract class Merchant_Billing_Gateway extends Merchant_Billing_Expect
     );
 
 }
-
-/**
- * Interface for a merchant gateway that supports authorize, purchase, capture, and void.
- */
-interface Merchant_Billing_Gateway_Charge {
-  /**
-  * Authorize a transaction without actually charging the card.
-  *
-  * The authorization can be charged with the {@link capture()} method.
-  *
-  * @param float $money Amount of money to authorize
-  * @param Merchant_Billing_CreditCard $creditcard Credit card to authorize
-  * @param array $options Additional options to the driver.  Common options include:
-  *                              <ul>
-  *                              	<li>description - Description that should appear on the card owner's bill
-  *                              	<li>invoice_num - Invoice number to reference
-  *                              	<li>billing_address - Billing address entered by the user.  Includes the following fields:
-  *                              		<ul>
-  *                              			<li>address1 - First line of address
-  *                              			<li>address2 - Second line of address
-  *                              			<li>company - Company being billed
-  *                              			<li>phone - Phone number
-  *                              			<li>zip - Billing ZIP code
-  *                              			<li>city - Billing city
-  *                              			<li>country - Billing country
-  *                              			<li>state - Billing state
-  *                              		</ul>
-  *                              	<li>email - Email address of customer
-  *                              	<li>customer - Customer ID
-  *                              	<li>ip - IP address of customer
-  *                              </ul>
-  * @return Merchant_Billing_Response Response object
-  * @throws Merchant_Billing_Exception If the request fails
-  * @package Aktive-Merchant
-  */
-  public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options = array());
-  
-  /**
-   * Charge a credit card.
-   *
-   * @param float $money Amount of money to charge
-   * @param Merchant_Billing_CreditCard $creditcard Credit card to charge
-   * @param array $options Additional options to the driver.  For details see {@link authorize()}.
-   * @return Merchant_Billing_Response Response object
-   * @throws Merchant_Billing_Exception If the request fails
-   */
-  public function purchase($money, Merchant_Billing_CreditCard $creditcard, $options = array());
-  
-  /**
-   * Charge a credit card after prior authorization.
-   *
-   * Charges a card after a prior authorization by {@link authorize()}.
-   *
-   * @param float $money Amount of money to charge
-   * @param string $authorization Authorization transaction ID (from {@link Merchant_Billing_Response::authorization()})
-   * @param array $options Additional options to the driver.  For details see {@link authorize()}.
-   * @return Merchant_Billing_Response Response object
-   * @throws Merchant_Billing_Exception If the request fails
-   * @package Aktive-Merchant
-   */
-  public function capture($money, $authorization, $options = array());
-  
-  /**
-   * Void an earlier transaction that has not yet been settled.
-   *
-   * @param string $authorization Authorization transaction ID (from {@link Merchant_Billing_Response::authorization()})
-   * @param array $options Additional options to the driver.  For details see {@link authorize()}.
-   * @return Merchant_Billing_Response Response object
-   * @package Aktive-Merchant
-   */
-  public function void($authorization, $options = array());
-}
-
-/**
- * Interface for a merchant gateway that supports credit.
- * @package Aktive-Merchant
- */
-interface Merchant_Billing_Gateway_Credit {
-  /**
-  * Credit a charge back to an account.
-  *
-  * @param float $money Amount of money to charge
-  * @param string $identification Authorization transaction ID (from {@link Merchant_Billing_Response::authorization()})
-  * @param array $options Additional options to the driver.  For details see {@link authorize()}.
-  * @return Merchant_Billing_Response Response object
-  * @throws Merchant_Billing_Exception If the request fails
-  * @package Aktive-Merchant
-  */
-  public function credit($money, $identification, $options = array());
-}
-
-/**
- * Recurring billing interface
- * 
- * @package Aktive-Merchant
- * @todo Needs documentation
- */
-interface Merchant_Billing_Gateway_Recurring {
-  public function recurring($money, Merchant_Billing_CreditCard $creditcard, $options=array());
-}
-
-/**
- * Recurring billing update interface
- * 
- * @package Aktive-Merchant
- * @todo Needs documentation
- */
-interface Merchant_Billing_Gateway_Recurring_Update {
-  public function update_recurring($subscription_id, Merchant_Billing_CreditCard $creditcard);
-  public function cancel_recurring($subscription_id);
-}
-
-/**
- * Credit card storage interface
- * 
- * @package Aktive-Merchant
- * @todo Needs documentation
- */
-interface Merchant_Billing_Gateway_Store {
-  public function store(Merchant_Billing_CreditCard $creditcard, $options);
-  public function unstore(Merchant_Billing_CreditCard $creditcard, $options);
-}
-
 ?>

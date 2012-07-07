@@ -3,16 +3,12 @@
 /**
  * Description of ExpireDateTest
  *
- * Usage:
- *   Navigate, from terminal, to folder where this files is located
- *   run phpunit ExpireDateTest.php
- *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php MIT License
  *
  */
-require_once dirname(__FILE__) . '/../../config.php';
+require_once 'config.php';
 
 class CreditCardTest extends PHPUnit_Framework_TestCase
 {
@@ -31,8 +27,8 @@ class CreditCardTest extends PHPUnit_Framework_TestCase
             'Month' => date('m'),
         );
         
-        $expired = new Merchant_Billing_ExpiryDate($this->given['Date']['Expired']['Month'], $this->given['Date']['Expired']['Year']);
-        $valid = new Merchant_Billing_ExpiryDate($this->given['Date']['Valid']['Month'], $this->given['Date']['Valid']['Year']);
+        $expired = new \AktiveMerchant\Billing\ExpiryDate($this->given['Date']['Expired']['Month'], $this->given['Date']['Expired']['Year']);
+        $valid = new \AktiveMerchant\Billing\ExpiryDate($this->given['Date']['Valid']['Month'], $this->given['Date']['Valid']['Year']);
         
         $this->given['MerchantDate']['Expired'] = $expired;
         $this->given['MerchantDate']['Valid']   = $valid;
@@ -40,12 +36,12 @@ class CreditCardTest extends PHPUnit_Framework_TestCase
 
     public function testSuccessfulExpireDate()
     {
-        $this->assertTrue($this->given['MerchantDate']['Expired']->is_expired());
+        $this->assertTrue($this->given['MerchantDate']['Expired']->isExpired());
     }
 
     public function testFailedExpireDate()
     {
-        $this->assertFalse($this->given['MerchantDate']['Valid']->is_expired());
+        $this->assertFalse($this->given['MerchantDate']['Valid']->isExpired());
     }
 
     public function testSuccessfulReturnExpirationTime()

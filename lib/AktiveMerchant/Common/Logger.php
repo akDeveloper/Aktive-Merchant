@@ -1,4 +1,9 @@
 <?php
+
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Common;
+
 /**
  * Contains merchant logger class
  * 
@@ -30,7 +35,7 @@ define('BOLD_SEQ', "\033[1m");
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Logger
+class Logger
 {
 
     public static $start_time;
@@ -87,7 +92,7 @@ class Merchant_Logger
         }
         
         $trace_string = '';
-        if ($string instanceof Exception) {
+        if ($string instanceof \Exception) {
             $trace_string = $this->_pad_exception($string);
         }
         

@@ -1,18 +1,21 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+use AktiveMerchant\Billing\Gateways\Mock\HsbcSecureEpayments;
+use AktiveMerchant\Billing\Base;
+use AktiveMerchant\Billing\CreditCard;
+
 /**
  * Description of HsbcSecureEpaymentsTest
- *
- * Usage:
- *   Navigate, from terminal, to folder where this files is located
- *   run phpunit HsbcSecureEpaymentsTest.php
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  *
  */
-require_once dirname(__FILE__) . '/../../../config.php';
+require_once 'config.php';
+require_once dirname(__FILE__) . '/Mock/HsbcSecureEpayments.php';
 
 class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase
 {
@@ -27,7 +30,7 @@ class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase
      */
     function setUp()
     {
-        Merchant_Billing_Base::mode('test');
+        Base::mode('test');
 
         $options = array(
             'login' => 'x',
@@ -35,10 +38,10 @@ class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase
             'client_id' => 'z',
             'currency' => 'EUR'
         );
-        $this->gateway = new Merchant_Billing_HsbcSecureEpayments($options);
+        $this->gateway = new HsbcSecureEpayments($options);
 
         $this->amount = 100;
-        $this->creditcard = new Merchant_Billing_CreditCard(array(
+        $this->creditcard = new CreditCard(array(
                 "first_name" => "John",
                 "last_name" => "Doe",
                 "number" => "4111111111111111",
@@ -61,10 +64,18 @@ class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase
     }
 
     public function testInitialization() {
+
       $this->assertNotNull($this->gateway);
+      
       $this->assertNotNull($this->creditcard);
-      $this->assertInstanceOf('Merchant_Billing_Gateway', $this->gateway);
-      $this->assertInstanceOf('Merchant_Billing_Gateway_Charge', $this->gateway);
+      
+      $this->assertInstanceOf(
+          '\\AktiveMerchant\\Billing\\Gateway', 
+          $this->gateway);
+      
+      $this->assertInstanceOf(
+          '\\AktiveMerchant\\Billing\\Interfaces\\Charge', 
+          $this->gateway);
     }
     
     /**

@@ -3,16 +3,12 @@
 /**
  * Description of CreditCardTest
  *
- * Usage:
- *   Navigate, from terminal, to folder where this files is located
- *   run phpunit CreditCardTest.php
- *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php MIT License
  *
  */
-require_once dirname(__FILE__) . '/../../config.php';
+require_once 'config.php';
 
 class CreditCardTest extends PHPUnit_Framework_TestCase
 {
@@ -21,7 +17,7 @@ class CreditCardTest extends PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->creditcard = new Merchant_Billing_CreditCard(array(
+        $this->creditcard = new \AktiveMerchant\Billing\CreditCard(array(
                 "first_name" => "John",
                 "last_name" => "Doe",
                 "number" => "4381258770269608",
@@ -34,17 +30,17 @@ class CreditCardTest extends PHPUnit_Framework_TestCase
 
     public function testSuccessfulValidateCreditcard()
     {
-        $this->assertTrue($this->creditcard->is_valid());
+        $this->assertTrue($this->creditcard->isValid());
     }
 
     public function testSuccessfulGetDisplayNumber()
     {
-        $this->assertEquals('XXXX-XXXX-XXXX-9608', $this->creditcard->display_number());
+        $this->assertEquals('XXXX-XXXX-XXXX-9608', $this->creditcard->displayNumber());
     }
 
     public function testSuccessfulGetLastDigits()
     {
-        $this->assertEquals('9608', $this->creditcard->last_digits());
+        $this->assertEquals('9608', $this->creditcard->lastDigits());
     }
 
     public function testSuccessfulGetName()
@@ -54,17 +50,17 @@ class CreditCardTest extends PHPUnit_Framework_TestCase
 
     public function testSuccessfulExpireDate()
     {
-        $expire_date = $this->creditcard->expire_date();
-        $this->assertInstanceOf('Merchant_Billing_ExpiryDate', $expire_date);
-        $this->assertFalse($expire_date->is_expired());
+        $expire_date = $this->creditcard->expireDate();
+        $this->assertInstanceOf('\AktiveMerchant\Billing\ExpiryDate', $expire_date);
+        $this->assertFalse($expire_date->isExpired());
     }
 
     public function testFailedExpireDate()
     {
         $this->creditcard->year = 2000;
-        $expire_date = $this->creditcard->expire_date();
-        $this->assertInstanceOf('Merchant_Billing_ExpiryDate', $expire_date);
-        $this->assertTrue($expire_date->is_expired());
+        $expire_date = $this->creditcard->expireDate();
+        $this->assertInstanceOf('\AktiveMerchant\Billing\ExpiryDate', $expire_date);
+        $this->assertTrue($expire_date->isExpired());
     }
 
 }

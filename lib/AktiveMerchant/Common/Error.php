@@ -1,5 +1,9 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Common;
+
 /**
  * Contains merchant error class
  * @package Aktive-Merchant
@@ -12,7 +16,7 @@
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Error
+class Error
 {
 
     private $errors = array();
@@ -28,5 +32,3 @@ class Merchant_Error
     }
 
 }
-
-?>

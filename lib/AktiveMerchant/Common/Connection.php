@@ -1,5 +1,9 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Common;
+
 /**
  * A connection to a remote server.
  * 
@@ -9,7 +13,7 @@
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Connection
+class Connection
 {
 
     private $endpoint;
@@ -41,7 +45,7 @@ class Merchant_Connection
      *                         <li>allow_unsafe_ssl - Set to a true value to allow SSL transactions
      *                             even if the certificate fails.
      *                       </ul>
-     * @throws Merchant_Billing_Exception If the request fails at the network or HTTP layer
+     * @throws \AktiveMerchant\Billing\Exception If the request fails at the network or HTTP layer
      */
     public function request($method, $body, $options = array())
     {
@@ -63,7 +67,7 @@ class Merchant_Connection
 
         $transaction_url = $server['scheme'] . '://' . $server['host'] . $server['path'] . (isset($server['query']) ? '?' . $server['query'] : '');
 
-        Merchant_Logger::save_request($body);
+        Logger::save_request($body);
 
         if (function_exists('curl_init')) {
             $curl = curl_init($transaction_url);
@@ -87,19 +91,19 @@ class Merchant_Connection
 
             // Check for outright failure
             if ($response === FALSE) {
-              $ex = new Merchant_Billing_Exception(curl_error($curl), curl_errno($curl));
+              $ex = new \AktiveMerchant\Billing\Exception(curl_error($curl), curl_errno($curl));
               curl_close($curl);
               throw $ex;
             }
             
             // We got a response, so let's log it
-            Merchant_Logger::log("Merchant response: $response");
-            Merchant_Logger::save_response($response);
+            Logger::log("Merchant response: $response");
+            Logger::save_response($response);
             
             // Now check for an HTTP error
             $curlInfo = curl_getinfo($curl);
             if (($curlInfo['http_code'] < 200) && ($curlInfo['http_code'] >= 300)) {
-              $ex = new Merchant_Billing_Exception("HTTP Status #" . $this->m_curlinfo['http_code']."\n".($this->m_doc?"\n$this->m_doc":"")."CurlInfo:\n".print_r($this->m_curlinfo,TRUE));
+              $ex = new \AktiveMerchant\Billing\Exception("HTTP Status #" . $this->m_curlinfo['http_code']."\n".($this->m_doc?"\n$this->m_doc":"")."CurlInfo:\n".print_r($this->m_curlinfo,TRUE));
               curl_close($curl);
               throw $ex;
             }
@@ -108,10 +112,8 @@ class Merchant_Connection
             // OK, the response was OK at the HTTP level at least!  Pass it up a layer.
             return $response;
         } else {
-            throw new Merchant_Billing_Exception('curl is not installed!');
+            throw new \AktiveMerchant\Billing\Exception('curl is not installed!');
         }
     }
 
 }
-
-?>

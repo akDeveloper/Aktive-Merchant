@@ -1,5 +1,9 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing;
+
 /**
  * Description of Date
  *
@@ -17,7 +21,7 @@
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_ExpiryDate
+class ExpiryDate
 {
 
     private $year;
@@ -29,25 +33,25 @@ class Merchant_Billing_ExpiryDate
         $this->month = (int) $month;
     }
 
-    public function is_expired()
+    public function isExpired()
     {
         return ( time() > $this->expiration() );
     }
 
     public function expiration()
     {
-        return strtotime($this->year . "-" . $this->month . "-" . $this->month_days() . " 23:59:59");
+        return strtotime($this->year . "-" . $this->month . "-" . $this->_month_days() . " 23:59:59");
     }
 
-    private function month_days()
+    private function _month_days()
     {
         $mdays = array(null, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
-        if ($this->is_leap())
+        if ($this->_is_leap())
             $mdays[2] = 29;
         return $mdays[$this->month];
     }
 
-    private function is_leap()
+    private function _is_leap()
     {
         $time = strtotime($this->year . "-02-29");
         $time_array = localtime($time);

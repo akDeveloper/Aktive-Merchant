@@ -1,4 +1,7 @@
 <?php
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing;
 
 /**
  * Description of CvvResult
@@ -7,7 +10,7 @@
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_CvvResult
+class CvvResult
 {
 
     private static $MESSAGES = array(

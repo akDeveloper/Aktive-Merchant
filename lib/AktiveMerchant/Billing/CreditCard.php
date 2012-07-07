@@ -5,28 +5,69 @@
 namespace AktiveMerchant\Billing;
 
 /**
- * Description of CreditCard
+ * A CreditCard object represents a physical credit card, and is capable of validating the various
+ * data associated with these.
  *
- * Public methods:
- * + expire_date() returns an Merchant_Billing_ExpiryDate instance
- * + is_expired() returns a boolean value if creditcard is expired
- * + name() returns the full name of cardholder
- * + display_number() return a string of crediticard number with all digits hidden except the fout last digits. ex. XXXX-XXXX-XXXX-1234
- * + last_digits() returns only the four last digits of creditcard number
- * + is_valid() returns a boolean if creditcard is valid or not. If creditcard is not valid then we can get an array with errors. See below
- * + errors() return an array with errors with key as error field and value as description
+ * At the moment, the following credit card types are supported:
+ *   + Visa
+ *   + MasterCard
+ *   + Discover
+ *   + American Express
+ *   + Diner's Club
+ *   + JCB
+ *   + Switch
+ *   + Solo
+ *   + Dankort
+ *   + Maestro
+ *   + Forbrugsforeningen
+ *   + Laser
+ *
+ * For testing purposes, use the 'bogus' credit card type. This skips the vast majority of
+ * validations, allowing you to focus on your core concerns until you're ready to be more concerned
+ * with the details of particular credit cards or your gateway.
+ *
+ * Testing With CreditCard
+ * Often when testing we don't care about the particulars of a given card type. When using the 'test'
+ * mode in your {Gateway}, there are six different valid card numbers: 1, 2, 3, 'success', 'fail',
+ * and 'error'.
+ *
+ * For details, see {CreditCardMethods::ClassMethods#valid_number?}
+ *
+ * Example Usage
+ * <code>
+ *   $cc = new CreditCard( array(
+ *     'first_name' => 'Steve',
+ *     'last_name'  => 'Smith',
+ *     'month'      => '9',
+ *     'year'       => '2010',
+ *     'type'       => 'visa',
+ *     'number'     => '4242424242424242'
+ *   ))
+ *
+ *   $cc->isValid() # => true
+ *   $cc->displayNumber() # => XXXX-XXXX-XXXX-4242
+ * </code>
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-require_once dirname(__FILE__) . "/CreditCardMethods.php";
-require_once dirname(__FILE__) . "/ExpiryDate.php";
 
 class CreditCard extends CreditCardMethods
 {
 
+    /**
+     * Card holder first name
+     *
+     * @var string
+     */
     public $first_name;
+
+    /**
+     * Card holder last name
+     *
+     * @var string
+     */
     public $last_name;
     public $month;
     public $year;
@@ -68,13 +109,7 @@ class CreditCard extends CreditCardMethods
         else
             $this->type = self::type($this->number);
 
-        $this->errors = new Merchant_Error();
-    }
-
-    public function __get($name)
-    {
-        if (isset($this->$name))
-            return $this->$name;
+        $this->errors = new \AktiveMerchant\Common\Error();
     }
 
     public function errors()
@@ -82,14 +117,14 @@ class CreditCard extends CreditCardMethods
         return $this->errors->errors();
     }
 
-    public function expire_date()
+    public function expireDate()
     {
-        return new Merchant_Billing_ExpiryDate($this->month, $this->year);
+        return new ExpiryDate($this->month, $this->year);
     }
 
-    public function is_expired()
+    public function isExpired()
     {
-        return $this->expire_date()->is_expired();
+        return $this->expireDate()->isExpired();
     }
 
     public function name()
@@ -97,17 +132,17 @@ class CreditCard extends CreditCardMethods
         return $this->first_name . " " . $this->last_name;
     }
 
-    public function display_number()
+    public function displayNumber()
     {
         return self::mask($this->number);
     }
 
-    public function last_digits()
+    public function lastDigits()
     {
-        return self::get_last_digits($this->number);
+        return self::getLastDigits($this->number);
     }
 
-    public function is_valid()
+    public function isValid()
     {
         $this->validate();
         $errors = $this->errors();
@@ -118,7 +153,7 @@ class CreditCard extends CreditCardMethods
     {
         $this->validate_essential_attributes();
 
-        # Skip test if gateway is Bogus
+        // Skip test if gateway is Bogus
         if (self::type($this->number) == 'bogus')
             return true;
 
@@ -130,9 +165,9 @@ class CreditCard extends CreditCardMethods
 
     private function validate_card_number()
     {
-        if (self::valid_number($this->number) === false)
+        if (self::isValidNumber($this->number) === false)
             $this->errors->add('number', 'is not a valid credit card number');
-        if (self::matching_type($this->number, $this->type) === false)
+        if (self::isMatchingType($this->number, $this->type) === false)
             $this->errors->add('type', 'is not the correct card type');
     }
 
@@ -140,7 +175,7 @@ class CreditCard extends CreditCardMethods
     {
         if ($this->type === null || $this->type == "")
             $this->errors->add('type', 'is required');
-        $card_companies = self::card_companies();
+        $card_companies = self::getCardCompanies();
         if (!isset($card_companies[$this->type]))
             $this->errors->add('type', 'is invalid');
     }
@@ -156,15 +191,15 @@ class CreditCard extends CreditCardMethods
     private function validate_switch_or_solo_attributes()
     {
         if (in_array($this->type, array('solo', 'switch'))) {
-            if (( self::valid_month($this->start_month) === false
-                && self::valid_start_year($this->start_year) == false )
-                || self::valid_issue_number($this->issue_number) == false) {
+            if (( self::isValidMonth($this->start_month) === false
+                && self::isValidStartYear($this->start_year) == false )
+                || self::isValidIssueNumber($this->issue_number) == false) {
 
-                if (self::valid_month($this->start_month) === false)
+                if (self::isValidMonth($this->start_month) === false)
                     $this->errors->add('start month', 'is invalid');
-                if (self::valid_start_year($this->start_year) === false)
+                if (self::isValidStartYear($this->start_year) === false)
                     $this->errors->add('start year', 'is invalid');
-                if (self::valid_issue_number($this->issue_number) === false)
+                if (self::isValidIssueNumber($this->issue_number) === false)
                     $this->errors->add('issue number', 'cannot be empty');
             }
         }
@@ -176,11 +211,11 @@ class CreditCard extends CreditCardMethods
             $this->errors->add('first_name', 'cannot be empty');
         if ($this->last_name === null || $this->last_name == "")
             $this->errors->add('last_name', 'cannot be empty');
-        if (self::valid_month($this->month) === false)
+        if (self::isValidMonth($this->month) === false)
             $this->errors->add('month', 'is not a valid month');
-        if ($this->is_expired() === true)
+        if ($this->isExpired() === true)
             $this->errors->add('year', 'expired');
-        if (self::valid_expiry_year($this->year) === false)
+        if (self::isValidExpiryYear($this->year) === false)
             $this->errors->add('year', 'is not a valid year');
     }
 

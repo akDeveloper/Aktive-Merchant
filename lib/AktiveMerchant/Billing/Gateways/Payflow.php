@@ -1,9 +1,12 @@
 <?php
-
 require_once 'payflow/PayflowCommon.php';
 require_once 'payflow/PayflowResponse.php';
 
-class Merchant_Billing_Payflow extends Merchant_Billing_PayflowCommon
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Interfaces as Interfaces;
+
+class Payflow extends PayflowCommon
 {
 
     public static $supported_cardtypes = array('add', 'modify', 'cancel', 'inquiry', 'reactivate', 'payment');

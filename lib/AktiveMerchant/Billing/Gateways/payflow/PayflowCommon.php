@@ -1,6 +1,10 @@
 <?php
 
-class Merchant_Billing_PayflowCommon extends Merchant_Billing_Gateway
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Gateway;
+
+class PayflowCommon extends Gateway
 {
     const TEST_URL = 'https://pilot-payflowpro.paypal.com';
     const LIVE_URL = 'https://payflowpro.paypal.com';
@@ -183,7 +187,7 @@ XML;
 
     protected function commit()
     {
-        $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
+        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
         $response = $this->parse($this->ssl_post($url, $this->xml));
         $this->xml = null;
 
@@ -198,7 +202,7 @@ XML;
     {
         $options = array();
         $options['authorization'] = isset($response['PNRef']) ? $response['PNRef'] : null;
-        $options['test'] = $this->is_test();
+        $options['test'] = $this->isTest();
         if (isset($response['CVResult']))
             $options['cvv_result'] = $this->CVV_CODE[$response['CVResult']];
         if (isset($response['AVSResult']))

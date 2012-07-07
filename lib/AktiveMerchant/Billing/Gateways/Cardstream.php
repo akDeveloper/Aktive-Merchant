@@ -1,32 +1,88 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Interfaces as Interfaces;
+use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Billing\Response;
+
 /**
- * Description of Merchant_Billing_ Cardstream
+ * Description of Cardstream
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge, Merchant_Billing_Gateway_Credit
+class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
 {
     const TEST_URL = 'https://gateway.cardstream.com/process.ashx';
     const LIVE_URL = 'https://gateway.cardstream.com/process.ashx';
 
-    # The countries the gateway supports merchants from as 2 digit ISO country codes
-
+    /**
+     *  The countries the gateway supports merchants from as 2 digit ISO 
+     *  country codes.
+     *
+     * @var array
+     */
     public static $supported_countries = array('GB');
 
-    # The card types supported by the payment gateway
-    public static $supported_cardtypes = array('visa', 'master', 'american_express', 'diners_club', 'discover', 'jcb', 'maestro', 'solo', 'switch');
+    /** 
+     * The card types supported by the payment gateway 
+     *
+     * @var array
+     */
+    public static $supported_cardtypes = array(
+        'visa', 
+        'master', 
+        'american_express', 
+        'switch', 
+        'solo', 
+        'maestro'
+    );
 
-    # The homepage URL of the gateway
+    /** 
+     * The homepage URL of the gateway
+     *
+     * @var string
+     */
     public static $homepage_url = 'http://www.cardstream.com';
 
-    # The display name of the gateway
+    /** 
+     * The display name of the gateway 
+     *
+     * @var string
+     */
     public static $display_name = 'CardStream';
+
+    /**
+     * the default currency to e used for this gateway
+     *
+     * @var string
+     */
     public static $default_currency = 'GBP';
+
+    /**
+     * The default money format to be used for this gateway
+     *
+     * @var string cents or dollar
+     */
     public static $money_format = 'cents';
+
+    /**
+     * Additional options needed by gateway
+     *
+     * @var array
+     */
     private $options;
+
+    /**
+     * An array handling all needed variables to be send to endpoint of the gateway.
+     *
+     * @var array
+     */
     private $post;
 
     const APPROVED = '00';
@@ -44,11 +100,15 @@ class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Me
         '4' => 'N'
     );
 
-    # 0 - No additional information available.
-    # 1 - Postcode not checked.
-    # 2 - Postcode matched.
-    # 4 - Postcode not matched.
-    # 8 - Postcode partially matched.
+    /**
+     * 0 - No additional information available.
+     * 1 - Postcode not checked.
+     * 2 - Postcode matched.
+     * 4 - Postcode not matched.
+     * 8 - Postcode partially matched.
+     *
+     * @var array
+     */
     private $AVS_POSTAL_MATCH = array(
         "0" => null,
         "1" => null,
@@ -71,9 +131,12 @@ class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Me
     );
 
     /**
-     * $options array includes login parameters of merchant and optional currency.
+     * creates gateway instance from given options.
      *
-     * @param array $options
+     * @param array $options an array contains login parameters of merchant 
+     *                       and optional currency.
+     * 
+     * @return CardStream the Cardstream gateway instance.
      */
     public function __construct($options = array())
     {
@@ -87,13 +150,18 @@ class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Me
     }
 
     /**
+     * bind the given amount to customer creditcard
      *
-     * @param number $money
-     * @param Merchant_Billing_CreditCard $creditcard
-     * @param array $options
-     * @return Merchant_Billing_Response
+     * creditcard is not charged yet. a capture action required for charging the 
+     * creditcard
+     *
+     * @param  number     $money      the amount of money to authorize
+     * @param  CreditCard $creditcard CreditCard object with cardholder info.
+     * @param  array      $options    additional options for authorize action.
+     *
+     * @return Response
      */
-    public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options=array())
     {
         $this->required_options('order_id', $options);
 
@@ -108,12 +176,13 @@ class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Me
 
     /**
      *
-     * @param number $money
-     * @param Merchant_Billing_CreditCard $creditcard
-     * @param array $options
-     * @return Merchant_Billing_Response
+     * @param  number     $money
+     * @param  CreditCard $creditcard
+     * @param  array      $options
+     *
+     * @return Response
      */
-    public function purchase($money, Merchant_Billing_CreditCard $creditcard, $options=array())
+    public function purchase($money, CreditCard $creditcard, $options=array())
     {
         $this->required_options('order_id', $options);
 
@@ -128,10 +197,11 @@ class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Me
 
     /**
      *
-     * @param number $money
-     * @param string $authorization (unique value received from authorize action)
-     * @param array $options
-     * @return Merchant_Billing_Response
+     * @param  number   $money
+     * @param  string   $authorization (unique value received from authorize action)
+     * @param  array    $options
+     *
+     * @return Response
      */
     public function capture($money, $authorization, $options = array())
     {
@@ -144,10 +214,11 @@ class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Me
 
     /**
      *
-     * @param number $money
-     * @param string $identification
-     * @param array $options
-     * @return Merchant_Billing_Response
+     * @param  number   $money
+     * @param  string   $identification
+     * @param  array    $options
+     *
+     * @return Response
      */
     public function credit($money, $identification, $options = array())
     {
@@ -156,7 +227,12 @@ class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Me
         return $this->commit('credit', $money);
     }
 
-    /* Private */
+    public function void($authorization, $options = array())
+    {
+    
+    }
+
+    // Private methods
 
     /**
      * Customer data like e-mail, ip, web browser used for transaction etc
@@ -170,8 +246,8 @@ class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Me
     }
 
     /**
-     *
      * Options key can be 'shipping address' and 'billing_address' or 'address'
+     * 
      * Each of these keys must have an address array like:
      * $address['name']
      * $address['company']
@@ -187,6 +263,8 @@ class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Me
      * $shipping_address = $options['shipping_address']
      *
      * @param array $options
+     *
+     * @return void
      */
     private function add_address($options)
     {
@@ -203,11 +281,11 @@ class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Me
     }
 
     /**
-     * @param number $money
-     * @param Merchant_Billing_CreditCard $creditcard
-     * @param array $options
+     * @param number     $money
+     * @param CreditCard $creditcard
+     * @param array      $options
      */
-    private function add_invoice($money, Merchant_Billing_CreditCard $creditcard, $options)
+    private function add_invoice($money, CreditCard $creditcard, $options)
     {
         $this->post['TransactionUnique'] = $options['order_id'];
         $this->post['OrderDesc'] = isset($options['descreption']) ? $options['descreption'] : $options['order_id'];
@@ -220,9 +298,9 @@ class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Me
 
     /**
      *
-     * @param Merchant_Billing_CreditCard $creditcard
+     * @param CreditCard $creditcard
      */
-    private function add_creditcard(Merchant_Billing_CreditCard $creditcard)
+    private function add_creditcard(CreditCard $creditcard)
     {
         $this->post['CardName'] = $creditcard->name();
         $this->post['CardNumber'] = $creditcard->number;
@@ -243,7 +321,7 @@ class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Me
      * Please note that cross reference transactions must come from a static IP
      * addressed that has been preregistered with Cardstream.
      * To register an IP address, please send details to solutions@cardstream.com
-     * with the relevant Cardstream issued MerchantID and it will be added to yourS
+     * with the relevant Cardstream issued MerchantID and it will be added to yours
      * account accordingly.
      *
      * @param string $body
@@ -268,18 +346,18 @@ class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Me
      * @param number $money
      * @param array $parameters
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     private function commit($action, $parameters)
     {
-        $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
+        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
         $data = $this->ssl_post($url, $this->post_data($action, $parameters));
         $response = $this->parse($data);
 
-        $test_mode = $this->is_test();
+        $test_mode = $this->isTest();
 
-        return new Merchant_Billing_Response($this->success_from($response), $this->message_from($response), $response, array(
+        return new Response($this->success_from($response), $this->message_from($response), $response, array(
             'test' => $test_mode,
             'authorization' => $response['CrossReference'],
             'avs_result' => $this->avs_result_from($response),
@@ -373,5 +451,3 @@ class Merchant_Billing_Cardstream extends Merchant_Billing_Gateway implements Me
     }
 
 }
-
-?>

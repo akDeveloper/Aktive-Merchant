@@ -1,5 +1,11 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+use AktiveMerchant\Billing\Gateways\AuthorizeNet;
+use AktiveMerchant\Billing\Base;
+use AktiveMerchant\Billing\CreditCard;
+
 /**
  * Description of AuthorizeNetTest
  *
@@ -13,6 +19,7 @@
  *
  */
 require_once dirname(__FILE__) . '/../../../config.php';
+require_once dirname(__FILE__) . '/Mock/AuthorizeNet.php';
 
 class AuthorizeNetTest extends PHPUnit_Framework_TestCase
 {
@@ -27,15 +34,15 @@ class AuthorizeNetTest extends PHPUnit_Framework_TestCase
      */
     function setUp()
     {
-        Merchant_Billing_Base::mode('test');
+        Base::mode('test');
 
         $login_info = array(
             'login' => AUTH_NET_LOGIN,
             'password' => AUTH_NET_PASS);
-        $this->gateway = new Merchant_Billing_AuthorizeNetTest($login_info);
+        $this->gateway = new AuthorizeNet($login_info);
 
         $this->amount = 100;
-        $this->creditcard = new Merchant_Billing_CreditCard(array(
+        $this->creditcard = new CreditCard(array(
                 "first_name" => "John",
                 "last_name" => "Doe",
                 "number" => "4111111111111111",
@@ -73,12 +80,29 @@ class AuthorizeNetTest extends PHPUnit_Framework_TestCase
      */
     
     public function testInitialization() {
+
       $this->assertNotNull($this->gateway);
-      $this->assertInstanceOf('Merchant_Billing_Gateway', $this->gateway);
-      $this->assertInstanceOf('Merchant_Billing_Gateway_Charge', $this->gateway);
-      $this->assertInstanceOf('Merchant_Billing_Gateway_Credit', $this->gateway);
-      $this->assertInstanceOf('Merchant_Billing_Gateway_Recurring', $this->gateway);
-      $this->assertInstanceOf('Merchant_Billing_Gateway_Recurring_Update', $this->gateway);
+      
+      $this->assertInstanceOf(
+          '\\AktiveMerchant\\Billing\\Gateway', 
+          $this->gateway
+      );
+      
+      $this->assertInstanceOf(
+          '\\AktiveMerchant\\Billing\\Interfaces\\Charge', 
+          $this->gateway
+      );
+      
+      $this->assertInstanceOf(
+          '\\AktiveMerchant\\Billing\\Interfaces\\Credit', 
+          $this->gateway
+      );
+      
+      $this->assertInstanceOf(
+          '\\AktiveMerchant\\Billing\\Interfaces\\Recurring', 
+          $this->gateway
+      );
+      
       $this->assertNotNull($this->creditcard);
     }
     
