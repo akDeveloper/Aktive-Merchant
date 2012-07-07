@@ -20,7 +20,7 @@ The aim is to develop a PHP application to includes payments gateway under a com
 
 ## Requirements
 
-* PHP 5 ( Test it on php 5.2.13 )
+* PHP 5.3+ ( Test it on php 5.4 :P)
 * cUrl
 * SimpleXML
 
