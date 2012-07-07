@@ -20,25 +20,28 @@ The aim is to develop a PHP application to includes payments gateway under a com
 
 ## Requirements
 
-* PHP 5.3+ ( Test it on php 5.4 :P)
+* PHP 5.3+ ( Test it on php 5.4.4 :P)
 * cUrl
 * SimpleXML
 
 ## Usage
 
     require_once('path/to/lib/merchant.php');
-
-    Merchant_Billing_Base::mode('test'); # Remove this on production mode
+    
+    use AktiveMerchant\Billing\Base;
+    use AktiveMerchant\Billing\CreditCard;
+    
+    Base::mode('test'); # Remove this on production mode
 
     try {
 
-      $gateway = new Merchant_Billing_YourPaymentGateway( array(
+      $gateway = new AktiveMerchant\Billing\Gateways\YourPaymentGateway( array(
         'login' => 'login_id',
         'password' => 'password'
       ));
 
       # Create a credit card object if you need it.
-      $credit_card = new Merchant_Billing_CreditCard( array(
+      $credit_card = new CreditCard( array(
         "first_name" => "John",
         "last_name" => "Doe",
         "number" => "41111111111111",
