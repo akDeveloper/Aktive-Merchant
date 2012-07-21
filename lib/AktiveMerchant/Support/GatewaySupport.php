@@ -1,6 +1,6 @@
 <?php
 
-require_once "../merchant.php";
+namespace AktiveMerchant\Support;
 
 class GatewaySupport
 {
