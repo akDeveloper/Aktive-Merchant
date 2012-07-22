@@ -6,7 +6,8 @@ namespace AktiveMerchant\Billing;
 
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
-use AktiveMerchant\Common\Connection;
+use AktiveMerchant\Http\Request;
+use AktiveMerchant\Billing\Exception;
 
 /**
  * AktiveMerchant\Billing\Gateway
@@ -18,20 +19,41 @@ use AktiveMerchant\Common\Connection;
 abstract class Gateway
 {
 
-    public static $money_format = 'dollars'; # or cents
+    public static $money_format = 'dollars'; // or cents
+    
     public static $default_currency;
+    
     public static $supported_countries = array();
-    public static $supported_cardtypes = array('visa', 'master', 'american_express', 'switch', 'solo', 'maestro');
+    
+    public static $supported_cardtypes = array(
+        'visa', 
+        'master', 
+        'american_express', 
+        'switch', 
+        'solo', 
+        'maestro'
+    );
+    
     public static $homepage_url;
+    
     public static $display_name;
-    private $DEBIT_CARDS = array('switch', 'solo');
+    
+    private $debit_cards = array('switch', 'solo');
+    
     protected $gateway_mode;
+    
+    protected $request;
     
     public function __construct($options) 
     {
       $this->gateway_mode = Base::$gateway_mode;
     }
-    
+
+    public function setRequest($request)
+    {
+        $this->request = $request;
+    }
+
     public function money_format()
     {
         $class = get_class($this);
@@ -101,7 +123,7 @@ abstract class Gateway
 
         $cents = $money * 100;
         if (!is_numeric($money) || $money < 0) {
-            throw new \AktiveMerchant\Billing\Exception('money amount must be a positive Integer in cents.');
+            throw new Exception('money amount must be a positive Integer in cents.');
         }
         
         return ($this->money_format() == 'cents') 
@@ -120,7 +142,7 @@ abstract class Gateway
         $card_band = $this->card_brand($creditcard);
         if (empty($card_band))
             return false;
-        return in_array($this->card_brand($creditcard), $this->DEBIT_CARDS);
+        return in_array($this->card_brand($creditcard), $this->debit_cards);
     }
 
     /**
@@ -134,7 +156,7 @@ abstract class Gateway
      */
     protected function ssl_get($endpoint, $data, $options = array())
     {
-        return $this->ssl_request('get', $endpoint, $data, $options);
+        return $this->ssl_request('GET', $endpoint, $data, $options);
     }
 
     /**
@@ -148,7 +170,7 @@ abstract class Gateway
      */
     protected function ssl_post($endpoint, $data, $options = array())
     {
-        return $this->ssl_request('post', $endpoint, $data, $options);
+        return $this->ssl_request('POST', $endpoint, $data, $options);
     }
 
     /**
@@ -164,8 +186,17 @@ abstract class Gateway
      */
     private function ssl_request($method, $endpoint, $data, $options = array())
     {
-        $connection = new Connection($endpoint);
-        return $connection->request($method, $data, $options);
+        
+        $request = $this->request ?: new Request(
+            $endpoint, 
+            $method, 
+            $options
+        );
+        $request->setBody($data);
+        if (true == $request->send()) {
+
+            return $request->getResponseBody();
+        }
     }
 
     
