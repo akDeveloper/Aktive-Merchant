@@ -6,7 +6,9 @@ namespace AktiveMerchant\Billing\Gateways;
 
 use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
-
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Billing\Exception;
+use AktiveMerchant\Billing\Response;
 /**
  * Merchant driver for {link http://authorize.net/ Authorize.net}.
  *
@@ -77,7 +79,7 @@ class AuthorizeNet extends Gateway
      * @param CreditCard $creditcard
      * @param array      $options
      *
-     * @return \AktiveMerchant\Billing\Response
+     * @return Response
      */
     public function authorize($money, \AktiveMerchant\Billing\CreditCard $creditcard, $options = array())
     {
@@ -96,7 +98,7 @@ class AuthorizeNet extends Gateway
      * @param CreditCard $creditcard
      * @param array      $options
      *
-     * @return \AktiveMerchant\Billing\Response
+     * @return Response
      */
     public function purchase($money, \AktiveMerchant\Billing\CreditCard $creditcard, $options = array())
     {
@@ -116,7 +118,7 @@ class AuthorizeNet extends Gateway
      * @param string $authorization
      * @param array  $options
      *
-     * @return \AktiveMerchant\Billing\Response
+     * @return Response
      */
     public function capture($money, $authorization, $options = array())
     {
@@ -130,7 +132,7 @@ class AuthorizeNet extends Gateway
      * @param string $authorization
      * @param array  $options
      *
-     * @return \AktiveMerchant\Billing\Response
+     * @return Response
      */
     public function void($authorization, $options = array())
     {
@@ -144,7 +146,7 @@ class AuthorizeNet extends Gateway
      * @param string $identification
      * @param array  $options
      *
-     * @return \AktiveMerchant\Billing\Response
+     * @return Response
      */
     public function credit($money, $identification, $options = array())
     {
@@ -165,7 +167,7 @@ class AuthorizeNet extends Gateway
      * @param CreditCard $creditcard
      * @param array      $options
      */
-    public function recurring($money, \AktiveMerchant\Billing\CreditCard $creditcard, $options=array())
+    public function recurring($money, CreditCard $creditcard, $options=array())
     {
         $this->required_options('length, unit, start_date, occurrences, billing_address', $options);
         $this->required_options('first_name, last_name', $options['billing_address']);
@@ -187,7 +189,7 @@ class AuthorizeNet extends Gateway
      * @param string     $subscription_id subscription id returned from recurring method
      * @param CreditCard $creditcard
      *
-     * @return \AktiveMerchant\Billing\Response
+     * @return Response
      */
     public function update_recurring($subscription_id, \AktiveMerchant\Billing\CreditCard $creditcard)
     {
@@ -206,7 +208,7 @@ XML;
      *
      * @param string $subscription_id subscription id return from recurring method
      *
-     * @return \AktiveMerchant\Billing\Response
+     * @return Response
      */
     public function cancel_recurring($subscription_id)
     {
@@ -224,7 +226,7 @@ XML;
      * @param number $money
      * @param array  $parameters
      *
-     * @return \AktiveMerchant\Billing\Response
+     * @return Response
      */
     private function commit($action, $money, $parameters = array())
     {
@@ -238,19 +240,13 @@ XML;
         if ($this->isTest()) {
             #$parameters['test_request'] = 'TRUE';
         }
-
-        // Log request, but mask real user information
-        $log_post = $this->post;
-        if (isset($log_post['card_num'])) $log_post['card_num'] = $this->mask_cardnum($log_post['card_num']);
-        if (isset($log_post['card_code'])) $log_post['card_code'] = $this->mask_cvv($log_post['card_code']);
-        \AktiveMerchant\Common\Logger::log("Sending POST to $url:\n" . $this->post_data($action, $parameters, $log_post));
         
         $data = $this->ssl_post($url, $this->post_data($action, $parameters, $this->post));
 
         $response = $this->parse($data);
         
         // Check the response code, and throw an exception if necessary
-        if (empty($response['response_code'])) throw new \AktiveMerchant\Billing\Exception("Error parsing merchant response: No status information");
+        if (empty($response['response_code'])) throw new Exception("Error parsing merchant response: No status information");
         switch($response['response_code']) {
           case self::ERROR:
             switch($response['response_reason_code']) {
@@ -264,7 +260,7 @@ XML;
                 // These should be treated like a decline
                 break;
               default:
-                throw new \AktiveMerchant\Billing\Exception("Merchant error: $response[response_reason_text] (code $response[response_code]/$response[response_reason_code])");
+                throw new Exception("Merchant error: $response[response_reason_text] (code $response[response_code]/$response[response_reason_code])");
             }
             break;
 	      case self::APPROVED: 
@@ -273,14 +269,14 @@ XML;
 	        // These are OK
 	        break;
 	      default:
-	        throw new \AktiveMerchant\Billing\Exception("Merchant error: Unknown status '$response[response_code]'");	        
+	        throw new Exception("Merchant error: Unknown status '$response[response_code]'");	        
         }
         
         $message = $this->message_from($response);
 
         $test_mode = $this->isTest();
 
-        return new \AktiveMerchant\Billing\Response(
+        return new Response(
             $this->success_from($response),
             $message,
             $response,
@@ -346,9 +342,9 @@ XML;
      */
     private function parse($body)
     {
-        if (empty($body)) throw new \AktiveMerchant\Billing\Exception('Error parsing credit card response: Empty response');
+        if (empty($body)) throw new Exception('Error parsing credit card response: Empty response');
         $fields = explode('|', $body);
-        if (count($fields) < 39) throw new \AktiveMerchant\Billing\Exception('Error parsing credit card response: Too few fields');
+        if (count($fields) < 39) throw new Exception('Error parsing credit card response: Too few fields');
         $response = array(
             'response_code' => $fields[self::RESPONSE_CODE],
             'response_reason_code' => $fields[self::RESPONSE_REASON_CODE],
@@ -458,7 +454,7 @@ XML;
 
         $test_mode = $this->isTest();
 
-        return new \AktiveMerchant\Billing\Response(
+        return new Response(
             $this->arb_success_from($response),
             $message,
             $response,

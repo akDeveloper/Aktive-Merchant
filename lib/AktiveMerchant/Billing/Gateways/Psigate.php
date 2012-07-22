@@ -137,7 +137,6 @@ class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merch
             $log_card->number = $this->mask_cardnum($log_card->number);
             if ($log_card->verification_value) $log_card->verification_value = $this->mask_cvv($log_card->verification_value);
         }
-        Merchant_Logger::log("Sending POST to $url:\n" . $this->post_data($money, $log_card, $options));
 
         // Make the request
         $data = $this->ssl_post($url, $this->post_data($money, $creditcard, $options));

@@ -4,7 +4,6 @@
 
 namespace AktiveMerchant\Http;
 
-use AktiveMerchant\Common\Logger;
 use AktiveMerchant\Billing\Exception;
 
 class Request implements Interfaces\Request

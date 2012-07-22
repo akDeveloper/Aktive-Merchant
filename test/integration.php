@@ -14,7 +14,7 @@ try {
                 ->currency('EUR')
                 ->customer(array('first_name' => 'John','last_name' => 'Doe'));
 
-  Merchant_Logger::print_ar($intergration);
+  print_r($intergration);
 } catch (Exception $exc) {
   echo $exc->getMessage();
 }

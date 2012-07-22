@@ -28,7 +28,7 @@ try {
   );
 
   $response = $gateway->purchase('1', $cc, $options);
-  Merchant_Logger::print_ar($response);
+  
   if ( $response->success() ) {
     echo 'Success Authorize<br />';
     echo $response->message()."<br />";

@@ -28,7 +28,6 @@ class Merchant_Billing_PaypalCommon extends Merchant_Billing_Gateway
         parse_str($body, $response_array);
         if ($response_array['ACK'] == self::FAILURE) {
             $error_message = "Error code (" . $response_array['L_ERRORCODE0'] . ")\n " . $response_array['L_SHORTMESSAGE0'] . ".\n Reason: " . $response_array['L_LONGMESSAGE0'];
-            Merchant_Logger::error_log($error_message);
         }
         return $response_array;
     }

@@ -107,8 +107,6 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
 
         $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
 
-        Merchant_Logger::log("Commit Payment Action: $action, Paypal Method: SetExpressCheckout");
-
         return $this->commit($action);
     }
 
@@ -132,8 +130,6 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
         );
 
         $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
-
-        Merchant_Logger::log("Commit Payment Action: $action, Paypal Method: DoExpressCheckoutPayment");
 
         return $this->commit($action);
     }
@@ -196,7 +192,6 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
         );
         $this->post = array_merge($this->post, $params);
 
-        Merchant_Logger::log("Commit Paypal Method: GetExpressCheckoutDetails");
         return $this->commit($this->urlize($this->post));
     }
 

@@ -18,7 +18,6 @@ try {
       "verification_value" => "123"
     )
   );
-  Merchant_Logger::print_ar($gateway->authorize('1', $cc, array('customer_email'=>'test@test.com')));
 } catch (Exception $e) {
   echo $e->getMessage();
 }
