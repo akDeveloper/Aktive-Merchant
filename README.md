@@ -62,7 +62,7 @@ The aim is to develop a PHP application to includes payments gateway under a com
         )
       );
 
-      if ( $credit_card->is_valid() ) {
+      if ( $credit_card->isValid() ) {
 
         # Authorize transaction
         $response = $gateway->authorize('100', $credit_card, $options);
