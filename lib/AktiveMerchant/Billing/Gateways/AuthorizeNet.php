@@ -17,17 +17,19 @@ use AktiveMerchant\Billing\Response;
  * @license http://www.opensource.org/licenses/mit-license.php
  * @see http://authorize.net/
  */
-class AuthorizeNet extends Gateway 
-    implements Interfaces\Charge, Interfaces\Credit, Interfaces\Recurring
+class AuthorizeNet extends Gateway implements
+    Interfaces\Charge,
+    Interfaces\Credit,
+    Interfaces\Recurring
 {
     const API_VERSION = "3.1";
 
     const LIVE_URL = "https://secure.authorize.net/gateway/transact.dll";
     const LIVE_ARB_URL = 'https://api.authorize.net/xml/v1/request.api';
-    
+
     const TEST_URL = "https://test.authorize.net/gateway/transact.dll";
     const TEST_ARB_URL = 'https://apitest.authorize.net/xml/v1/request.api';
-    
+
     public $duplicate_window;
 
     const APPROVED = 1;
@@ -49,7 +51,7 @@ class AuthorizeNet extends Gateway
     const RESPONSE_REASON_ACCOUNT_INVALID = 10;
     const RESPONSE_REASON_DUPLICATE = 11;
     const RESPONSE_REASON_AUTHCODE_REQUIRED = 12;
-    
+
     public static $supported_countries = array('US');
     public static $supported_cardtypes = array('visa', 'master', 'american_express', 'discover');
     public static $homepage_url = 'http://www.authorize.net/';
@@ -231,20 +233,20 @@ XML;
     private function commit($action, $money, $parameters = array())
     {
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
-      
+
         if ($action != 'VOID') {
             $parameters['amount'] = $this->amount($money);
         }
-        
+
         /* Request a test response */
         if ($this->isTest()) {
             #$parameters['test_request'] = 'TRUE';
         }
-        
+
         $data = $this->ssl_post($url, $this->post_data($action, $parameters, $this->post));
 
         $response = $this->parse($data);
-        
+
         // Check the response code, and throw an exception if necessary
         if (empty($response['response_code'])) throw new Exception("Error parsing merchant response: No status information");
         switch($response['response_code']) {
@@ -263,15 +265,15 @@ XML;
                 throw new Exception("Merchant error: $response[response_reason_text] (code $response[response_code]/$response[response_reason_code])");
             }
             break;
-	      case self::APPROVED: 
+	      case self::APPROVED:
 	      case self::DECLINED:
 	      case self::FRAUD_REVIEW:
 	        // These are OK
 	        break;
 	      default:
-	        throw new Exception("Merchant error: Unknown status '$response[response_code]'");	        
+	        throw new Exception("Merchant error: Unknown status '$response[response_code]'");
         }
-        
+
         $message = $this->message_from($response);
 
         $test_mode = $this->isTest();
@@ -335,6 +337,7 @@ XML;
     }
 
     /**
+     * Parse raw gateway body response.
      *
      * @param string $body raw gateway response
      *
@@ -342,9 +345,16 @@ XML;
      */
     private function parse($body)
     {
-        if (empty($body)) throw new Exception('Error parsing credit card response: Empty response');
+        if (empty($body)) {
+            throw new Exception('Error parsing credit card response: Empty response');
+        }
+
         $fields = explode('|', $body);
-        if (count($fields) < 39) throw new Exception('Error parsing credit card response: Too few fields');
+
+        if (count($fields) < 39) {
+            throw new Exception('Error parsing credit card response: Too few fields');
+        }
+
         $response = array(
             'response_code' => $fields[self::RESPONSE_CODE],
             'response_reason_code' => $fields[self::RESPONSE_REASON_CODE],
@@ -354,7 +364,6 @@ XML;
             'card_code' => $fields[self::CARD_CODE_RESPONSE_CODE]
         );
 
-        
         return $response;
     }
 
