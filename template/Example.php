@@ -18,43 +18,45 @@ use AktiveMerchant\Billing\Response;
  * @license  MIT License http://www.opensource.org/licenses/mit-license.php
  * @link     https://github.com/akDeveloper/Aktive-Merchant
  */
-class Example extends Gateway 
-    implements Interfaces\Charge, Interfaces\Credit, Interfaces\Store
+class Example extends Gateway implements
+    Interfaces\Charge,
+    Interfaces\Credit,
+    Interfaces\Store
 {
     const TEST_URL = 'https://example.com/test';
     const LIVE_URL = 'https://example.com/live';
 
     /**
-     *  The countries the gateway supports merchants from as 2 digit ISO 
+     *  The countries the gateway supports merchants from as 2 digit ISO
      *  country codes.
      *
      * @var array
      */
     public static $supported_countries = array('US', 'GR');
 
-    /** 
-     * The card types supported by the payment gateway 
+    /**
+     * The card types supported by the payment gateway
      *
      * @var array
      */
     public static $supported_cardtypes = array(
-        'visa', 
-        'master', 
-        'american_express', 
-        'switch', 
-        'solo', 
+        'visa',
+        'master',
+        'american_express',
+        'switch',
+        'solo',
         'maestro'
     );
 
-    /** 
+    /**
      * The homepage URL of the gateway
      *
      * @var string
      */
     public static $homepage_url = 'http://www.example.net';
 
-    /** 
-     * The display name of the gateway 
+    /**
+     * The display name of the gateway
      *
      * @var string
      */
@@ -77,9 +79,9 @@ class Example extends Gateway
     /**
      * creates gateway instance from given options.
      *
-     * @param array $options an array contains login parameters of merchant 
+     * @param array $options an array contains login parameters of merchant
      *                       and optional currency.
-     * 
+     *
      * @return Gateway the gateway instance.
      */
     public function __construct($options = array())
@@ -95,7 +97,7 @@ class Example extends Gateway
     /**
      * bind the given amount to customer creditcard
      *
-     * creditcard is not charged yet. a capture action required for charging the 
+     * creditcard is not charged yet. a capture action required for charging the
      * creditcard.
      *
      * @param number     $money
@@ -206,8 +208,10 @@ class Example extends Gateway
      * </code>
      * common pattern for address is
      * <code>
-     * $billing_address = isset($options['billing_address']) ? $options['billing_address'] : $options['address']
-     * $shipping_address = $options['shipping_address']
+     * $billing_address = isset($options['billing_address'])
+     *      ? $options['billing_address']
+     *      : $options['address'];
+     * $shipping_address = $options['shipping_address'];
      * </code>
      *
      * @param  array $options
@@ -220,6 +224,7 @@ class Example extends Gateway
     }
 
     /**
+     * Adds invoice info if exists.
      *
      * @param array $options
      */
@@ -229,6 +234,7 @@ class Example extends Gateway
     }
 
     /**
+     * Adds a CreditCard object
      *
      * @param CreditCard $creditcard
      */
@@ -265,13 +271,17 @@ class Example extends Gateway
 
         $test_mode = $this->is_test();
 
-        return new Response($this->success_from($response), $this->message_from($response), $response, array(
-            'test' => $test_mode,
-            'authorization' => $response['authorization_id'],
-            'fraud_review' => $this->fraud_review_from($response),
-            'avs_result' => $this->avs_result_from($response),
-            'cvv_result' => $response['card_code']
-        )
+        return new Response(
+            $this->success_from($response),
+            $this->message_from($response),
+            $response,
+            array(
+                'test' => $test_mode,
+                'authorization' => $response['authorization_id'],
+                'fraud_review' => $this->fraud_review_from($response),
+                'avs_result' => $this->avs_result_from($response),
+                'cvv_result' => $response['card_code']
+            )
     );
     }
 
@@ -325,8 +335,7 @@ class Example extends Gateway
     }
 
     /**
-     *
-     * Add final parameters to post data and
+     * Adds final parameters to post data and
      * build $this->post to the format that your payment gateway understands
      *
      * @param  string $action
