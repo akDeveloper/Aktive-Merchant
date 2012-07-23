@@ -1,6 +1,11 @@
 <?php
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-class Merchant_Billing_PayflowResponse extends Merchant_Billing_Response
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Response;
+
+class PayflowResponse extends Response
 {
 
     function profileId()

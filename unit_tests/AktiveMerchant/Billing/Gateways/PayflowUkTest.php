@@ -1,8 +1,14 @@
 <?php
 
-require_once dirname(__FILE__) . '/../../../config.php';
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-class PayflowUkTest extends PHPUnit_Framework_TestCase
+require_once'config.php';
+
+use AktiveMerchant\Billing\Gateways\PayflowUk;
+use AktiveMerchant\Billing\Base;
+use AktiveMerchant\Billing\CreditCard;
+
+class PayflowUkTest extends AktiveMerchant\TestCase
 {
 
     public $gateway;
@@ -12,25 +18,25 @@ class PayflowUkTest extends PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        Merchant_Billing_Base::mode('test');
+        Base::mode('test');
 
-        $this->gateway = new Merchant_Billing_PayflowUk(array(
-                'login' => PAYPAL_LOGIN,
-                'password' => PAYPAL_PASS,
-                'currency' => 'GBP'
-            ));
+        $this->gateway = new PayflowUk(array(
+            'login' => PAYPAL_LOGIN,
+            'password' => PAYPAL_PASS,
+            'currency' => 'GBP'
+        ));
 
         $this->amount = 100.00;
 
-        $this->creditcard = new Merchant_Billing_CreditCard(array(
-                'number' => '5105105105105100',
-                'month' => 11,
-                'year' => 2009,
-                'first_name' => 'Cody',
-                'last_name' => 'Fauser',
-                'verification_value' => '000',
-                'type' => 'master'
-            ));
+        $this->creditcard = new CreditCard(array(
+            'number' => '5105105105105100',
+            'month' => 11,
+            'year' => 2009,
+            'first_name' => 'Cody',
+            'last_name' => 'Fauser',
+            'verification_value' => '000',
+            'type' => 'master'
+        ));
 
         $this->options = array(
             'billing_address' => array(
@@ -46,11 +52,12 @@ class PayflowUkTest extends PHPUnit_Framework_TestCase
         );
     }
 
-    public function testInitialization() {
-      $this->assertNotNull($this->gateway);
-      $this->assertNotNull($this->creditcard);
+    public function testInitialization()
+    {
+        $this->assertNotNull($this->gateway);
+        $this->assertNotNull($this->creditcard);
     }
-    
+
     function testAuthorizationAndCapture()
     {
         $auth = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
@@ -61,5 +68,3 @@ class PayflowUkTest extends PHPUnit_Framework_TestCase
     }
 
 }
-
-?>
