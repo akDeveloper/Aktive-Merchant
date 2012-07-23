@@ -1,13 +1,18 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Gateway;
 /**
- * Description of Merchant_Billing_PaypalCommon
+ * Description of PaypalCommon
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_PaypalCommon extends Merchant_Billing_Gateway
+class PaypalCommon extends Gateway
 {
     const TEST_URL = 'https://api-3t.sandbox.paypal.com/nvp';
     const LIVE_URL = 'https://api-3t.paypal.com/nvp';
@@ -39,12 +44,14 @@ class Merchant_Billing_PaypalCommon extends Merchant_Billing_Gateway
      */
     protected function commit($action)
     {
-        $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
+        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
-        $response = $this->parse($this->ssl_post($url, $this->post_data($action)));
+        $response = $this->parse(
+            $this->ssl_post($url, $this->post_data($action))
+        );
 
         $options = array();
-        $options['test'] = $this->is_test();
+        $options['test'] = $this->isTest();
         $options['authorization'] = $this->authorization_from($response);
         $options['fraud_review'] = $this->fraud_review_from($response);
         $options['avs_result'] = $this->avs_result_from($response);

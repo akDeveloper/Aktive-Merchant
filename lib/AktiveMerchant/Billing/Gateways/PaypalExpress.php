@@ -1,7 +1,12 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Gateway;
 /**
- * Description of Merchant_Billing_PaypalExpress
+ * Description of PaypalExpress
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
@@ -10,7 +15,7 @@
 require_once dirname(__FILE__) . "/paypal/PaypalCommon.php";
 require_once dirname(__FILE__) . "/paypal/PaypalExpressResponse.php";
 
-class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
+class PaypalExpress extends PaypalCommon
 {
     const TEST_REDIRECT_URL = 'https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=';
     const LIVE_REDIRECT_URL = 'https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=';
@@ -46,7 +51,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
      *               token    token param from setup action
      *               payer_id payer_id param from setup action
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     public function authorize($amount, $options = array())
     {
@@ -58,7 +63,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
      * @param number $amount
      * @param array $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     public function purchase($amount, $options = array())
     {
@@ -74,9 +79,9 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
      *               return_url         Success url (url from  your site )
      *               cancel_return_url  Cancel url ( url from your site )
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
-    public function setup_authorize($money, $options = array())
+    public function setupAuthorize($money, $options = array())
     {
         return $this->setup($money, 'Authorization', $options);
     }
@@ -86,9 +91,9 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
      * @param number $money
      * @param array $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
-    public function setup_purchase($money, $options = array())
+    public function setupPurchase($money, $options = array())
     {
         return $this->setup($money, 'Sale', $options);
     }
@@ -105,7 +110,11 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             'CANCELURL'            => $options['cancel_return_url']
         );
 
-        $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
+        $this->post = array_merge(
+            $this->post, 
+            $params, 
+            $this->get_optional_params($options)
+        );
 
         return $this->commit($action);
     }
@@ -129,12 +138,16 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
             'PAYERID'              => $options['payer_id']
         );
 
-        $this->post = array_merge($this->post, $params, $this->getOptionalParams($options));
+        $this->post = array_merge(
+            $this->post, 
+            $params, 
+            $this->get_optional_params($options)
+        );
 
         return $this->commit($action);
     }
 
-    private function getOptionalParams($options)
+    private function get_optional_params($options)
     {
         $params = array();
 
@@ -147,10 +160,11 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
 
         if (isset($options['items'])) {
             foreach ($options['items'] as $key => $item) {
-                $params['L_PAYMENTREQUEST_0_NAME' . $key] = $item['description'];
-                $params['L_PAYMENTREQUEST_0_AMT' . $key] = $this->amount($item['unit_price']);
-                $params['L_PAYMENTREQUEST_0_QTY' . $key] = $item['quantity'];
-                $params['L_PAYMENTREQUEST_0_NUMBER' . $key] = $item['id'];
+                $params["L_PAYMENTREQUEST_0_NAME$key"]   = $item['name'];
+                $params["L_PAYMENTREQUEST_0_DESC$key"]   = $item['description'];
+                $params["L_PAYMENTREQUEST_0_AMT$key"]    = $this->amount($item['unit_price']);
+                $params["L_PAYMENTREQUEST_0_QTY$key"]    = $item['quantity'];
+                $params["L_PAYMENTREQUEST_0_NUMBER$key"] = $item['id'];
             }
         }
         
@@ -167,9 +181,11 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
      *
      * @return string url address to redirect
      */
-    public function url_for_token($token)
+    public function urlForToken($token)
     {
-        $redirect_url = $this->is_test() ? self::TEST_REDIRECT_URL : self::LIVE_REDIRECT_URL;
+        $redirect_url = $this->isTest() 
+            ? self::TEST_REDIRECT_URL 
+            : self::LIVE_REDIRECT_URL;
         return $redirect_url . $token;
     }
 
@@ -178,7 +194,7 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
      * @param string $token
      * @param string $payer_id
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     public function get_details_for($token, $payer_id)
     {
@@ -225,11 +241,11 @@ class Merchant_Billing_PaypalExpress extends Merchant_Billing_PaypalCommon
      * @param array   $response
      * @param array   $options
      *
-     * @return Merchant_Billing_PaypalExpressResponse
+     * @return PaypalExpressResponse
      */
     protected function build_response($success, $message, $response, $options = array())
     {
-        return new Merchant_Billing_PaypalExpressResponse($success, $message, $response, $options);
+        return new PaypalExpressResponse($success, $message, $response, $options);
     }
 
 }

@@ -1,13 +1,18 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Response;
 /**
- * Description of Merchant_Billing_PaypalExpressResponse
+ * Description of PaypalExpressResponse
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_PaypalExpressResponse extends Merchant_Billing_Response
+class PaypalExpressResponse extends Response
 {
 
     public function email()
