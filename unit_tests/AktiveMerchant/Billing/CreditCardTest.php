@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Description of CreditCardTest
+ * CreditCardTest class.
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
@@ -35,7 +35,10 @@ class CreditCardTest extends PHPUnit_Framework_TestCase
 
     public function testSuccessfulGetDisplayNumber()
     {
-        $this->assertEquals('XXXX-XXXX-XXXX-9608', $this->creditcard->displayNumber());
+        $this->assertEquals(
+            'XXXX-XXXX-XXXX-9608',
+            $this->creditcard->displayNumber()
+        );
     }
 
     public function testSuccessfulGetLastDigits()
@@ -51,7 +54,10 @@ class CreditCardTest extends PHPUnit_Framework_TestCase
     public function testSuccessfulExpireDate()
     {
         $expire_date = $this->creditcard->expireDate();
-        $this->assertInstanceOf('\AktiveMerchant\Billing\ExpiryDate', $expire_date);
+        $this->assertInstanceOf(
+            '\AktiveMerchant\Billing\ExpiryDate',
+            $expire_date
+        );
         $this->assertFalse($expire_date->isExpired());
     }
 
@@ -59,7 +65,10 @@ class CreditCardTest extends PHPUnit_Framework_TestCase
     {
         $this->creditcard->year = 2000;
         $expire_date = $this->creditcard->expireDate();
-        $this->assertInstanceOf('\AktiveMerchant\Billing\ExpiryDate', $expire_date);
+        $this->assertInstanceOf(
+            '\AktiveMerchant\Billing\ExpiryDate',
+            $expire_date
+        );
         $this->assertTrue($expire_date->isExpired());
     }
 
