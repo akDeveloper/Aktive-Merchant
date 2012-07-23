@@ -2,7 +2,7 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-use AktiveMerchant\Billing\Gateways\Mock\HsbcSecureEpayments;
+use AktiveMerchant\Billing\Gateways\HsbcSecureEpayments;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
@@ -14,16 +14,17 @@ use AktiveMerchant\Billing\CreditCard;
  * @license http://www.opensource.org/licenses/mit-license.php
  *
  */
-require_once 'config.php';
-require_once dirname(__FILE__) . '/Mock/HsbcSecureEpayments.php';
 
-class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase
+require_once 'config.php';
+
+class HsbcSecureEpaymentsTest extends AktiveMerchant\TestCase
 {
 
     public $gateway;
     public $amount;
     public $options;
     public $creditcard;
+    public $request;
 
     /**
      * Setup
@@ -71,28 +72,33 @@ class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase
       
       $this->assertInstanceOf(
           '\\AktiveMerchant\\Billing\\Gateway', 
-          $this->gateway);
+          $this->gateway
+      );
       
       $this->assertInstanceOf(
           '\\AktiveMerchant\\Billing\\Interfaces\\Charge', 
-          $this->gateway);
+          $this->gateway
+      );
     }
     
-    /**
-     * Tests
-     */
+    // Tests 
+
     public function testSuccessfulAuthorization()
     {
-        $this->gateway->expects('ssl_post', $this->successful_authorize_response());
+        $this->mock_request($this->successful_authorize_response());
 
-        $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
+        $response = $this->gateway->authorize(
+            $this->amount, 
+            $this->creditcard, 
+            $this->options
+        );
         $this->assert_success($response);
         $this->assertEquals('Approved.', $response->message());
     }
-
+    
     public function testUnsuccessfulAuthorization()
     {
-        $this->gateway->expects('ssl_post', $this->failed_authorize_response());
+        $this->mock_request($this->failed_authorize_response());
 
         $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
         $this->assert_failure($response);
@@ -100,7 +106,7 @@ class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase
 
     public function testSuccessfulCapture()
     {
-        $this->gateway->expects('ssl_post', $this->successful_capture_response());
+        $this->mock_request($this->successful_capture_response());
 
         $capture = $this->gateway->capture($this->amount, $this->authorization, $this->options);
         $this->assert_success($capture);
@@ -113,7 +119,7 @@ class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase
 
     public function testUnsuccessfulCapture()
     {
-        $this->gateway->expects('ssl_post', $this->failed_capture_response());
+        $this->mock_request($this->failed_capture_response());
 
         $capture = $this->gateway->capture($this->amount, $this->authorization, $this->options);
         $this->assert_failure($capture);
@@ -126,7 +132,7 @@ class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase
 
     public function testInvalidCredentialsRejected()
     {
-        $this->gateway->expects('ssl_post', $this->auth_fail_response());
+        $this->mock_request($this->auth_fail_response());
 
         $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
         $this->assert_failure($response);
@@ -135,19 +141,19 @@ class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase
 
     public function testFraudulentTransactionAvs()
     {
-        $this->gateway->expects('ssl_post', $this->avs_result("NN", "500"));
+        $this->mock_request($this->avs_result("NN", "500"));
 
         $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
         $this->assert_failure($response);
         $this->assertTrue(null !== $response->fraud_review());
 
-        $this->gateway->expects('ssl_post', $this->avs_result("NN", "501"));
+        $this->mock_request($this->avs_result("NN", "501"));
 
         $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
         $this->assert_failure($response);
         $this->assertTrue(null !== $response->fraud_review());
 
-        $this->gateway->expects('ssl_post', $this->avs_result("NN", "502"));
+        $this->mock_request($this->avs_result("NN", "502"));
 
         $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
         $this->assert_failure($response);
@@ -156,25 +162,14 @@ class HsbcSecureEpaymentsTest extends PHPUnit_Framework_TestCase
 
     public function testFraudulentTransactionCvv()
     {
-        $this->gateway->expects('ssl_post', $this->cvv_result("NN", "1055"));
+        $this->mock_request($this->cvv_result("NN", "1055"));
 
         $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
         $this->assert_failure($response);
         $this->assertTrue(null !== $response->fraud_review());
     }
-
-    /**
-     * Private methods
-     */
-    private function assert_success($response)
-    {
-        $this->assertTrue($response->success());
-    }
-
-    private function assert_failure($response)
-    {
-        $this->assertFalse($response->success());
-    }
+ 
+    // Private methods
 
     private function successful_authorize_response()
     {

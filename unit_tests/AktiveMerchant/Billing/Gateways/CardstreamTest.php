@@ -1,26 +1,22 @@
 <?php
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
-use AktiveMerchant\Billing\Gateways\Mock\Cardstream;
+
+use AktiveMerchant\Billing\Gateways\Cardstream;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
 /**
  * Description of CardstreamTest
  *
- * Usage:
- *   Navigate, from terminal, to folder where this file is located
- *   run phpunit CardstreamTest.php
- *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php MIT License
  *
  */
-require_once dirname(__FILE__) . '/../../../config.php';
-require_once dirname(__FILE__) . '/Mock/Cardstream.php';
+require_once 'config.php';
 
-class CardstreamTest extends PHPUnit_Framework_TestCase
+class CardstreamTest extends AktiveMerchant\TestCase
 {
 
     public $gateway;
@@ -87,7 +83,7 @@ class CardstreamTest extends PHPUnit_Framework_TestCase
 
     public function testSuccessfulPurchase()
     {
-        $this->gateway->expects('ssl_post',$this->successful_purchase_response());
+        $this->mock_request($this->successful_purchase_response());
 
         $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
         $this->assert_success($response);
@@ -96,7 +92,7 @@ class CardstreamTest extends PHPUnit_Framework_TestCase
     
     public function testFailedPurchase()
     {
-        $this->gateway->expects('ssl_post', $this->failed_purchase_response());
+        $this->mock_request($this->failed_purchase_response());
 
         $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
         $this->assert_failure($response);
@@ -104,7 +100,7 @@ class CardstreamTest extends PHPUnit_Framework_TestCase
 
     public function testSuccessfulAvsResult()
     {
-        $this->gateway->expects('ssl_post', $this->failed_purchase_response());
+        $this->mock_request($this->failed_purchase_response());
 
         $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
         $avs_result = $response->avs_result()->toArray();
@@ -114,7 +110,7 @@ class CardstreamTest extends PHPUnit_Framework_TestCase
 
     public function testFailedAvsResult()
     {
-        $this->gateway->expects('ssl_post', $this->successful_purchase_failed_avs_cvv_response());
+        $this->mock_request($this->successful_purchase_failed_avs_cvv_response());
 
         $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
         $avs_result = $response->avs_result()->toArray();
@@ -127,7 +123,7 @@ class CardstreamTest extends PHPUnit_Framework_TestCase
 
     public function testCvvResult()
     {
-        $this->gateway->expects('ssl_post', $this->successful_purchase_response());
+        $this->mock_request($this->successful_purchase_response());
 
         $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
         $cvv_result = $response->cvv_result()->toArray();
@@ -167,16 +163,6 @@ class CardstreamTest extends PHPUnit_Framework_TestCase
     private function failed_purchase_response()
     {
         return 'VPResponseCode=05&VPCrossReference=NoCrossReference&VPMessage=CARD DECLINED&VPTransactionUnique=d966e18a2983faff3715a541983792e0&VPOrderDesc=Store purchase&VPBillingCountry=826&VPCardName=Longbob Longsen&VPBillingPostCode=LE10 2RT&VPAmountRecieved=NA&VPAVSCV2ResponseCode=222100&VPCV2ResultMessage=CV2 Matched&VPAVSResultMessage=Postcode Matched&VPAVSAddressMessage=Address Numeric Matched&VPCardType=MC&VPBillingAddress=25 The Larches, Narborough, Leicester&VPReturnPoint=0090';
-    }
-
-    private function assert_success($response)
-    {
-        $this->assertTrue($response->success());
-    }
-
-    private function assert_failure($response)
-    {
-        $this->assertFalse($response->success());
     }
 
 }

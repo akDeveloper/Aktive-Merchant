@@ -1,20 +1,21 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+use AktiveMerchant\Billing\Gateways\PaypalExpress;
+use AktiveMerchant\Billing\Base;
+
 /**
  * Description of PaypalTest
  *
- * Usage:
- *   Navigate, from terminal, to folder where this files is located
- *   run phpunit PaypalTest.php
- *
- * @package Active Merchant
+ * @package Active-Merchant
  * @author  Andreas Kollaros
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license http://www.opensource.org/licenses/mit-license.php MIT License
  *
  */
-require_once dirname(__FILE__) . '/../../../config.php';
+require_once 'config.php';
 
-class PaypalExpressTest extends PHPUnit_Framework_TestCase
+class PaypalExpressTest extends AktiveMerchant\TestCase
 {
 
     public $gateway;
@@ -23,15 +24,15 @@ class PaypalExpressTest extends PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        Merchant_Billing_Base::mode('test');
+        Base::mode('test');
 
-        $this->gateway = new Merchant_Billing_PaypalExpress(array(
-                'login' => PAYPAL_LOGIN,
-                'password' => PAYPAL_PASS,
-                'signature' => PAYPAL_SIG,
-                'currency' => 'EUR'
-                )
-        );
+        $this->gateway = new PaypalExpress(array(
+            'login' => PAYPAL_LOGIN,
+            'password' => PAYPAL_PASS,
+            'signature' => PAYPAL_SIG,
+            'currency' => 'EUR'
+        )
+    );
         $this->amount = 100;
 
         $this->options = array(
@@ -49,15 +50,18 @@ class PaypalExpressTest extends PHPUnit_Framework_TestCase
         );
     }
 
-    /**
-     * Tests
-     */
-    
-    public function testInitialization() {
-      $this->assertNotNull($this->gateway);
-      $this->assertInstanceOf('Merchant_Billing_Gateway', $this->gateway);
+    // Tests 
+
+    public function testInitialization() 
+    {
+        $this->assertNotNull($this->gateway);
+
+        $this->assertInstanceOf(
+            '\\AktiveMerchant\\Billing\\Gateway', 
+            $this->gateway
+        );
     }
-    
+
     public function testSetExpressAuthorization()
     {
         $options = array(
@@ -85,20 +89,4 @@ class PaypalExpressTest extends PHPUnit_Framework_TestCase
         $token = $response->token();
         $this->assertFalse(empty($token));
     }
-
-    /**
-     * Private methods
-     */
-    private function assert_success($response)
-    {
-        $this->assertTrue($response->success());
-    }
-
-    private function assert_failure($response)
-    {
-        $this->assertFalse($response->success());
-    }
-
 }
-
-?>
