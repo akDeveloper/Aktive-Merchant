@@ -9,8 +9,8 @@
  */
 require_once dirname(__FILE__) . "/centinel/CentinelResponse.php";
 class Merchant_Billing_Centinel extends Merchant_Billing_Gateway {
-  const TEST_URL = 'https://centineltest.cardinalcommerce.com/maps/txns.asp';
-  const LIVE_URL = 'https://centinel.cardinalcommerce.com/maps/txns.asp';
+  protected $test_url = 'https://centineltest.cardinalcommerce.com/maps/txns.asp';
+  protected $live_url = 'https://centinel.cardinalcommerce.com/maps/txns.asp';
 
   # The countries the gateway supports merchants from as 2 digit ISO country codes
   protected $supported_countries = array('US', 'GR');
@@ -126,7 +126,7 @@ XML;
   }
 
   private function commit($action, $money, $parameters) {
-    $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
+    $url = $this->is_test() ? $this->test_url : $this->live_url;
 
     $data = $this->ssl_post($url, $this->post_data($action, $parameters,array('timeout' => '10')));
 
