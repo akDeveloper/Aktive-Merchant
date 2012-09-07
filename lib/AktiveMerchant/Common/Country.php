@@ -308,9 +308,9 @@ class Country
      *                       alpha3 or numeric)
      *
      *
-     * @return CountryCode A countryCoe object.
+     * @return CountryCode A CountryCode object.
      */
-    public function code($format)
+    public function getCode($format)
     {
         foreach ($this->codes as $code) {
             if ($code->getFormat() == $format) {

@@ -26,9 +26,9 @@ class CountryTest extends PHPUnit_Framework_TestCase
         
         $this->assertEquals($country->__toString(), 'Greece');
 
-        $this->assertEquals($country->code('alpha2')->__toString(), 'GR');
+        $this->assertEquals($country->getCode('alpha2')->__toString(), 'GR');
         
-        $this->assertEquals($country->code('alpha3')->__toString(), 'GRC');
+        $this->assertEquals($country->getCode('alpha3')->__toString(), 'GRC');
     }
 
     public function testGetCountryFromAlpha2()
@@ -39,9 +39,9 @@ class CountryTest extends PHPUnit_Framework_TestCase
         
         $this->assertEquals($country->__toString(), 'Greece');
 
-        $this->assertEquals($country->code('alpha3')->__toString(), 'GRC');
+        $this->assertEquals($country->getCode('alpha3')->__toString(), 'GRC');
         
-        $this->assertEquals($country->code('numeric')->__toString(), 300);
+        $this->assertEquals($country->getCode('numeric')->__toString(), 300);
     }
 
     public function testGetCountryFromAlpha3()
@@ -52,8 +52,8 @@ class CountryTest extends PHPUnit_Framework_TestCase
         
         $this->assertEquals($country->__toString(), 'Greece');
 
-        $this->assertEquals($country->code('alpha2')->__toString(), 'GR');
+        $this->assertEquals($country->getCode('alpha2')->__toString(), 'GR');
         
-        $this->assertEquals($country->code('numeric')->__toString(), 300);
+        $this->assertEquals($country->getCode('numeric')->__toString(), 300);
     }
 }
