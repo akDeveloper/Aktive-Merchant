@@ -193,7 +193,7 @@ class AuthorizeNet extends Gateway implements
      *
      * @return Response
      */
-    public function update_recurring($subscription_id, \AktiveMerchant\Billing\CreditCard $creditcard)
+    public function updateRecurring($subscription_id, \AktiveMerchant\Billing\CreditCard $creditcard)
     {
 
         $this->xml = <<<XML
@@ -212,7 +212,7 @@ XML;
      *
      * @return Response
      */
-    public function cancel_recurring($subscription_id)
+    public function cancelRecurring($subscription_id)
     {
 
         $this->xml = "<subscriptionId>$subscription_id</subscriptionId>";
@@ -414,14 +414,17 @@ XML;
 
     private function add_address($options)
     {
-        $address = isset($options['billing_address']) ? $options['billing_address'] : $options['address'];
-        $this->post['address'] = isset($address['address1']) ? $address['address1'] : null;
-        $this->post['company'] = isset($address['company']) ? $address['company'] : null;
-        $this->post['phone'] = isset($address['phone']) ? $address['phone'] : null;
-        $this->post['zip'] = isset($address['zip']) ? $address['zip'] : null;
-        $this->post['city'] = isset($address['city']) ? $address['city'] : null;
-        $this->post['country'] = isset($address['country']) ? $address['country'] : null;
-        $this->post['state'] = isset($address['state']) ? $address['state'] : 'n/a';
+        $address = isset($options['billing_address']) 
+            ? $options['billing_address'] 
+            : $options['address'];
+
+        $this->post['address']  = isset($address['address1']) ? $address['address1'] : null;
+        $this->post['company']  = isset($address['company'])  ? $address['company']  : null;
+        $this->post['phone']    = isset($address['phone'])    ? $address['phone']    : null;
+        $this->post['zip']      = isset($address['zip'])      ? $address['zip']      : null;
+        $this->post['city']     = isset($address['city'])     ? $address['city']     : null;
+        $this->post['country']  = isset($address['country'])  ? $address['country']  : null;
+        $this->post['state']    = isset($address['state'])    ? $address['state']    : 'n/a';
     }
 
     private function add_customer_data($options)
@@ -493,10 +496,10 @@ XML;
         /*
          * Used parsing method from authorize.net example
          */
-        $response['ref_id'] = $this->substring_between($body, '<refId>', '</refId>');
-        $response['result_code'] = $this->substring_between($body, '<resultCode>', '</resultCode>');
-        $response['code'] = $this->substring_between($body, '<code>', '</code>');
-        $response['text'] = $this->substring_between($body, '<text>', '</text>');
+        $response['ref_id']          = $this->substring_between($body, '<refId>', '</refId>');
+        $response['result_code']     = $this->substring_between($body, '<resultCode>', '</resultCode>');
+        $response['code']            = $this->substring_between($body, '<code>', '</code>');
+        $response['text']            = $this->substring_between($body, '<text>', '</text>');
         $response['subscription_id'] = $this->substring_between($body, '<subscriptionId>', '</subscriptionId>');
 
         return $response;

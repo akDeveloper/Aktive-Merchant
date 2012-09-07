@@ -16,7 +16,7 @@ interface Recurring
 {
     public function recurring($money, CreditCard $creditcard, $options=array());
 
-    public function update_recurring($subscription_id, CreditCard $creditcard);
+    public function updateRecurring($subscription_id, CreditCard $creditcard);
 
-    public function cancel_recurring($subscription_id);
+    public function cancelRecurring($subscription_id);
 }
