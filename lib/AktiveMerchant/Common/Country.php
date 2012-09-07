@@ -4,14 +4,18 @@
 
 namespace AktiveMerchant\Common;
 
-/** Contains merchant country class 
- * @package Aktive-Merchant
- * @author  Andreas Kollaros
- * @license http://www.opensource.org/licenses/mit-license.php
- */
-
 /**
- * Description of Country
+ * Allows lookup for country names by given iso(alpha2), iso3(alpha3) or numeric 
+ * code.
+ * 
+ * <code>
+ *      $country = Country::find(300); // Returns Country object
+ *      echo $country; // Return Greece
+ *
+ *      echo $country->code('alpha2'); // Returns GR
+ *      echo $country->code('alpha3'); // Returns GRC
+ * </code>
+ * 
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
@@ -20,8 +24,25 @@ namespace AktiveMerchant\Common;
 class Country
 {
 
+    /**
+     * The full name of a country.
+     *
+     * @var string
+     */
     protected $name;
+
+    /**
+     * An array of CountryCode object to handle format names of countries.
+     *
+     * @var array
+     */
     private $codes = array();
+
+    /**
+     * List of countries with full names alpha2, alpha3 and numeric codes.
+     *
+     * @var array 
+     */
     public static $COUNTRIES = array(
         array('alpha2' => 'AF', 'name' => 'Afghanistan', 'alpha3' => 'AFG', 'numeric' => '004'),
         array('alpha2' => 'AL', 'name' => 'Albania', 'alpha3' => 'ALB', 'numeric' => '008'),
@@ -273,27 +294,54 @@ class Country
     public function __construct($options = array())
     {
         required_options('name, alpha2, alpha3, numeric', $options);
+
         $this->name = $options['name'];
         unset($options['name']);
+        
         foreach ($options as $k => $v) {
             $this->codes[] = new CountryCode($v);
         }
     }
 
+    /**
+     * @param string $format The format to display the Country name (alpha2, 
+     *                       alpha3 or numeric)
+     *
+     *
+     * @return CountryCode A countryCoe object.
+     */
     public function code($format)
     {
         foreach ($this->codes as $code) {
-            if ($code->format() == $format) {
+            if ($code->getFormat() == $format) {
                 return $code;
             }
         }
     }
 
+    /**
+     * Returns the full name of a country.
+     *
+     * @return string Country full name
+     */
     public function __toString()
     {
         return $this->name;
     }
 
+    /**
+     * Returns a Country object based on a given alpha or numeric code.
+     *
+     * <code>
+     *      $country = Country::find(300);
+     *      $country = Country::find('GR');
+     *      $country = Country::find('GRC');
+     * </code>
+     *
+     * @param string|integer Alpha name or numeric code of a country 
+     *
+     * @return Country A Country object.
+     */
     public static function find($name)
     {
         if (empty($name))
@@ -302,7 +350,7 @@ class Country
         if (strlen($name) == 2 || strlen($name) == 3) {
             $upcase_name = strtoupper($name);
             $country_code = new CountryCode($name);
-            $country_format = $country_code->format();
+            $country_format = $country_code->getFormat();
             foreach (self::$COUNTRIES as $c) {
                 if ($c[$country_format] == $upcase_name) {
                     $country = $c;
@@ -318,7 +366,7 @@ class Country
             }
         }
         if (!isset($country))
-            throw new Exception("No country could be found for name {$name}");
+            throw new \Exception("No country could be found for name {$name}");
 
         return new Country($country);
     }
