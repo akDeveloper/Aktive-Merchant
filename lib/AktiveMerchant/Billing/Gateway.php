@@ -43,11 +43,6 @@ abstract class Gateway
     protected $gateway_mode;
     
     protected $request;
-    
-    public function __construct($options) 
-    {
-      $this->gateway_mode = Base::$gateway_mode;
-    }
 
     public function setRequest($request)
     {
