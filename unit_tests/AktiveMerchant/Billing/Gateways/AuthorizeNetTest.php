@@ -105,6 +105,8 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
     
     public function testSuccessfulPurchase()
     {
+        $this->mock_request($this->successful_purchase_response());
+        
         $response = $this->gateway->purchase(
             $this->amount, $this->creditcard, $this->options
         );
@@ -115,9 +117,15 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
             $response->message()
         );
     }
-    
+
+    private function successful_purchase_response()
+    {
+        return "1|1|1|This transaction has been approved.|C5SEPE|Y|2176052979|REF3241141575|Autorize.net Test Transaction|100.00|CC|auth_capture||John|Doe||1234 Street||WA|98004||||||||||||||||||7CAFB5DD55B21227198694F15ED9D7DA|P|2|||||||||||XXXX1111|Visa||||||||||||||||";
+    }
+
     public function testSuccessfulAuthorization()
     {
+        $this->mock_request($this->successful_authorize_response());
         $response = $this->gateway->authorize(
             $this->amount, $this->creditcard, $this->options
         );
@@ -128,9 +136,16 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
             $response->message()
         );
     }
+    
+    private function successful_authorize_response()
+    {
+       return "1|1|1|This transaction has been approved.|5CNLO0|Y|2176052980|REF2023019825|Autorize.net Test Transaction|100.00|CC|auth_only||John|Doe||1234 Street||WA|98004||||||||||||||||||82691C74ECBFE2149CED8E40493E756C|P|2|||||||||||XXXX1111|Visa||||||||||||||||";
+    }
 
     public function testAuthorizationAndCapture()
     {
+        $this->mock_request($this->successful_authorize_for_capture_response());
+        
         $response = $this->gateway->authorize(
             $this->amount, 
             $this->creditcard, 
@@ -141,6 +156,8 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
 
         $authorization = $response->authorization();
 
+        $this->mock_request($this->successful_capture_response());
+        
         $capture = $this->gateway->capture(
             $this->amount, 
             $authorization, 
@@ -153,8 +170,20 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
         );
     }
 
+    private function successful_authorize_for_capture_response()
+    {
+        return "1|1|1|This transaction has been approved.|BOHBP5|Y|2176052981|REF1734948236|Autorize.net Test Transaction|100.00|CC|auth_only||John|Doe||1234 Street||WA|98004||||||||||||||||||62B9AE0010A65C5666734C43EA3D33BC|P|2|||||||||||XXXX1111|Visa||||||||||||||||"; 
+    }
+    
+    private function successful_capture_response()
+    {
+        return "1|1|1|This transaction has been approved.|BOHBP5|P|2176052981|REF1734948236||100.00|CC|prior_auth_capture||||||||98004||||||||||||||||||62B9AE0010A65C5666734C43EA3D33BC|||||||||||||XXXX1111|Visa||||||||||||||||";   
+    }
+
     public function testSuccessfulRecurring()
     {
+        $this->mock_request($this->successful_recurring_response());
+        
         $response = $this->gateway->recurring(
             $this->amount, 
             $this->creditcard, 
@@ -164,18 +193,37 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
 
         $subscription_id = $response->authorization();
 
-        $response = $this->gateway->update_recurring(
+        $this->mock_request($this->successful_update_recurring_response());
+        $response = $this->gateway->updateRecurring(
             $subscription_id, 
             $this->creditcard
         );
         $this->assert_success($response);
 
-        $response = $this->gateway->cancel_recurring($subscription_id);
+        $this->mock_request($this->successful_cancel_recurring_response());
+        $response = $this->gateway->cancelRecurring($subscription_id);
         $this->assert_success($response);
     }
 
+    private function successful_recurring_response()
+    {
+        return '<?xml version="1.0" encoding="utf-8"?><ARBCreateSubscriptionResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><refId /><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages><subscriptionId>1494423</subscriptionId></ARBCreateSubscriptionResponse>';
+    }
+    
+    private function successful_update_recurring_response()
+    {
+        return '<?xml version="1.0" encoding="utf-8"?><ARBUpdateSubscriptionResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages></ARBUpdateSubscriptionResponse>';
+    }
+
+    private function successful_cancel_recurring_response()
+    {
+        return '<?xml version="1.0" encoding="utf-8"?><ARBCancelSubscriptionResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages></ARBCancelSubscriptionResponse>';
+    }
+    
     public function testExpiredCreditCard()
     {
+        $this->mock_request($this->successful_expired_card_response());
+        
         $this->creditcard->year = 2004;
         $response = $this->gateway->purchase(
             $this->amount, 
@@ -186,6 +234,11 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
             'The credit card has expired.', 
             $response->message()
         );
+    }
+    
+    private function successful_expired_card_response()
+    {
+        return '3|1|8|The credit card has expired.||P|0|REF2122605833|Autorize.net Test Transaction|100.00|CC|auth_capture||John|Doe||1234 Street||WA|98004||||||||||||||||||8221EB3CA5ECBE7D801F4EF2AA88E191|||||||||||||XXXX1111|Visa||||||||||||||||'; 
     }
 
 }

@@ -9,6 +9,7 @@ use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Exception;
 use AktiveMerchant\Billing\Response;
+use AktiveMerchant\Logger;
 /**
  * Merchant driver for {link http://authorize.net/ Authorize.net}.
  *
@@ -242,6 +243,8 @@ XML;
         if ($this->isTest()) {
             #$parameters['test_request'] = 'TRUE';
         }
+
+        Logger::getLogger()->log($action . ":-------------------------------------------");
 
         $data = $this->ssl_post($url, $this->post_data($action, $parameters, $this->post));
 
