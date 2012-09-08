@@ -8,7 +8,7 @@
  * @license http://www.opensource.org/licenses/mit-license.php MIT License
  *
  */
-require_once 'config.php';
+require_once '../lib/autoload.php';
 
 use AktiveMerchant\Billing\ExpiryDate;
 
