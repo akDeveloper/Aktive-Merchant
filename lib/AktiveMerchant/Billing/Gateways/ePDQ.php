@@ -74,7 +74,6 @@ class Merchant_Billing_ePDQ extends Merchant_Billing_Gateway implements Merchant
      */
     public function __construct($options = array())
     {
-      parent::__construct($options);
       $this->required_options('login, password, client_id', $options);
 
         if (isset($options['currency'])) {

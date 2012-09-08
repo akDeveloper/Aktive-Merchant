@@ -30,8 +30,7 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway implements Merc
      */
     public function __construct($options)
     {
-      parent::__construct($options);
-      $this->required_options('login, password', $options);
+        $this->required_options('login, password', $options);
 
         if (isset($options['currency']))
             self::$default_currency = $options['currency'];
@@ -111,14 +110,14 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway implements Merc
 
         /*
          * Sample of response
-          <?xml version="1.0" encoding="UTF-8"?>
-          <RESPONSE>
-          <ERRORCODE>0</ERRORCODE>
-          <ERRORMESSAGE>0</ERRORMESSAGE>
-          <REFERENCE>or5342-CD</REFERENCE>
-          <PROXYPAYREF>34543</PROXYPAYREF>
-          <SEQUENCE>4562</SEQUENCE>
-          </RESPONSE>
+         <?xml version="1.0" encoding="UTF-8"?>
+         <RESPONSE>
+         <ERRORCODE>0</ERRORCODE>
+         <ERRORMESSAGE>0</ERRORMESSAGE>
+         <REFERENCE>or5342-CD</REFERENCE>
+         <PROXYPAYREF>34543</PROXYPAYREF>
+         <SEQUENCE>4562</SEQUENCE>
+         </RESPONSE>
          */
 
         return new Merchant_Billing_Response($this->success_from($response), $this->message_from($response), $response, $this->options_from($response));
@@ -187,13 +186,13 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway implements Merc
         $year = $this->cc_format($creditcard->year, 'two_digits');
 
         $this->xml .= <<<XML
-      <PaymentInfo>
+        <PaymentInfo>
         <CCN>{$creditcard->number}</CCN>
         <Expdate>{$month}{$year}</Expdate>
         <CVCCVV>{$creditcard->verification_value}</CVCCVV>
         <InstallmentOffset>0</InstallmentOffset>
         <InstallmentPeriod>0</InstallmentPeriod>
-      </PaymentInfo>
+        </PaymentInfo>
 XML;
     }
 
@@ -211,36 +210,36 @@ XML;
         $customer_email = isset($options['customer_email']) ? $options['customer_email'] : "";
 
         $this->xml = <<<XML
-    <?xml version="1.0" encoding="UTF-8"?>
-      <JProxyPayLink>
+        <?xml version="1.0" encoding="UTF-8"?>
+        <JProxyPayLink>
         <Message>
-          <Type>{$type}</Type>
-          <Authentication>
-            <MerchantID>{$this->options['login']}</MerchantID>
-            <Password>{$this->options['password']}</Password>
-          </Authentication>
-          <OrderInfo>
-            <Amount>{$this->amount($money)}</Amount>
-            <MerchantRef>{$merchant_ref}</MerchantRef>
-            <MerchantDesc>{$merchant_desc}</MerchantDesc>
-            <Currency>{$this->currency_lookup(self::$default_currency)}</Currency>
-            <CustomerEmail>{$customer_email}</CustomerEmail>
-            <Var1 />
-            <Var2 />
-            <Var3 />
-            <Var4 />
-            <Var5 />
-            <Var6 />
-            <Var7 />
-            <Var8 />
-            <Var9 />
-          </OrderInfo>
+        <Type>{$type}</Type>
+        <Authentication>
+        <MerchantID>{$this->options['login']}</MerchantID>
+        <Password>{$this->options['password']}</Password>
+        </Authentication>
+        <OrderInfo>
+        <Amount>{$this->amount($money)}</Amount>
+        <MerchantRef>{$merchant_ref}</MerchantRef>
+        <MerchantDesc>{$merchant_desc}</MerchantDesc>
+        <Currency>{$this->currency_lookup(self::$default_currency)}</Currency>
+        <CustomerEmail>{$customer_email}</CustomerEmail>
+        <Var1 />
+        <Var2 />
+        <Var3 />
+        <Var4 />
+        <Var5 />
+        <Var6 />
+        <Var7 />
+        <Var8 />
+        <Var9 />
+        </OrderInfo>
 XML;
         if ($creditcard != null)
             $this->build_payment_info($creditcard);
         $this->xml .= <<<XML
         </Message>
-      </JProxyPayLink>
+        </JProxyPayLink>
 XML;
     }
 
