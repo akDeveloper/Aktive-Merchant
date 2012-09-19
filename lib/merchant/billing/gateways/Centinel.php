@@ -134,15 +134,15 @@ XML;
 
     switch ($action) {
       case 'cmpi_lookup':
-        $response = $this->parse_cmpi_lookup($data);
+        $response = $this->parse_cmpi_lookup($data['body']);
         $options['authorization'] = $response['transaction_id'];
         break;
       case 'cmpi_authenticate':
-        $response = $this->parse_cmpi_authenticate($data);
+        $response = $this->parse_cmpi_authenticate($data['body']);
         break;
 
       default:
-        $response = $this->parse($data);
+        $response = $this->parse($data['body']);
         break;
     }
 

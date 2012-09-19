@@ -191,7 +191,7 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway {
 
     $data = $this->ssl_post($url, $this->post_data($action, $parameters));
 
-    $response = $this->parse($data);
+    $response = $this->parse($data['body']);
 
     $test_mode = $this->is_test();
 

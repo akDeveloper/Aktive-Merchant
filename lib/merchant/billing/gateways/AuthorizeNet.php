@@ -214,7 +214,7 @@ XML;
 
     $data = $this->ssl_post($url, $this->post_data($action, $parameters));
 
-    $response = $this->parse($data);
+    $response = $this->parse($data['body']);
 
     $message = $this->message_from($response);
 
@@ -378,7 +378,7 @@ XML;
 
     $data = $this->ssl_post($url, $this->arb_post_data($action, $parameters), array('headers'=>$headers));
 
-    $response = $this->arb_parse($data);
+    $response = $this->arb_parse($data['body']);
 
     $message = $this->arb_message_from($response);
 

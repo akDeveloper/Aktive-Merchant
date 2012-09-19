@@ -39,7 +39,8 @@ class Merchant_Billing_PaypalCommon extends Merchant_Billing_Gateway{
   protected function commit($action) {
     $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
     
-    $response = $this->parse( $this->ssl_post($url, $this->post_data($action)) );
+    $data = $this->ssl_post($url, $this->post_data($action));
+    $response = $this->parse($data['body']);
     
     $options  = array();
     $options['test'] = $this->is_test();

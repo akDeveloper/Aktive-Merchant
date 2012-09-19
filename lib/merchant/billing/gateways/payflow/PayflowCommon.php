@@ -191,7 +191,8 @@ XML;
     protected function commit()
     {       
         $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
-        $response = $this->parse($this->ssl_post($url, $this->xml));
+        $data = $this->ssl_post($url, $this->xml);
+        $response = $this->parse($data['body']);
         $this->xml = null;
 
         return new Merchant_Billing_Response(

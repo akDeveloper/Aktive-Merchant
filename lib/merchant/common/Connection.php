@@ -54,6 +54,8 @@ class Merchant_Connection {
         curl_setopt($curl, CURLOPT_POST, 1);
       curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
 
+      $error = array('curl_errorno' => curl_errno($curl), 'curl_error' => curl_error($curl));
+
       $response = curl_exec($curl);
 
       curl_close($curl);
@@ -61,7 +63,7 @@ class Merchant_Connection {
       Merchant_Logger::log($response);
       Merchant_Logger::save_response($response);
 
-      return $response;
+      return array('body' => $response, 'info' => $error);
     } else {
       throw new Exception ('curl is not installed!');
     }
