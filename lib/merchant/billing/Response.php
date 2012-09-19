@@ -9,7 +9,7 @@
 class Merchant_Billing_Response {
 
   private   $success;
-  private   $message;
+  protected $message;
   protected $params;
   private   $test;
   private   $authorization;

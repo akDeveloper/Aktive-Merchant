@@ -16,9 +16,13 @@ class Merchant_Connection {
 
   public function request ($method, $body, $options = array()){
 
-    $timeout    = isset($options['timeout']) ? $options['timeout'] : '0';
-    $user_agent = isset($options['user_agent']) ? $options['user_agent'] : null;
-    $headers    = isset($options['headers']) ? $options['headers'] : array();
+    $user_agent      = isset($options['user_agent']) ? $options['user_agent'] : null;
+    $headers         = isset($options['headers']) ? $options['headers'] : array();
+    $request_timeout = isset($options['request_timeout']) ? $options['request_timeout'] : null;
+    if(isset($options['connect_timeout']))
+      $connect_timeout = $options['connect_timeout'];
+    else
+      $connect_timeout = isset($options['timeout']) ? $options['timeout'] : '0';
 
     $server = parse_url($this->endpoint);
 
@@ -46,24 +50,28 @@ class Merchant_Connection {
       curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
       curl_setopt($curl, CURLOPT_FORBID_REUSE, 1);
       curl_setopt($curl, CURLOPT_FRESH_CONNECT, 1);
-      curl_setopt($curl, CURLOPT_CONNECTTIMEOUT , $timeout);
+      curl_setopt($curl, CURLOPT_CONNECTTIMEOUT , $connect_timeout);
+      
+      if(isset($request_timeout))
+        curl_setopt($curl, CURLOPT_TIMEOUT, $request_timeout);
+      
       if ( isset($user_agent))
-        curl_setopt($curl, CURLOPT_USERAGENT,$user_agent);
-
+        curl_setopt($curl, CURLOPT_USERAGENT, $user_agent);
+      
       if ($method == 'post')
         curl_setopt($curl, CURLOPT_POST, 1);
+      
       curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
 
-      $error = array('curl_errorno' => curl_errno($curl), 'curl_error' => curl_error($curl));
-
       $response = curl_exec($curl);
+      $info = array('curl_errorno' => curl_errno($curl), 'curl_error' => curl_error($curl));
 
       curl_close($curl);
 
       Merchant_Logger::log($response);
       Merchant_Logger::save_response($response);
 
-      return array('body' => $response, 'info' => $error);
+      return array('body' => $response, 'info' => $info);
     } else {
       throw new Exception ('curl is not installed!');
     }

@@ -44,14 +44,14 @@ class Merchant_Billing_Centinel extends Merchant_Billing_Gateway {
     $this->add_invoice($money, $options);
     $this->add_creditcard($creditcard);
 
-    return $this->commit('cmpi_lookup', $money, array());
+    return $this->commit('cmpi_lookup', $money, $options);
   }
 
   public function authenticate($options=array()) {
     $this->required_options('payload, transaction_id', $options);
     $this->add_cmpi_lookup_data($options);
 
-    return $this->commit('cmpi_authenticate', null, array());
+    return $this->commit('cmpi_authenticate', null, $options);
   }
 
   /* Private */
@@ -128,7 +128,7 @@ XML;
   private function commit($action, $money, $parameters) {
     $url = $this->is_test() ? $this->test_url : $this->live_url;
 
-    $data = $this->ssl_post($url, $this->post_data($action, $parameters,array('timeout' => '10')));
+    $data = $this->ssl_post($url, $this->post_data($action), $parameters);
 
     $options = array('test' => $this->is_test());
 
@@ -144,6 +144,10 @@ XML;
       default:
         $response = $this->parse($data['body']);
         break;
+    }
+
+    if(empty($data['body']) && isset($data['info']['curl_errorno'])){
+      $response['error_desc'] = "curl error {$data['info']['curl_errorno']}: {$data['info']['curl_error']}";
     }
 
     $responseClass = $action == 'cmpi_lookup'
@@ -168,7 +172,7 @@ XML;
     return $response['error_desc'];
   }
 
-  private function post_data($action, $parameters = array()) {
+  private function post_data($action) {
     $data = <<<XML
       <?xml version="1.0" encoding="UTF-8"?>
         <CardinalMPI>
