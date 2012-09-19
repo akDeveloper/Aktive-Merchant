@@ -11,19 +11,19 @@ class Merchant_Billing_Payflow extends Merchant_Billing_PayflowCommon
 
     function authorize($money, $credit_card_or_reference, $options = array())
     {
-        $request = $this->build_sale_or_authorization_request('Authorization', $money, $credit_card_or_reference, $options);
-        return $this->commit($request);
+        $this->build_sale_or_authorization_request('Authorization', $money, $credit_card_or_reference, $options);
+        return $this->commit($options);
     }
 
     function purchase($money, $credit_card_or_reference, $options = array())
     {
-        $request = $this->build_sale_or_authorization_request('Purchase', $money, $credit_card_or_reference, $options);
-        return $this->commit($request);
+        $this->build_sale_or_authorization_request('Purchase', $money, $credit_card_or_reference, $options);
+        return $this->commit($options);
     }
 
     private function build_sale_or_authorization_request($action, $money, $credit_card_or_reference, $options)
     {
-        return is_string($credit_card_or_reference)
+        is_string($credit_card_or_reference)
             ? $this->build_reference_sale_or_authorization_request($action, $money, $credit_card_or_reference, $options)
             : $this->build_credit_card_request($action, $money, $credit_card_or_reference, $options);
     }

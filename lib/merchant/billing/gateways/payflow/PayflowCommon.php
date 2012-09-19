@@ -48,13 +48,13 @@ class Merchant_Billing_PayflowCommon extends Merchant_Billing_Gateway
     function capture($money, $authorization, $options)
     {
         $request = $this->build_reference_request('Capture', $money, $authorization, $options);
-        return $this->commit($request);
+        return $this->commit($options);
     }
 
     function void($authorization, $options)
     {
         $request = $this->build_reference_request('Void', null, $authorization, $options);
-        return $this->commit($request);
+        return $this->commit($options);
     }
 
     protected function build_request($body)
@@ -132,8 +132,15 @@ XML;
         return $xml;
     }
 
-    private function parse($response_xml)
+    private function parse($response_xml, $info)
     {
+        if(empty($response_xml))
+        {
+            return array(
+                'Result' => $info['curl_errorno'],
+                'Message' => "curl error {$info['curl_errorno']}: {$info['curl_error']}");
+        }
+
         $xml = simplexml_load_string($response_xml);
 
         $response = array();
@@ -188,15 +195,17 @@ XML;
         }
     }
 
-    protected function commit()
+    protected function commit($options)
     {       
         $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
-        $data = $this->ssl_post($url, $this->xml);
-        $response = $this->parse($data['body']);
+        $data = $this->ssl_post($url, $this->xml, $options);
+        
+        $response = $this->parse($data['body'], $data['info']);
+        
         $this->xml = null;
 
         return new Merchant_Billing_Response(
-            $response['Result'] == 0, 
+            $response['Result'] == 0,
             $response['Message'],
             $response,
             $this->options_from($response));
