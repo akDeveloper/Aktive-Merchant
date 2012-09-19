@@ -74,18 +74,18 @@ class Merchant_Billing_HsbcSecureEpayments extends Merchant_Billing_Gateway {
 
   public function authorize($amount, Merchant_Billing_CreditCard $creditcard, $options = array()) {
     $this->build_xml($amount, 'PreAuth', $creditcard, $options);
-    return $this->commit(__FUNCTION__);
+    return $this->commit(__FUNCTION__, $options);
   }
 
   public function purchase($amount, Merchant_Billing_CreditCard $creditcard, $options = array()) {
     $this->build_xml($amount, 'Auth', $creditcard, $options);
-    return $this->commit(__FUNCTION__);
+    return $this->commit(__FUNCTION__, $options);
   }
 
   public function capture($amount, $authorization, $options = array()) {
     $options = array_merge($options, array('authorization' => $authorization));
     $this->build_xml($amount, 'PostAuth', null, $options);
-    return $this->commit(__FUNCTION__);
+    return $this->commit(__FUNCTION__, $options);
   }
 
   public function void($identification, $options = array()) {
@@ -274,13 +274,13 @@ XML;
 XML;
   }
 
-  private function commit($action) {
+  private function commit($action, $options) {
     $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
-    $data = $this->ssl_post($url, $this->xml);
+    $data = $this->ssl_post($url, $this->xml, $options);
     $response = $this->parse($data['body']);
 
     $r =  new Merchant_Billing_Response( $this->success_from($action, $response), 
-      $this->message_from($response), 
+      $this->message_from($response, $data['info']),
       $response, 
       $this->options_from($response)
     );
@@ -390,7 +390,10 @@ XML;
     $response['transaction_status'] == $transaction_status);
   }
 
-  private function message_from($response) {
+  private function message_from($response, $info) {
+    if(isset($info['curl_errorno']) && !$info['curl_errorno'] == 0)
+      return "curl error {$info['curl_errorno']}: {$info['curl_error']}";
+    
     return (isset($response['return_message']) ? $response['return_message'] : $response['error_message']);
   }
 
