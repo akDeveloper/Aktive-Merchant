@@ -15,40 +15,48 @@ namespace AktiveMerchant\Mock;
 
 class Request
 {
-    
-    public function setMethod($method)
-    {
-        
-    }
+     
+    protected $url;
 
-    public function getMethod()
-    {
-    
-    }
+    protected $method;
 
+    protected $headers = array();   
+    
+    protected $body;
+    
     public function setUrl($url)
     {
+        $this->url = $url;
+    }
     
+    public function getUrl() 
+    {
+        return $this->url;
     }
 
-    public function getUrl()
+    public function setMethod($method)
     {
-    
+        $this->method = strtoupper($method);
     }
 
-    public function setHeaders($headers)
+    public function getMethod() 
     {
+        return $this->method;
+    }
     
+    public function setHeaders($headers) 
+    {
+        $this->headers = $headers;
     }
 
     public function setBody($body)
     {
-    
+        $this->body = $body; 
     }
 
     public function getBody()
     {
-    
+        return $this->body;
     }
 
     public function send()
