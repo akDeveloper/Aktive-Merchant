@@ -27,8 +27,15 @@ class Example extends Gateway implements
     const LIVE_URL = 'https://example.com/live';
 
     /**
-     *  The countries the gateway supports merchants from as 2 digit ISO
-     *  country codes.
+     * Money format supported by this gateway.
+     * Can be 'dollars' or 'cents'
+     *
+     * @var string Money format 'dollars' | 'cents'
+     */
+    public static $money_format = 'dollars';
+
+    /**
+     * The countries supported by the gateway as 2 digit ISO country codes.
      *
      * @var array
      */
@@ -63,6 +70,14 @@ class Example extends Gateway implements
     public static $display_name = 'New Gateway';
 
     /**
+     * The currency supported by the gateway as ISO 4217 currency code.
+     * the format 
+     *
+     * @var string The ISO 4217 currency code
+     */
+
+    public static $default_currency = 'USD';
+    /**
      * Additional options needed by gateway
      *
      * @var array
@@ -82,20 +97,20 @@ class Example extends Gateway implements
      * @param array $options an array contains login parameters of merchant
      *                       and optional currency.
      *
-     * @return Gateway the gateway instance.
+     * @return Gateway The gateway instance.
      */
     public function __construct($options = array())
     {
         $this->required_options('login, password', $options);
 
         if (isset($options['currency']))
-            $this->default_currency = $options['currency'];
+            self::$default_currency = $options['currency'];
 
         $this->options = $options;
     }
 
     /**
-     * bind the given amount to customer creditcard
+     * Binds the given amount to customer creditcard
      *
      * creditcard is not charged yet. a capture action required for charging the
      * creditcard.
@@ -282,7 +297,7 @@ class Example extends Gateway implements
                 'avs_result' => $this->avs_result_from($response),
                 'cvv_result' => $response['card_code']
             )
-    );
+	    );
     }
 
     /**
