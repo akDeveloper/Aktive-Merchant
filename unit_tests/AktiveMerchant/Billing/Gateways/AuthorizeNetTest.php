@@ -6,6 +6,8 @@ use AktiveMerchant\Billing\Gateways\AuthorizeNet;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
+require_once 'config.php';
+
 /**
  * AuthorizeNetTest class.
  *
@@ -15,8 +17,6 @@ use AktiveMerchant\Billing\CreditCard;
  * @license http://www.opensource.org/licenses/mit-license.php
  *
  */
-require_once 'config.php';
-
 class AuthorizeNetTest extends AktiveMerchant\TestCase
 {
 
@@ -151,7 +151,7 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
             $this->creditcard, 
             $this->options
         );
-        
+
         $this->assert_success($response);
 
         $authorization = $response->authorization();
@@ -183,12 +183,20 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
     public function testSuccessfulRecurring()
     {
         $this->mock_request($this->successful_recurring_response());
-        
+
         $response = $this->gateway->recurring(
             $this->amount, 
             $this->creditcard, 
             $this->recurring_options
         );
+        
+        $request_body = $this->request->getBody();
+        $name = $this->recurring_options['billing_address']['first_name']
+            . " "
+            . $this->recurring_options['billing_address']['last_name'];
+        $firstanme = $this->recurring_options['billing_address']['first_name'];
+        $this->assertEquals($request_body, $this->successful_recurring_request($name, $firstanme));
+        
         $this->assert_success($response);
 
         $subscription_id = $response->authorization();
@@ -203,6 +211,37 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
         $this->mock_request($this->successful_cancel_recurring_response());
         $response = $this->gateway->cancelRecurring($subscription_id);
         $this->assert_success($response);
+    }
+
+    private function successful_recurring_request($name, $firstname)
+    {
+        return '<?xml version="1.0" encoding="utf-8"?>
+      <ARBCreateSubscriptionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
+        <merchantAuthentication>
+          <name>8rF8vgXK89p4</name>
+          <transactionKey>3Pr9W4n64FSF74y5</transactionKey>
+        </merchantAuthentication>
+          <refId> </refId><subscription>      <name>Subscription of '.$name.'</name>
+      <paymentSchedule>
+        <interval>
+          <length>11</length>
+          <unit>months</unit>
+        </interval>
+        <startDate>'.date("Y-m-d", time()).'</startDate>
+        <totalOccurrences>1</totalOccurrences>
+        <trialOccurrences>0</trialOccurrences>
+      </paymentSchedule>
+      <amount>100.00</amount>
+      <trialAmount>0</trialAmount>        <payment>
+          <creditCard>
+            <cardNumber>4111111111111111</cardNumber>
+            <expirationDate>2015-01</expirationDate>
+          </creditCard>
+        </payment>        <billTo>
+          <firstName>'.$firstname.'</firstName>
+          <lastName>Smith</lastName>
+        </billTo></subscription>
+      </ARBCreateSubscriptionRequest>';
     }
 
     private function successful_recurring_response()

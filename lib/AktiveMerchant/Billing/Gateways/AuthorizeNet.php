@@ -9,6 +9,7 @@ use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Exception;
 use AktiveMerchant\Billing\Response;
+
 /**
  * Merchant driver for {link http://authorize.net/ Authorize.net}.
  *
@@ -248,7 +249,9 @@ XML;
         $response = $this->parse($data);
 
         // Check the response code, and throw an exception if necessary
-        if (empty($response['response_code'])) throw new Exception("Error parsing merchant response: No status information");
+        if (empty($response['response_code'])) {
+            throw new Exception("Error parsing merchant response: No status information");
+        }
         switch($response['response_code']) {
           case self::ERROR:
             switch($response['response_reason_code']) {
