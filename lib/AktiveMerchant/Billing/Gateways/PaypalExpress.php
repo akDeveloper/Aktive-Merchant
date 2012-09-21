@@ -32,7 +32,6 @@ class PaypalExpress extends PaypalCommon
 
     public function __construct($options = array())
     {
-        parent::__construct($options);    
         $this->required_options('login, password, signature', $options);
 
         $this->options = $options;

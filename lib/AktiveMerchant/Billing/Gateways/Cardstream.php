@@ -140,7 +140,6 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
      */
     public function __construct($options = array())
     {
-      parent::__construct($options);
       $this->required_options('login, password', $options);
 
         if (isset($options['currency']))

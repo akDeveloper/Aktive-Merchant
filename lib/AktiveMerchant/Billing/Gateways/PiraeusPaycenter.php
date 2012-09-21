@@ -54,7 +54,6 @@ class Merchant_Billing_PiraeusPaycenter extends Merchant_Billing_Gateway impleme
      */
     public function __construct($options = array())
     {
-      parent::__construct($options);
       $this->required_options('acquire_id, merchant_id, pos_id, user, password, channel_type', $options);
 
         if (isset($options['currency']))
