@@ -4,6 +4,7 @@ namespace AktiveMerchant\Billing\Gateways;
 
 use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Common\Country;
 
 /**
  * Description of \AktiveMerchant\Billing\HsbcSecureEpayments
@@ -21,6 +22,7 @@ class HsbcSecureEpayments extends Gateway implements Interfaces\Charge
         'visa' => 1, 'master' => 2, 'american_express' => 8, 'solo' => 9,
         'switch' => 10, 'maestro' => 14
     );
+
     private $HSBC_CVV_RESPONSE_MAPPINGS = array(
         '0' => 'X',
         '1' => 'M',
@@ -31,6 +33,7 @@ class HsbcSecureEpayments extends Gateway implements Interfaces\Charge
         '6' => 'I',
         '7' => 'U'
     );
+
     private $TRANSACTION_STATUS_MAPPINGS = array(
         'accepted' => "A",
         'declined' => "D",
