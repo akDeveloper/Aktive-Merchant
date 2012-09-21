@@ -1,4 +1,13 @@
 <?php
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Interfaces as Interfaces;
+use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Billing\Exception;
+use AktiveMerchant\Billing\Response;
 
 /**
  * Realex
@@ -6,7 +15,11 @@
  * @package default
  * @author Simon Hamilton
  */
-class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge, Merchant_Billing_Gateway_Credit, Merchant_Billing_Gateway_Recurring, Merchant_Billing_Gateway_Store
+class Realex extends Gateway implements 
+    Interfaces\Charge, 
+    Interfaces\Credit, 
+    Interfaces\Recurring, 
+    Interfaces\Store
 {
     /*
      * For more information on the Realex Payment Gateway visit their site http://realexpayments.com.
@@ -79,8 +92,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
      */
     public function __construct($options)
     {
-      parent::__construct($options);
-      $this->required_options('login, password', $options);
+        $this->required_options('login, password', $options);
 
         $this->timestamp = strftime("%Y%m%d%H%M%S");
 
@@ -95,12 +107,12 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
      * charge the card.
      *
      * @param string $money The amount to be authorized. Either an Integer value in cents or a Money object.
-     * @param Merchant_Billing_CreditCard $creditcard The CreditCard details for the transaction.
+     * @param CreditCard $creditcard The CreditCard details for the transaction.
      * @param array $options Optional parameters.
-     * @return Merchant_Billing_Response
+     * @return Response
      * @author Simon Hamilton
      */
-    public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options)
+    public function authorize($money, CreditCard $creditcard, $options=array())
     {
         $this->required_options('order_id', $options);
         $this->build_purchase_or_authorization_request('authorisation', $money, $creditcard, $options);
@@ -111,12 +123,12 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
      * Perform a purchase, which is essentially an authorization and capture in a single operation.
      *
      * @param string $money The amount to be authorized. Either an Integer value in cents or a Money object.
-     * @param Merchant_Billing_CreditCard $creditcard The CreditCard details for the transaction.
+     * @param CreditCard $creditcard The CreditCard details for the transaction.
      * @param array $options Optional parameters.
-     * @return Merchant_Billing_Response
+     * @return Response
      * @author Simon Hamilton
      */
-    public function purchase($money, Merchant_Billing_CreditCard $creditcard, $options)
+    public function purchase($money, CreditCard $creditcard, $options=array())
     {
         $this->required_options('order_id', $options);
         $this->build_purchase_or_authorization_request('purchase', $money, $creditcard, $options);
@@ -129,10 +141,10 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
      * @param string $money The amount to be authorized. Either an Integer value in cents or a Money object.
      * @param string $authorization The authorization returned from the previous authorize request.
      * @param array $options Optional parameters.
-     * @return Merchant_Billing_Response
+     * @return Response
      * @author Simon Hamilton
      */
-    public function capture($money, $authorization, $options)
+    public function capture($money, $authorization, $options=array())
     {
         $this->required_options('pasref, order_id', $options);
         $this->build_capture_request($authorization, $options);
@@ -148,10 +160,10 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
      * @param string $money The amount to be rebated. Either an Integer value in cents or a Money object.
      * @param string $authorization The authorization returned from the previous authorize request.
      * @param array $options Optional parameters.
-     * @return Merchant_Billing_Response
+     * @return Response
      * @author Simon Hamilton
      */
-    public function credit($money, $authorization, $options)
+    public function credit($money, $authorization, $options=array())
     {
         $this->required_options('pasref, order_id', $options);
         $this->build_credit_request($money, $authorization, $options);
@@ -163,10 +175,10 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
      *
      * @param string $authorization The authorization returned from the previous authorize request.
      * @param array $options Optional parameters.
-     * @return Merchant_Billing_Response
+     * @return Response
      * @author Simon Hamilton
      */
-    public function void($authorization, $options)
+    public function void($authorization, $options=array())
     {
         $this->required_options('pasref, order_id', $options);
         $this->build_void_request($authorization, $options);
@@ -182,25 +194,33 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
      *
      * @param string $money The amount to be authorized. Either an Integer value in cents or a Money object.
      * @param array $options Optional parameters.
-     * @return Merchant_Billing_Response
+     * @return Response
      * @author Simon Hamilton
      */
-    public function recurring($money, $options)
+    public function recurring($money, CreditCard $creditcard, $options=array())
     {
         $this->required_options('order_id', $options);
         $this->build_receipt_in_request($money, $options);
         return $this->commit('recurring');
     }
 
+    public function updateRecurring($subscription_id, CreditCard $creditcard)
+    {
+    }
+
+    public function cancelRecurring($subscription_id)
+    {
+    }
+
     /**
      * Store new card information in Realex RealVault
      *
-     * @param Merchant_Billing_CreditCard $creditcard The CreditCard details for the transaction.
+     * @param CreditCard $creditcard The CreditCard details for the transaction.
      * @param array $options Optional parameters.
-     * @return Merchant_Billing_Response
+     * @return Response
      * @author Simon Hamilton
      */
-    public function store(Merchant_Billing_CreditCard $creditcard, $options)
+    public function store(CreditCard $creditcard, $options=array())
     {
         $this->required_options('order_id', $options);
         $this->build_new_card_request($creditcard, $options);
@@ -210,15 +230,15 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
     /**
      * Remove card information from Realex RealVault
      *
-     * @param Merchant_Billing_CreditCard $creditcard The CreditCard details for the transaction.
+     * @param CreditCard $creditcard The CreditCard details for the transaction.
      * @param array $options Optional parameters.
-     * @return Merchant_Billing_Response
+     * @return Response
      * @author Simon Hamilton
      */
-    public function unstore(Merchant_Billing_CreditCard $creditcard, $options)
+    public function unstore($reference, $options=array())
     {
         $this->required_options('order_id', $options);
-        $this->build_cancel_card_request($creditcard, $options);
+        $this->build_cancel_card_request($reference, $options);
         return $this->commit('recurring');
     }
 
@@ -226,7 +246,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
      * Store User information in the Realex RealVault
      *
      * @param array $options Parameters.
-     * @return Merchant_Billing_Response
+     * @return Response
      * @author Simon Hamilton
      */
     public function store_user($options)
@@ -265,7 +285,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
      * </response>
      *
      * @param string $endpoint
-     * @return Merchant_Billing_Response
+     * @return Response
      * @author Simon Hamilton
      */
     private function commit($endpoint='default')
@@ -273,14 +293,18 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
         $url = ($endpoint == 'recurring') ? self::RECURRING_URL : self::URL;
         $response = $this->parse($this->ssl_post($url, $this->xml->asXML()));
 
-        return new Merchant_Billing_Response(((string) $response->result == '00'), $this->message_from($response), $this->params_from($response), $this->options_from($response));
+        return new Response(((string) $response->result == '00'), $this->message_from($response), $this->params_from($response), $this->options_from($response));
     }
 
-    private function build_purchase_or_authorization_request($action, $money, $creditcard, $options)
+    private function build_purchase_or_authorization_request(
+        $action, 
+        $money, 
+        $creditcard, 
+        $options)
     {
 
         // build the xml object
-        $this->xml = new SimpleXMLElement('<request type="auth"></request>');
+        $this->xml = new \SimpleXMLElement('<request type="auth"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
         $this->add_merchant_details($options);
@@ -299,7 +323,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
 
         $digest = array(
             $this->timestamp,
-            $options['merchant']['login'],
+            $this->options['login'],
             $options['order_id'],
             $this->amount($money),
             $currency,
@@ -314,7 +338,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
     private function build_capture_request($authorization, $options)
     {
         // build the xml object
-        $this->xml = new SimpleXMLElement('<request type="settle"></request>');
+        $this->xml = new \SimpleXMLElement('<request type="settle"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
         $this->add_merchant_details($options);
@@ -333,7 +357,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
     private function build_credit_request($money, $authorization, $options)
     {
         // build the xml object
-        $this->xml = new SimpleXMLElement('<request type="rebate"></request>');
+        $this->xml = new \SimpleXMLElement('<request type="rebate"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
         $this->add_merchant_details($options);
@@ -362,7 +386,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
     private function build_void_request($authorization, $options)
     {
         // build the xml object
-        $this->xml = new SimpleXMLElement('<request type="void"></request>');
+        $this->xml = new \SimpleXMLElement('<request type="void"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
         $this->add_merchant_details($options);
@@ -381,7 +405,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
     private function build_cancel_card_request($creditcard, $options = array())
     {
         // build the xml object
-        $this->xml = new SimpleXMLElement('<request type="card-cancel-card"></request>');
+        $this->xml = new \SimpleXMLElement('<request type="card-cancel-card"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
         $this->add_merchant_details($options);
@@ -403,7 +427,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
     private function build_new_card_request($creditcard, $options = array())
     {
         // build the xml object
-        $this->xml = new SimpleXMLElement('<request type="card-new"></request>');
+        $this->xml = new \SimpleXMLElement('<request type="card-new"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
         $this->add_merchant_details($options);
         $this->xml->addChild('orderid', $options['order_id']);
@@ -429,7 +453,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
     private function build_new_payer_request($options)
     {
         // build the xml object
-        $this->xml = new SimpleXMLElement('<request type="payer-new"></request>');
+        $this->xml = new \SimpleXMLElement('<request type="payer-new"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
         $this->add_merchant_details($options);
         $this->xml->addChild('orderid', $options['order_id']);
@@ -463,7 +487,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
     private function build_receipt_in_request($money, $options)
     {
         // build the xml object
-        $this->xml = new SimpleXMLElement('<request type="receipt-in"></request>');
+        $this->xml = new \SimpleXMLElement('<request type="receipt-in"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
         $this->add_merchant_details($options);
         $this->xml->addChild('orderid', $options['order_id']);
@@ -496,7 +520,10 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
     private function add_address_and_customer_info($options)
     {
         $tssinfo = $this->xml->addChild('tssinfo');
-        $tssinfo->addChild('custnum', $options['customer']);
+
+        if (isset($options['customer'])) {
+            $tssinfo->addChild('custnum', $options['customer']);
+        }
 
         if (isset($options['invoice'])) {
             $tssinfo->addChild('prodid', $options['invoice']);
@@ -537,10 +564,10 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
 
     private function add_merchant_details($options)
     {
-        $merchant = $options['merchant'];
-
-        $this->xml->addChild('merchantid', $merchant['login']);
-        $this->xml->addChild('account', $merchant['account']);
+        $this->xml->addChild('merchantid', $this->options['login']);
+        if (isset($this->options['account']) || isset($options['account'])) {
+            $this->xml->addChild('account', $this->options['account']);
+        }
     }
 
     private function add_transaction_identifiers($authorization, $options)
@@ -620,7 +647,7 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
     private function sha1from($string, $options)
     {
         $sha1hash = sha1($string);
-        $secret = $options['merchant']['password'];
+        $secret = $this->options['password'];
         $tmp = "$sha1hash.$secret";
 
         return sha1($tmp);
@@ -644,34 +671,34 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
         $response_message = (string) $response->message;
 
         switch ($result) {
-            case '00':
-                $message = $this->messages['SUCCESS'];
-                break;
-            case '101':
-            case '102':
-            case '103':
-                $message = ($this->in_test_mode($response)) ? $response_message : $this->messages['DECLINED'];
-                break;
-            case preg_match("/^2[0-9][0-9]/", $result, $matches):
-                $message = $this->messages['BANK_ERROR'];
-                break;
-            case preg_match("/^3[0-9][0-9]/", $result, $matches):
-                $message = $this->messages['REALEX_ERROR'];
-                break;
-            case preg_match("/^5[0-9][0-9]/", $result, $matches):
-                $message = $reponse_message;
-                break;
-            case '600':
-            case '601':
-            case '602':
-                $message = $this->messages['ERROR'];
-                break;
-            case '666':
-                $message = $this->messages['CLIENT_DEACTIVATED'];
-                break;
-            default:
-                $message = $this->messages['DECLINED'];
-                break;
+        case '00':
+            $message = $this->messages['SUCCESS'];
+            break;
+        case '101':
+        case '102':
+        case '103':
+            $message = ($this->in_test_mode($response)) ? $response_message : $this->messages['DECLINED'];
+            break;
+        case preg_match("/^2[0-9][0-9]/", $result, $matches):
+            $message = $this->messages['BANK_ERROR'];
+            break;
+        case preg_match("/^3[0-9][0-9]/", $result, $matches):
+            $message = $this->messages['REALEX_ERROR'];
+            break;
+        case preg_match("/^5[0-9][0-9]/", $result, $matches):
+            $message = $reponse_message;
+            break;
+        case '600':
+        case '601':
+        case '602':
+            $message = $this->messages['ERROR'];
+            break;
+        case '666':
+            $message = $this->messages['CLIENT_DEACTIVATED'];
+            break;
+        default:
+            $message = $this->messages['DECLINED'];
+            break;
         }
 
         return $message;
@@ -766,5 +793,3 @@ class Merchant_Billing_Realex extends Merchant_Billing_Gateway implements Mercha
     }
 
 }
-
-?>
