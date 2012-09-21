@@ -8,15 +8,46 @@ use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
+use AktiveMerchant\Billing\Exception;
 
 /**
- * Description of \AktiveMerchant\Billing\Bogus
+ * This is a gateway to test the integration between your application and 
+ * Aktive-Merchant. It implements all interfaces so you can check all payment actions.
+ * 
+ * USAGE:
+ * For authorize and purchase actions, use a CreditCard instance with number:
+ * - 1 (For success action)
+ * - 2 (For throwing an AktiveMerchant\Billing\Exception)
+ * - other (For forcing action to fail)
+ *
+ * For credit action use indentification with value:
+ * - 1 (For success action)
+ * - 2 (For throwing an AktiveMerchant\Billing\Exception)
+ * - other (For forcing action to fail)
+ * 
+ * For unstore action use reference with value:
+ * - 1 (For success action)
+ * - 2 (For throwing an AktiveMerchant\Billing\Exception)
+ * - other (For forcing action to fail)
+ *
+ * For capture action use authorization with value:
+ * - 1 (For throwing an AktiveMerchant\Billing\Exception)
+ * - 2 (For forcing action to fail)
+ * - other (For success action)
+ *
+ * For void action use authorization with value:
+ * - 1 (For throwing an AktiveMerchant\Billing\Exception)
+ * - 2 (For forcing action to fail)
+ * - other (For success action)
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license MIT {@link http://opensource.org/licenses/mit-license.php}
  */
-class Bogus extends Gateway implements Interfaces\Charge, Interfaces\Credit, Interfaces\Store
+class Bogus extends Gateway implements 
+    Interfaces\Charge, 
+    Interfaces\Credit,
+    Interfaces\Store
 {
     const AUTHORIZATION = '53433';
 
@@ -37,10 +68,22 @@ class Bogus extends Gateway implements Interfaces\Charge, Interfaces\Credit, Int
     {
         switch ($creditcard->number) {
             case '1':
-                return new Response(true, self::SUCCESS_MESSAGE, array('authorized_amount' => $money), array('test' => true, 'authorization' => self::AUTHORIZATION));
+                return new Response(
+                    true, 
+                    self::SUCCESS_MESSAGE, 
+                    array('authorized_amount' => $money), 
+                    array('test' => true, 
+                    'authorization' => self::AUTHORIZATION)
+                );
                 break;
             case '2':
-                return new Response(false, self::FAILURE_MESSAGE, array('authorized_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+                return new Response(
+                    false, 
+                    self::FAILURE_MESSAGE, 
+                    array('authorized_amount' => $money, 
+                    'error' => self::FAILURE_MESSAGE), 
+                    array('test' => true)
+                );
                 break;
             default:
                 throw new Exception(self::ERROR_MESSAGE);
@@ -52,10 +95,23 @@ class Bogus extends Gateway implements Interfaces\Charge, Interfaces\Credit, Int
     {
         switch ($creditcard->number) {
             case '1':
-                return new Response(true, self::SUCCESS_MESSAGE, array('paid_amount' => $money), array('test' => true));
+                return new Response(
+                    true, 
+                    self::SUCCESS_MESSAGE, 
+                    array('paid_amount' => $money), 
+                    array('test' => true)
+                );
                 break;
             case '2':
-                return new Response(false, self::FAILURE_MESSAGE, array('paid_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+                return new Response(
+                    false, 
+                    self::FAILURE_MESSAGE, 
+                    array(
+                        'paid_amount' => $money, 
+                        'error' => self::FAILURE_MESSAGE
+                    ),
+                    array('test' => true)
+                );
                 break;
             default:
                 throw new Exception(self::ERROR_MESSAGE);
@@ -63,47 +119,85 @@ class Bogus extends Gateway implements Interfaces\Charge, Interfaces\Credit, Int
         }
     }
 
-    public function credit($money, $ident, $options = array())
+    public function credit($money, $identification, $options = array())
+    {
+        switch ($identification) {
+            case '1':
+                throw new Exception(self::CREDIT_ERROR_MESSAGE);
+                break;
+            case '2':
+                return new Response(
+                    false, 
+                    self::FAILURE_MESSAGE, 
+                    array(
+                        'paid_amount' => $money, 
+                        'error' => self::FAILURE_MESSAGE
+                    ),
+                    array('test' => true)
+                );
+                break;
+            default:
+                return new Response(
+                    true, 
+                    self::SUCCESS_MESSAGE, 
+                    array('paid_amount' => $money), 
+                    array('test' => true)
+                );
+                break;
+        }
+    }
+
+    public function capture($money, $identification, $options = array())
     {
         switch ($ident) {
             case '1':
                 throw new Exception(self::CREDIT_ERROR_MESSAGE);
                 break;
             case '2':
-                return new Response(false, self::FAILURE_MESSAGE, array('paid_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+                return new Response(
+                    false, 
+                    self::FAILURE_MESSAGE, 
+                    array(
+                        'paid_amount' => $money, 
+                        'error' => self::FAILURE_MESSAGE
+                    ),
+                    array('test' => true)
+                );
                 break;
             default:
-                return new Response(true, self::SUCCESS_MESSAGE, array('paid_amount' => $money), array('test' => true));
+                return new Response(
+                    true, 
+                    self::SUCCESS_MESSAGE, 
+                    array('paid_amount' => $money), 
+                    array('test' => true)
+                );
                 break;
         }
     }
 
-    public function capture($money, $ident, $options = array())
-    {
-        switch ($ident) {
-            case '1':
-                throw new Exception(self::CREDIT_ERROR_MESSAGE);
-                break;
-            case '2':
-                return new Response(false, self::FAILURE_MESSAGE, array('paid_amount' => $money, 'error' => self::FAILURE_MESSAGE), array('test' => true));
-                break;
-            default:
-                return new Response(true, self::SUCCESS_MESSAGE, array('paid_amount' => $money), array('test' => true));
-                break;
-        }
-    }
-
-    public function void($ident, $options = array())
+    public function void($authorization, $options = array())
     {
         switch ($ident) {
             case '1':
                 throw new Exception(self::VOID_ERROR_MESSAGE);
                 break;
             case '2':
-                return new Response(false, self::FAILURE_MESSAGE, array('authorization' => $ident, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+                return new Response(
+                    false, 
+                    self::FAILURE_MESSAGE, 
+                    array(
+                        'authorization' => $ident, 
+                        'error' => self::FAILURE_MESSAGE), 
+                    array('test' => true)
+                );
                 break;
             default:
-                return new Response(true, self::SUCCESS_MESSAGE, array('authorization' => $ident), array('test' => true));
+                return new Response(
+                    true, 
+                    self::SUCCESS_MESSAGE, 
+                    array('authorization' => $ident), 
+                    array('test' => true)
+                );
                 break;
         }
     }
@@ -112,10 +206,26 @@ class Bogus extends Gateway implements Interfaces\Charge, Interfaces\Credit, Int
     {
         switch ($creditcard->number) {
             case '1':
-                return new Response(true, self::SUCCESS_MESSAGE, array('billingid' => '1'), array('test' => true, 'authorization' => self::AUTHORIZATION));
+                return new Response(
+                    true, 
+                    self::SUCCESS_MESSAGE, 
+                    array('billingid' => '1'), 
+                    array(
+                        'test' => true, 
+                        'authorization' => self::AUTHORIZATION
+                    )
+                );
                 break;
             case '2':
-                return new Response(false, self::FAILURE_MESSAGE, array('billingid' => null, 'error' => self::FAILURE_MESSAGE), array('test' => true));
+                return new Response(
+                    false, 
+                    self::FAILURE_MESSAGE, 
+                    array(
+                        'billingid' => null, 
+                        'error' => self::FAILURE_MESSAGE
+                    ), 
+                    array('test' => true)
+                );
                 break;
 
             default:
@@ -124,14 +234,24 @@ class Bogus extends Gateway implements Interfaces\Charge, Interfaces\Credit, Int
         }
     }
 
-    public function unstore($identification, $options = array())
+    public function unstore($reference, $options = array())
     {
-        switch ($identification) {
+        switch ($reference) {
             case '1':
-                return new Response(true, self::SUCCESS_MESSAGE, array(), array('test' => true));
+                return new Response(
+                    true, 
+                    self::SUCCESS_MESSAGE, 
+                    array(), 
+                    array('test' => true)
+                );
                 break;
             case '2':
-                return new Response(false, self::FAILURE_MESSAGE, array('error' => self::FAILURE_MESSAGE), array('test' => true));
+                return new Response(
+                    false, 
+                    self::FAILURE_MESSAGE, 
+                    array('error' => self::FAILURE_MESSAGE), 
+                    array('test' => true)
+                );
                 break;
 
             default:
@@ -139,5 +259,4 @@ class Bogus extends Gateway implements Interfaces\Charge, Interfaces\Credit, Int
                 break;
         }
     }
-
 }
