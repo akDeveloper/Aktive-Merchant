@@ -6,7 +6,10 @@ namespace AktiveMerchant\Billing\Interfaces;
 
 /**
  * Interface for a merchant gateway that supports credit and void.
+ * 
  * @package Aktive-Merchant
+ * @author Andreas Kollaros 
+ * @license MIT {@link http://opensource.org/licenses/mit-license.php}
  */
 interface Credit 
 {
@@ -16,9 +19,9 @@ interface Credit
      * @param float $money Amount of money to charge
      * @param string $identification Authorization transaction ID (from {@link \AktiveMerchant\Billing\Response::authorization()})
      * @param array $options Additional options to the driver.  For details see {@link authorize()}.
+     * @access public
      * @return \AktiveMerchant\Billing\Response Response object
      * @throws \AktiveMerchant\Billing\Exception If the request fails
-     * @package Aktive-Merchant
      */
     public function credit($money, $identification, $options = array());
 
@@ -27,8 +30,8 @@ interface Credit
      *
      * @param string $authorization Authorization transaction ID (from {@link \AktiveMerchant\Billing\Response::authorization()})
      * @param array $options Additional options to the driver.  For details see {@link authorize()}.
+     * @access public
      * @return \AktiveMerchant\Billing\Response Response object
-     * @package Aktive-Merchant
      */
     public function void($authorization, $options = array());
 }

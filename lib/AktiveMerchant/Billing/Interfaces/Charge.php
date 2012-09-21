@@ -8,6 +8,10 @@ use AktiveMerchant\Billing\CreditCard;
 
 /**
  * Interface for a merchant gateway that supports authorize, purchase, and capture.
+ *
+ * @package Aktive-Merchant
+ * @author Andreas Kollaros 
+ * @license MIT {@link http://opensource.org/licenses/mit-license.php}
  */
 interface Charge 
 {
@@ -37,6 +41,7 @@ interface Charge
      *                              	<li>customer - Customer ID
      *                              	<li>ip - IP address of customer
      *                              </ul>
+     * @access public
      * @return \AktiveMerchant\Billing\Response Response object
      * @throws \AktiveMerchant\Billing\Exception If the request fails
      * @package Aktive-Merchant
@@ -49,6 +54,7 @@ interface Charge
      * @param float $money Amount of money to charge
      * @param \AktiveMerchant\Billing\CreditCard $creditcard Credit card to charge
      * @param array $options Additional options to the driver.  For details see {@link authorize()}.
+     * @access public
      * @return \AktiveMerchant\Billing\Response Response object
      * @throws \AktiveMerchant\Billing\Exception If the request fails
      */
@@ -62,9 +68,9 @@ interface Charge
      * @param float $money Amount of money to charge
      * @param string $authorization Authorization transaction ID (from {@link \AktiveMerchant\Billing\Response::authorization()})
      * @param array $options Additional options to the driver.  For details see {@link authorize()}.
+     * @access public
      * @return \AktiveMerchant\Billing\Response Response object
      * @throws \AktiveMerchant\Billing\Exception If the request fails
-     * @package Aktive-Merchant
      */
     public function capture($money, $authorization, $options = array());
 }
