@@ -1,56 +1,127 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Interfaces as Interfaces;
+use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Billing\Response;
+
 /**
  * Description of Example
  *
- * @package Aktive-Merchant
- * @author  <your name>
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @category Gateways
+ * @package  Aktive-Merchant
+ * @author   Your name <your@email.com>
+ * @license  MIT License http://www.opensource.org/licenses/mit-license.php
+ * @link     https://github.com/akDeveloper/Aktive-Merchant
  */
-class Merchant_Billing_Example extends Merchant_Billing_Gateway
+class Example extends Gateway implements
+    Interfaces\Charge,
+    Interfaces\Credit,
+    Interfaces\Store
 {
     const TEST_URL = 'https://example.com/test';
     const LIVE_URL = 'https://example.com/live';
 
-    # The countries the gateway supports merchants from as 2 digit ISO country codes
+    /**
+     * Money format supported by this gateway.
+     * Can be 'dollars' or 'cents'
+     *
+     * @var string Money format 'dollars' | 'cents'
+     */
+    public static $money_format = 'dollars';
 
+    /**
+     * The countries supported by the gateway as 2 digit ISO country codes.
+     *
+     * @var array
+     */
     public static $supported_countries = array('US', 'GR');
 
-    # The card types supported by the payment gateway
-    public static $supported_cardtypes = array('visa', 'master', 'american_express', 'switch', 'solo', 'maestro');
+    /**
+     * The card types supported by the payment gateway
+     *
+     * @var array
+     */
+    public static $supported_cardtypes = array(
+        'visa',
+        'master',
+        'american_express',
+        'switch',
+        'solo',
+        'maestro'
+    );
 
-    # The homepage URL of the gateway
+    /**
+     * The homepage URL of the gateway
+     *
+     * @var string
+     */
     public static $homepage_url = 'http://www.example.net';
 
-    # The display name of the gateway
+    /**
+     * The display name of the gateway
+     *
+     * @var string
+     */
     public static $display_name = 'New Gateway';
+
+    /**
+     * The currency supported by the gateway as ISO 4217 currency code.
+     * the format 
+     *
+     * @var string The ISO 4217 currency code
+     */
+    public static $default_currency = 'USD';
+
+    /**
+     * Additional options needed by gateway
+     *
+     * @var array
+     */
     private $options;
+
+    /**
+     *
+     *
+     * @var array
+     */
     private $post;
 
     /**
-     * $options array includes login parameters of merchant and optional currency.
+     * creates gateway instance from given options.
      *
-     * @param array $options
+     * @param array $options an array contains login parameters of merchant
+     *                       and optional currency.
+     *
+     * @return Gateway The gateway instance.
      */
     public function __construct($options = array())
     {
         $this->required_options('login, password', $options);
 
         if (isset($options['currency']))
-            $this->default_currency = $options['currency'];
+            self::$default_currency = $options['currency'];
 
         $this->options = $options;
     }
 
     /**
+     * Binds the given amount to customer creditcard
      *
-     * @param float                       $money
-     * @param Merchant_Billing_CreditCard $creditcard
-     * @param array                       $options
+     * creditcard is not charged yet. a capture action required for charging the
+     * creditcard.
      *
-     * @return Merchant_Billing_Response
+     * @param number     $money
+     * @param CreditCard $creditcard
+     * @param array      $options
+     *
+     * @return Response
      */
-    public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options=array())
     {
         $this->add_invoice($options);
         $this->add_creditcard($creditcard);
@@ -62,13 +133,13 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway
 
     /**
      *
-     * @param number                      $money
-     * @param Merchant_Billing_CreditCard $creditcard
-     * @param array                       $options
+     * @param  number     $money
+     * @param  CreditCard $creditcard
+     * @param  array      $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
-    public function purchase($money, Merchant_Billing_CreditCard $creditcard, $options=array())
+    public function purchase($money, CreditCard $creditcard, $options=array())
     {
         $this->add_invoice($options);
         $this->add_creditcard($creditcard);
@@ -80,11 +151,11 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway
 
     /**
      *
-     * @param number $money
-     * @param string $authorization (unique value received from authorize action)
-     * @param array  $options
+     * @param  number $money
+     * @param  string $authorization (unique value received from authorize action)
+     * @param  array  $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     public function capture($money, $authorization, $options = array())
     {
@@ -96,10 +167,10 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway
 
     /**
      *
-     * @param string $authorization
-     * @param array  $options
+     * @param  string $authorization
+     * @param  array  $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     public function void($authorization, $options = array())
     {
@@ -109,11 +180,11 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway
 
     /**
      *
-     * @param number $money
-     * @param string $identification
-     * @param array  $options
+     * @param  number $money
+     * @param  string $identification
+     * @param  array  $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     public function credit($money, $identification, $options = array())
     {
@@ -123,7 +194,7 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway
         return $this->commit('credit', $money);
     }
 
-    /* Private */
+    // Private methods
 
     /**
      * Customer data like e-mail, ip, web browser used for transaction etc
@@ -136,8 +207,8 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway
     }
 
     /**
-     *
      * Options key can be 'shipping address' and 'billing_address' or 'address'
+     *
      * Each of these keys must have an address array like:
      * <code>
      * $address['name']
@@ -152,11 +223,15 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway
      * </code>
      * common pattern for address is
      * <code>
-     * $billing_address = isset($options['billing_address']) ? $options['billing_address'] : $options['address']
-     * $shipping_address = $options['shipping_address']
+     * $billing_address = isset($options['billing_address'])
+     *      ? $options['billing_address']
+     *      : $options['address'];
+     * $shipping_address = $options['shipping_address'];
      * </code>
      *
-     * @param array $options
+     * @param  array $options
+     *
+     * @return void
      */
     private function add_address($options)
     {
@@ -164,6 +239,7 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway
     }
 
     /**
+     * Adds invoice info if exists.
      *
      * @param array $options
      */
@@ -173,10 +249,11 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway
     }
 
     /**
+     * Adds a CreditCard object
      *
-     * @param Merchant_Billing_CreditCard $creditcard
+     * @param CreditCard $creditcard
      */
-    private function add_creditcard(Merchant_Billing_CreditCard $creditcard)
+    private function add_creditcard(CreditCard $creditcard)
     {
 
     }
@@ -193,11 +270,11 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway
 
     /**
      *
-     * @param string $action
-     * @param number $money
-     * @param array  $parameters
+     * @param  string $action
+     * @param  number $money
+     * @param  array  $parameters
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     private function commit($action, $money, $parameters)
     {
@@ -209,14 +286,18 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway
 
         $test_mode = $this->is_test();
 
-        return new Merchant_Billing_Response($this->success_from($response), $this->message_from($response), $response, array(
-            'test' => $test_mode,
-            'authorization' => $response['authorization_id'],
-            'fraud_review' => $this->fraud_review_from($response),
-            'avs_result' => $this->avs_result_from($response),
-            'cvv_result' => $response['card_code']
+        return new Response(
+            $this->success_from($response),
+            $this->message_from($response),
+            $response,
+            array(
+                'test' => $test_mode,
+                'authorization' => $response['authorization_id'],
+                'fraud_review' => $this->fraud_review_from($response),
+                'avs_result' => $this->avs_result_from($response),
+                'cvv_result' => $response['card_code']
             )
-        );
+	    );
     }
 
     /**
@@ -269,12 +350,13 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway
     }
 
     /**
-     *
-     * Add final parameters to post data and
+     * Adds final parameters to post data and
      * build $this->post to the format that your payment gateway understands
      *
-     * @param string $action
-     * @param array  $parameters
+     * @param  string $action
+     * @param  array  $parameters
+     *
+     * @return void
      */
     private function post_data($action, $parameters = array())
     {
@@ -282,5 +364,3 @@ class Merchant_Billing_Example extends Merchant_Billing_Gateway
     }
 
 }
-
-?>
