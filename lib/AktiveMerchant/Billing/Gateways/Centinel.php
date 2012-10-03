@@ -1,7 +1,15 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Billing\Response;
+
 /**
- * Description of Merchant_Billing_Centinel
+ * Description of Centinel gateway
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
@@ -9,7 +17,7 @@
  */
 require_once dirname(__FILE__) . "/centinel/CentinelResponse.php";
 
-class Merchant_Billing_Centinel extends Merchant_Billing_Gateway
+class Centinel extends Gateway
 {
     const TEST_URL = 'https://centineltest.cardinalcommerce.com/maps/txns.asp';
     const LIVE_URL = 'https://centinel.cardinalcommerce.com/maps/txns.asp';
@@ -39,7 +47,7 @@ class Merchant_Billing_Centinel extends Merchant_Billing_Gateway
         $this->options = $options;
     }
 
-    public function lookup($money, Merchant_Billing_CreditCard $creditcard, $options=array())
+    public function lookup($money, CreditCard $creditcard, $options=array())
     {
         $this->required_options('order_id', $options);
 
@@ -80,7 +88,7 @@ XML;
 XML;
     }
 
-    private function add_creditcard(Merchant_Billing_CreditCard $creditcard)
+    private function add_creditcard(CreditCard $creditcard)
     {
         $month = $this->cc_format($creditcard->month, 'two_digits');
         $year = $this->cc_format($creditcard->year, 'four_digits');
@@ -156,7 +164,7 @@ XML;
                 break;
         }
 
-        return new Merchant_Billing_CentinelResponse($this->success_from($response),
+        return new CentinelResponse($this->success_from($response),
             $this->message_from($response), $response, $options);
     }
 

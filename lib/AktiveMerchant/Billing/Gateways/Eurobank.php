@@ -1,13 +1,24 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Interfaces as Interfaces;
+use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Billing\Response;
+
 /**
- * Description of Merchant_Billing_Eurobank
+ * Description of Eurobank gateway
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge, Merchant_Billing_Gateway_Credit
+class Eurobank extends Gateway implements 
+    Interfaces\Charge,
+    Interfaces\Credit
 {
     const TEST_URL = 'https://eptest.eurocommerce.gr/proxypay/apacsonline';
     const LIVE_URL = 'https://ep.eurocommerce.gr/proxypay/apacsonline';
@@ -40,19 +51,24 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway implements Merc
 
     /**
      *
-     * @param number                      $money      - Total order amount.       (REQUIRED)
-     * @param Merchant_Billing_CreditCard $creditcard - A creditcard class object (REQUIRED)
-     * @param array                       $options
+     * @param number     $money      - Total order amount.       (REQUIRED)
+     * @param CreditCard $creditcard - A creditcard class object (REQUIRED)
+     * @param array      $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
-    public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options=array())
     {
         $this->required_options('customer_email', $options);
         $this->build_xml($money, 'PreAuth', $creditcard, $options);
         return $this->commit();
     }
 
+    public function purchase($money, CreditCard $creditcard, $options = array())
+    {
+        
+    }
+    
     /**
      *
      * @param number $money
@@ -120,7 +136,12 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway implements Merc
          </RESPONSE>
          */
 
-        return new Merchant_Billing_Response($this->success_from($response), $this->message_from($response), $response, $this->options_from($response));
+        return new Response(
+            $this->success_from($response), 
+            $this->message_from($response), 
+            $response, 
+            $this->options_from($response)
+        );
     }
 
     /**
@@ -178,9 +199,9 @@ class Merchant_Billing_Eurobank extends Merchant_Billing_Gateway implements Merc
 
     /**
      *
-     * @param Merchant_Billing_CreditCard $creditcard
+     * @param CreditCard $creditcard
      */
-    private function build_payment_info(Merchant_Billing_CreditCard $creditcard)
+    private function build_payment_info(CreditCard $creditcard)
     {
         $month = $this->cc_format($creditcard->month, 'two_digits');
         $year = $this->cc_format($creditcard->year, 'two_digits');
@@ -198,13 +219,17 @@ XML;
 
     /**
      *
-     * @param number                      $money
-     * @param string                      $type
-     * @param Merchant_Billing_CreditCard $creditcard
-     * @param array                       $options
+     * @param number     $money
+     * @param string     $type
+     * @param CreditCard $creditcard
+     * @param array      $options
      */
-    private function build_xml($money, $type, Merchant_Billing_CreditCard $creditcard = null, $options=array())
-    {
+    private function build_xml(
+        $money, 
+        $type, 
+        CreditCard $creditcard = null, 
+        $options=array()
+    ) {
         $merchant_desc = isset($options['merchant_desc']) ? $options['merchant_desc'] : null;
         $merchant_ref = isset($options['authorization']) ? $options['authorization'] : "REF " . date("YmdH:i:s", time());
         $customer_email = isset($options['customer_email']) ? $options['customer_email'] : "";
