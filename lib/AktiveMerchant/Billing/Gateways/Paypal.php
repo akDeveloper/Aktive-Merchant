@@ -1,40 +1,88 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing\Gateways;
+
+require_once __DIR__ . "/paypal/PaypalCommon.php";
+
+use AktiveMerchant\Billing\Interfaces as Interfaces;
+use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Billing\Exception;
+use AktiveMerchant\Billing\Response;
+use AktiveMerchant\Common\Country;
+
+
 /**
- * Description of Merchant_Billing_Paypal
+ * Description of Paypal
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-require_once dirname(__FILE__) . "/paypal/PaypalCommon.php";
-
-class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon implements Merchant_Billing_Gateway_Charge, Merchant_Billing_Gateway_Credit
+class Paypal extends PaypalCommon implements 
+    Interfaces\Charge, 
+    Interfaces\Credit
 {
 
+    /**
+     * Money format supported by this gateway.
+     * Can be 'dollars' or 'cents'
+     *
+     * @var string Money format 'dollars' | 'cents'
+     */
     public static $money_format = 'dollars'; # or cents
-    # The countries the gateway supports merchants from as 2 digit ISO country codes
+    
+    /**
+     * The countries supported by the gateway as 2 digit ISO country codes.
+     *
+     * @var array
+     */
     public static $supported_countries = array('US', 'UK');
 
-    # The card types supported by the payment gateway
+    /**
+     * The card types supported by the payment gateway
+     *
+     * @var array
+     */
     public static $supported_cardtypes = array('visa', 'master', 'american_express', 'discover');
 
-    # The homepage URL of the gateway
+    /**
+     * The homepage URL of the gateway
+     *
+     * @var string
+     */
     public static $homepage_url = 'https://merchant.paypal.com/cgi-bin/marketingweb?cmd=_render-content&content_ID=merchant/wp_pro';
 
-    # The display name of the gateway
+    /**
+     * The display name of the gateway
+     *
+     * @var string
+     */
     public static $display_name = 'PayPal Website Payments Pro';
-    private $options;
-    private $post = array();
-    private $version = '59.0';
+
+    /**
+     * The currency supported by the gateway as ISO 4217 currency code.
+     * the format 
+     *
+     * @var string The ISO 4217 currency code
+     */
     public static $default_currency = 'USD';
+
+    private $options;
+
+    private $post = array();
+    
+    private $version = '59.0';
+    
     private $credit_card_types = array(
-        'visa' => 'Visa',
-        'master' => 'MasterCard',
-        'discover' => 'Discover',
+        'visa'             => 'Visa',
+        'master'           => 'MasterCard',
+        'discover'         => 'Discover',
         'american_express' => 'Amex',
-        'switch' => 'Switch',
-        'solo' => 'Solo'
+        'switch'           => 'Switch',
+        'solo'             => 'Solo'
     );
 
     /**
@@ -44,8 +92,7 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon implements M
      */
     public function __construct($options = array())
     {
-      parent::__construct($options);
-      $this->required_options('login, password, signature', $options);
+        $this->required_options('login, password, signature', $options);
 
         if (isset($options['currency']))
             self::$default_currency = $options['currency'];
@@ -56,12 +103,12 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon implements M
     /**
      *
      * @param number                      $money
-     * @param Merchant_Billing_CreditCard $creditcard
+     * @param CreditCard $creditcard
      * @param array                       $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
-    public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options=array())
     {
         $this->add_creditcard($creditcard);
         $this->add_address($options);
@@ -74,12 +121,12 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon implements M
     /**
      *
      * @param number                      $money
-     * @param Merchant_Billing_CreditCard $creditcard
+     * @param CreditCard $creditcard
      * @param array                       $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
-    public function purchase($money, Merchant_Billing_CreditCard $creditcard, $options=array())
+    public function purchase($money, CreditCard $creditcard, $options=array())
     {
 
         $this->add_creditcard($creditcard);
@@ -96,7 +143,7 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon implements M
      * @param string $authorization (unique value received from authorize action)
      * @param array $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     public function capture($money, $authorization, $options = array())
     {
@@ -115,7 +162,7 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon implements M
      * @param string $authorization
      * @param array  $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     public function void($authorization, $options = array())
     {
@@ -130,7 +177,7 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon implements M
      * @param string $identification
      * @param array  $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     public function credit($money, $identification, $options = array())
     {
@@ -174,14 +221,14 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon implements M
         $this->post['CITY'] = isset($billing_address['city']) ? $billing_address['city'] : null;
         $this->post['STATE'] = isset($billing_address['state']) ? $billing_address['state'] : null;
         $this->post['ZIP'] = isset($billing_address['zip']) ? $billing_address['zip'] : null;
-        $this->post['COUNTRYCODE'] = isset($billing_address['country']) ? Merchant_Country::find($billing_address['country'])->code('alpha2') : null;
+        $this->post['COUNTRYCODE'] = isset($billing_address['country']) ? Country::find($billing_address['country'])->getCode('alpha2') : null;
     }
 
     /**
      *
-     * @param Merchant_Billing_CreditCard $creditcard
+     * @param CreditCard $creditcard
      */
-    private function add_creditcard(Merchant_Billing_CreditCard $creditcard)
+    private function add_creditcard(CreditCard $creditcard)
     {
 
         $this->post['CREDITCARDTYPE'] = $this->credit_card_types[$creditcard->type];
@@ -240,13 +287,11 @@ class Merchant_Billing_Paypal extends Merchant_Billing_PaypalCommon implements M
      * @param array   $response
      * @param array   $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     protected function build_response($success, $message, $response, $options=array())
     {
-        return new Merchant_Billing_Response($success, $message, $response, $options);
+        return new Response($success, $message, $response, $options);
     }
 
 }
-
-?>
