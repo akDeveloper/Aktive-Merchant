@@ -1,48 +1,75 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Interfaces as Interfaces;
+use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Billing\Response;
+
 /**
- * Description of Merchant_Billing_PiraeusPaycenter
+ * PiraeusPaycenter gateway
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Merchant_Billing_PiraeusPaycenter extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge, Merchant_Billing_Gateway_Credit
+class PiraeusPaycenter extends Gateway implements 
+    Interfaces\Charge,
+    Interfaces\Credit
 {
     const TEST_URL = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
     const LIVE_URL = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
 
-    # The countries the gateway supports merchants from as 2 digit ISO country codes
-
+    /**
+     * {@inheritdoc }
+     */
     public static $supported_countries = array('GR');
 
-    # The card types supported by the payment gateway
+    /**
+     * {@inheritdoc }
+     */
     public static $homepage_url = 'http://www.piraeusbank.gr';
 
-    # The homepage URL of the gateway
+    /**
+     * {@inheritdoc }
+     */
     public static $display_name = 'Piraeus Paycenter';
+
+    /**
+     * {@inheritdoc }
+     */
     public static $default_currency = 'EUR';
+
     private $options;
+    
     private $post;
+    
     private $CURRENCY_MAPPINGS = array(
         'USD' => 840, 'GRD' => 300, 'EUR' => 978
     );
+    
     private $ENROLLED_MAPPINGS = array(
         'Y' => 'Yes',
         'N' => 'No',
         'U' => 'Undefined'
     );
+    
     private $PARES_MAPPINGS = array(
         'U' => 'Unknown',
         'A' => 'Attempted',
         'Y' => 'Succeded',
         'N' => 'Failed'
     );
+    
     private $SIGNATURE_MAPPINGS = array(
         'Y' => 'Yes',
         'N' => 'No',
         'U' => 'Undefined'
     );
+    
     private $CARD_MAPPINGS = array(
         'visa' => 'VISA',
         'master' => 'MasterCard '
@@ -64,13 +91,13 @@ class Merchant_Billing_PiraeusPaycenter extends Merchant_Billing_Gateway impleme
 
     /**
      *
-     * @param number                      $money
-     * @param Merchant_Billing_CreditCard $creditcard
-     * @param array                       $options
+     * @param number     $money
+     * @param CreditCard $creditcard
+     * @param array      $options
      *
      * @return Merchant_Billing_Response
      */
-    public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options=array())
     {
         $this->add_invoice($money, $options);
         $this->add_creditcard($creditcard);
@@ -81,13 +108,13 @@ class Merchant_Billing_PiraeusPaycenter extends Merchant_Billing_Gateway impleme
 
     /**
      *
-     * @param number                      $money
-     * @param Merchant_Billing_CreditCard $creditcard
-     * @param array                       $options
+     * @param number     $money
+     * @param CreditCard $creditcard
+     * @param array      $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
-    public function purchase($money, Merchant_Billing_CreditCard $creditcard, $options=array())
+    public function purchase($money, CreditCard $creditcard, $options=array())
     {
         $this->add_invoice($money, $options);
         $this->add_creditcard($creditcard);
@@ -102,7 +129,7 @@ class Merchant_Billing_PiraeusPaycenter extends Merchant_Billing_Gateway impleme
      * @param string $authorization
      * @param array  $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     public function capture($money, $authorization, $options = array())
     {
@@ -116,7 +143,7 @@ class Merchant_Billing_PiraeusPaycenter extends Merchant_Billing_Gateway impleme
      * @param string $authorization
      * @param array  $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     public function void($authorization, $options = array())
     {
@@ -130,7 +157,7 @@ class Merchant_Billing_PiraeusPaycenter extends Merchant_Billing_Gateway impleme
      * @param string $identification
      * @param array  $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     public function credit($money, $identification, $options = array())
     {
@@ -159,9 +186,9 @@ XML;
 
     /**
      *
-     * @param Merchant_Billing_CreditCard $creditcard
+     * @param CreditCard $creditcard
      */
-    private function add_creditcard(Merchant_Billing_CreditCard $creditcard)
+    private function add_creditcard(CreditCard $creditcard)
     {
         $cardholdername = strtoupper($creditcard->name());
         $this->post .= <<<XML
@@ -227,11 +254,11 @@ XML;
      * @param number $money
      * @param array  $parameters
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     private function commit($action, $money, $parameters=array())
     {
-        $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
+        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
         $post_data = $this->post_data($action, $parameters);
         $headers = array(
@@ -246,11 +273,15 @@ XML;
 
         $response = $this->parse($data);
 
-        $test_mode = $this->is_test();
+        $test_mode = $this->isTest();
 
-        return new Merchant_Billing_Response($this->success_from($response), $this->message_from($response), $response, array(
-            'test' => $test_mode,
-            'authorization' => $response['authorization_id']
+        return new Response(
+            $this->success_from($response), 
+            $this->message_from($response), 
+            $response, 
+            array(
+                'test' => $test_mode,
+                'authorization' => $response['authorization_id']
             )
         );
     }
@@ -274,7 +305,9 @@ XML;
      */
     private function message_from($response)
     {
-        return $response['response_description'] == '' ? $response['result_description'] : $response['response_description'];
+        return $response['response_description'] == '' 
+            ? $response['result_description'] 
+            : $response['response_description'];
     }
 
     /**
@@ -345,5 +378,3 @@ XML;
     }
 
 }
-
-?>

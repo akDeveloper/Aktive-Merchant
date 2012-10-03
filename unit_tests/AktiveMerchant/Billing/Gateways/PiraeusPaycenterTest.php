@@ -1,20 +1,22 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+use AktiveMerchant\Billing\Gateways\PiraeusPaycenter;
+use AktiveMerchant\Billing\Base;
+use AktiveMerchant\Billing\CreditCard;
+
+require_once 'config.php';
+
 /**
- * Description of PiraeusPaycenterTest
- *
- * Usage:
- *   Navigate, from terminal, to folder where this files is located
- *   run phpunit PiraeusPaycenterTest.php
+ * Unit test PiraeusPaycenter
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  *
  */
-require_once dirname(__FILE__) . '/../../../config.php';
-
-class PiraeusPaycenterTest extends PHPUnit_Framework_TestCase
+class PiraeusPaycenterTest extends AktiveMerchant\TestCase
 {
 
     public $gateway;
@@ -27,7 +29,7 @@ class PiraeusPaycenterTest extends PHPUnit_Framework_TestCase
      */
     function setUp()
     {
-        Merchant_Billing_Base::mode('test');
+        Base::mode('test');
 
         $options = array(
             'acquire_id' => 'x',
@@ -37,20 +39,20 @@ class PiraeusPaycenterTest extends PHPUnit_Framework_TestCase
             'password' => 'a',
             'channel_type' => 'c'
         );
-        $this->gateway = new Merchant_Billing_PiraeusPaycenter($options);
+        $this->gateway = new PiraeusPaycenter($options);
 
         $this->amount = 100;
-        $this->creditcard = new Merchant_Billing_CreditCard(array(
-                "first_name" => "John",
-                "last_name" => "Doe",
-                "number" => "4111111111111111",
-                "month" => "01",
-                "year" => "2015",
-                "verification_value" => "000"
-                )
-        );
+        $this->creditcard = new CreditCard(array(
+            "first_name" => "John",
+            "last_name" => "Doe",
+            "number" => "4111111111111111",
+            "month" => "01",
+            "year" => "2015",
+            "verification_value" => "000"
+        )
+    );
         $this->options = array(
-            'order_id' => 'REF' . $this->gateway->generate_unique_id(),
+            'order_id' => 'REF' . $this->gateway->generateUniqueId(),
             'description' => 'Test Transaction',
             'cavv' => 'xxx',
             'eci_flag' => 'xxx',
@@ -70,36 +72,42 @@ class PiraeusPaycenterTest extends PHPUnit_Framework_TestCase
     /**
      * Tests
      */
-    
-    public function testInitialization() {
-      $this->assertNotNull($this->gateway);
-      $this->assertNotNull($this->creditcard);
-      $this->assertInstanceOf('Merchant_Billing_Gateway', $this->gateway);
-      $this->assertInstanceOf('Merchant_Billing_Gateway_Charge', $this->gateway);
-      $this->assertInstanceOf('Merchant_Billing_Gateway_Credit', $this->gateway);
+
+    public function testInitialization() 
+    {
+        $this->assertNotNull($this->gateway);
+
+        $this->assertNotNull($this->creditcard);
+        
+        $this->assertInstanceOf(
+            '\\AktiveMerchant\\Billing\\Gateway', 
+            $this->gateway
+        );
+        
+        $this->assertInstanceOf(
+            '\\AktiveMerchant\\Billing\\Interfaces\\Charge', 
+            $this->gateway
+        );
+        
+        $this->assertInstanceOf(
+            '\\AktiveMerchant\\Billing\\Interfaces\\Credit', 
+            $this->gateway
+        );
     }
-    
+
     public function testSuccessfulPurchase()
     {
-        $this->gateway->expects('ssl_post', $this->successful_purchase_response());
+        $this->mock_request($this->successful_purchase_response());
 
-        $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
+        $response = $this->gateway->purchase(
+            $this->amount, 
+            $this->creditcard, 
+            $this->options
+        );
+        
         $this->assert_success($response);
         $this->assertTrue($response->test());
         $this->assertEquals('Approved or completed successfully', $response->message());
-    }
-
-    /**
-     * Private methods
-     */
-    private function assert_success($response)
-    {
-        $this->assertTrue($response->success());
-    }
-
-    private function assert_failure($response)
-    {
-        $this->assertFalse($response->success());
     }
 
     private function successful_purchase_response()
