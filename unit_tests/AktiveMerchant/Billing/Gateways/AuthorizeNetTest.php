@@ -108,7 +108,9 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
         $this->mock_request($this->successful_purchase_response());
         
         $response = $this->gateway->purchase(
-            $this->amount, $this->creditcard, $this->options
+            $this->amount, 
+            $this->creditcard, 
+            $this->options
         );
         
         $this->assert_success($response);
