@@ -10,12 +10,12 @@ class GatewaySupport
 
     public function __construct()
     {
-        $dir_path = realpath('../merchant/billing/gateways');
+        $dir_path = realpath('../Billing/Gateways');
         if ($handle = opendir($dir_path)) {
             while (false !== ($file = readdir($handle))) {
                 if (is_dir($dir_path . "/" . $file) || $file === "." || $file === "..")
                     continue;
-                $this->supported_gateways[] = "Merchant_Billing_" . str_replace(".php", "", $file);
+                $this->supported_gateways[] = str_replace(".php", "", $file);
             }
         }
         sort($this->supported_gateways);
@@ -35,7 +35,7 @@ class GatewaySupport
         print "\r";
         foreach ($this->supported_gateways as $gateway) {
             $methods = array();
-            $ref = new ReflectionClass($gateway);
+            $ref = new \ReflectionClass('AktiveMerchant\\Billing\\Gateways\\' . $gateway);
             $display_name = $ref->getStaticPropertyValue('display_name');
             print $display_name . str_repeat(' ', 30 - strlen($display_name));
             foreach ($this->actions as $action) {
