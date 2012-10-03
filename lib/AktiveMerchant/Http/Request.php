@@ -6,7 +6,7 @@ namespace AktiveMerchant\Http;
 
 use AktiveMerchant\Billing\Exception;
 
-class Request implements Interfaces\Request
+class Request implements RequestInterface
 {
     const METHOD_GET  = 'GET';
     const METHOD_POST = 'POST';
@@ -29,9 +29,11 @@ class Request implements Interfaces\Request
     
     protected $response_headers;
 
-    public function __construct($url = null, 
-        $method=self::METHOD_GET, $options=array())
-    {
+    public function __construct(
+        $url = null,
+        $method=self::METHOD_GET,
+        $options=array()
+    ) {
         if (!empty($url)) {
             $this->setUrl($url);
         }
@@ -178,7 +180,7 @@ class Request implements Interfaces\Request
             
             $this->response_headers = substr($response, 0, $curl_info['header_size']);
             $this->response_body    = substr($response, -$curl_info['size_download']);
-            
+
             // OK, the response was OK at the HTTP level at least!
             return true;
         } else {

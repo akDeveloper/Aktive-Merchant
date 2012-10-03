@@ -2,9 +2,9 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-namespace AktiveMerchant\Http\Interfaces;
+namespace AktiveMerchant\Http;
 
-interface Request
+interface RequestInterface
 {
 
     public function setMethod($method);

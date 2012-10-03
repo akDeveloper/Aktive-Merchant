@@ -9,6 +9,7 @@ use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Http\Request;
 use AktiveMerchant\Billing\Exception;
 use AktiveMerchant\Common\CurrencyCode;
+use AktiveMerchant\Http\RequestInterface;
 
 /**
  * Gateway abstract class
@@ -75,7 +76,7 @@ abstract class Gateway
     
     protected $request;
 
-    public function setRequest($request)
+    public function setRequest(RequestInterface $request)
     {
         $this->request = $request;
     }

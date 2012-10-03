@@ -4,6 +4,8 @@
 
 namespace AktiveMerchant\Mock;
 
+use AktiveMerchant\Http\RequestInterface;
+
 /**
  * Request Mock class 
  *
@@ -13,7 +15,7 @@ namespace AktiveMerchant\Mock;
  *
  */
 
-class Request
+class Request implements RequestInterface
 {
      
     protected $url;
