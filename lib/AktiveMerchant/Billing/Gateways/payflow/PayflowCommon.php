@@ -144,12 +144,12 @@ XML;
             $response['duplicate'] = true;
 
         foreach ($root->children() as $node)
-            $this->parse_element(&$response, $node);
+            $this->parse_element($response, $node);
 
         return $response;
     }
 
-    private function parse_element(&$response, $node)
+    private function parse_element($response, $node)
     {
         $nodeName = $node->getName();
 
@@ -161,7 +161,7 @@ XML;
                 $payment_result_response = array();
 
                 foreach ($node->children() as $child)
-                    $this->parse_element(&$payment_result_response, $child);
+                    $this->parse_element($payment_result_response, $child);
 
                 foreach ($payment_result_response as $key => $value)
                     $response[$nodeName][$key] = $value;
@@ -169,7 +169,7 @@ XML;
 
             case $node->children()->count() > 0:
                 foreach ($node->children() as $child)
-                    $this->parse_element(&$response, $child);
+                    $this->parse_element($response, $child);
                 break;
 
             case preg_match('/amt$/', $nodeName):
