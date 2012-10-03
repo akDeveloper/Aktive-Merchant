@@ -20,7 +20,8 @@ class PaypalCommon extends Gateway
     const FAILURE = 'Failure';
     const PENDING = 'Pending';
 
-    private $SUCCESS_CODES = array('Success', 'SuccessWithWarning');
+    protected $SUCCESS_CODES = array('Success', 'SuccessWithWarning');
+
     const FRAUD_REVIEW_CODE = "11610";
 
     /**
@@ -31,9 +32,7 @@ class PaypalCommon extends Gateway
     private function parse($body)
     {
         parse_str($body, $response_array);
-        if ($response_array['ACK'] == self::FAILURE) {
-            $error_message = "Error code (" . $response_array['L_ERRORCODE0'] . ")\n " . $response_array['L_SHORTMESSAGE0'] . ".\n Reason: " . $response_array['L_LONGMESSAGE0'];
-        }
+
         return $response_array;
     }
 
@@ -68,7 +67,7 @@ class PaypalCommon extends Gateway
      */
     private function success_from($response)
     {
-        return ( in_array($response['ACK'], $this->SUCCESS_CODES) );
+        return (in_array($response['ACK'], $this->SUCCESS_CODES));
     }
 
     /**
