@@ -1,8 +1,8 @@
 <?php
 
-require_once 'Payflow.php';
+namespace AktiveMerchant\Billing\Gateways;
 
-class Merchant_Billing_PayflowUk extends Merchant_Billing_Payflow
+class PayflowUk extends Payflow
 {
 
     public static $default_currency = 'GBP';
