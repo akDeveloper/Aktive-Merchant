@@ -75,8 +75,8 @@ class Example extends Gateway implements
      *
      * @var string The ISO 4217 currency code
      */
-
     public static $default_currency = 'USD';
+
     /**
      * Additional options needed by gateway
      *
