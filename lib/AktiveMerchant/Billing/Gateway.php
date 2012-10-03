@@ -11,7 +11,7 @@ use AktiveMerchant\Billing\Exception;
 use AktiveMerchant\Common\CurrencyCode;
 
 /**
- * AktiveMerchant\Billing\Gateway
+ * Gateway abstract class
  * 
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
@@ -20,12 +20,34 @@ use AktiveMerchant\Common\CurrencyCode;
 abstract class Gateway
 {
 
-    public static $money_format = 'dollars'; // or cents
-    
+    /**
+     * Money format supported by this gateway.
+     * Can be 'dollars' or 'cents'
+     *
+     * @var string Money format 'dollars' | 'cents'
+     */
+    public static $money_format = 'dollars';
+
+    /**
+     * The currency supported by the gateway as ISO 4217 currency code.
+     * the format 
+     *
+     * @var string The ISO 4217 currency code
+     */   
     public static $default_currency;
-    
+
+    /**
+     * The countries supported by the gateway as 2 digit ISO country codes.
+     *
+     * @var array
+     */   
     public static $supported_countries = array();
-    
+
+    /**
+     * The card types supported by the payment gateway
+     *
+     * @var array
+     */   
     public static $supported_cardtypes = array(
         'visa', 
         'master', 
@@ -34,9 +56,19 @@ abstract class Gateway
         'solo', 
         'maestro'
     );
-    
+
+    /**
+     * The homepage URL of the gateway
+     *
+     * @var string
+     */   
     public static $homepage_url;
-    
+
+    /**
+     * The display name of the gateway
+     *
+     * @var string
+     */   
     public static $display_name;
     
     private $debit_cards = array('switch', 'solo');
@@ -78,7 +110,7 @@ abstract class Gateway
 
     public function factory_name()
     {
-        $class = str_replace('Merchant_Billing_', '', get_class($this));
+        $class = str_replace('ActiveMerchant\\Billing\\Gateways\\', '', get_class($this));
         return $this->underscore($class);
     }
 
