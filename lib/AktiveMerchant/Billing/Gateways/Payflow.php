@@ -29,8 +29,8 @@ class Payflow extends PayflowCommon
     function purchase($money, $credit_card_or_reference, $options = array())
     {
         $request = $this->build_sale_or_authorization_request(
-            'Purchase', $
-            money,
+            'Purchase', 
+            $money,
             $credit_card_or_reference,
             $options
         );
