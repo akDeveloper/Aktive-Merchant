@@ -284,5 +284,31 @@ class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merch
 
         return $params;    
     }
+
+    /**
+     * Mask a credit card number.
+     * 
+     * Makes the card safe for logging and storing, by replacing all but the
+     * first 2 and last 4 digits with x's.
+     * 
+     * @param string $cardnum Card number to mask
+     * @return string Masked card number
+     */
+    protected function mask_cardnum($cardnum) {
+      return substr($cardnum,0,2) . preg_replace('/./','x',substr($cardnum,2,-4)) . substr($cardnum,-4,4);
+    }
+    
+    /**
+     * Mask a card verification value;
+     * 
+     * Makes a card verification value safe for logging and storing, by replacing all
+     * characters with x's.
+     *
+     * @param string $cardverifier Card verification value to mask
+     * @return string Masked card verification value
+     */
+    protected function mask_cvv($cvv) {
+      return preg_replace('/./','x',$cvv);
+    }
 }
 

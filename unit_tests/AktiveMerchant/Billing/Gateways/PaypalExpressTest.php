@@ -6,7 +6,7 @@ use AktiveMerchant\Billing\Gateways\PaypalExpress;
 use AktiveMerchant\Billing\Base;
 
 /**
- * Description of PaypalTest
+ * Unit tests for Paypal Express gateway
  *
  * @package Active-Merchant
  * @author  Andreas Kollaros

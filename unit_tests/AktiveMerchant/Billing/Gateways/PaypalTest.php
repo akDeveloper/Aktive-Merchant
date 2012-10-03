@@ -47,7 +47,7 @@ class PaypalTest extends AktiveMerchant\TestCase
         )
     );
         $this->options = array(
-            'order_id' => 'REF' . $this->gateway->generate_unique_id(),
+            'order_id' => 'REF' . $this->gateway->generateUniqueId(),
             'email' => "buyer@email.com",
             'description' => 'Paypal Pro Test Transaction',
             'billing_address' => array(

@@ -49,7 +49,7 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
                 )
         );
         $this->options = array(
-            'order_id' => 'REF' . $this->gateway->generate_unique_id(),
+            'order_id' => 'REF' . $this->gateway->generateUniqueId(),
             'description' => 'Autorize.net Test Transaction',
             'address' => array(
                 'address1' => '1234 Street',
@@ -62,7 +62,7 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
             'amount' => 100,
             'subscription_name' => 'Test Subscription 1',
             'billing_address' => array(
-                'first_name' => 'John' . $this->gateway->generate_unique_id(),
+                'first_name' => 'John' . $this->gateway->generateUniqueId(),
                 'last_name' => 'Smith'
             ),
             'length' => 11,

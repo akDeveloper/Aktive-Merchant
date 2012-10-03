@@ -49,7 +49,7 @@ class CardstreamTest extends AktiveMerchant\TestCase
         );
 
         $this->options = array(
-            'order_id' => 'REF' . $this->gateway->generate_unique_id(),
+            'order_id' => 'REF' . $this->gateway->generateUniqueId(),
             'description' => 'Cardstream Test Transaction',
             'address' => array(
                 'address1' => '1234 Street',

@@ -47,7 +47,7 @@ class RealexTest extends AktiveMerchant\TestCase
         );
 
         $this->options = array(
-            'order_id' => 'REF' . $this->gateway->generate_unique_id(),
+            'order_id' => 'REF' . $this->gateway->generateUniqueId(),
             'address' => array(
                 'address1' => '1234 Street',
                 'zip' => '98004',
