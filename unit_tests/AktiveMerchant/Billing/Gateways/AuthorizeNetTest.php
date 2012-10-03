@@ -34,8 +34,8 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
         Base::mode('test');
 
         $login_info = array(
-            'login' => AUTH_NET_LOGIN,
-            'password' => AUTH_NET_PASS);
+            'login' => 'x',
+            'password' => 'y');
         $this->gateway = new AuthorizeNet($login_info);
 
         $this->amount = 100;
@@ -220,8 +220,8 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
         return '<?xml version="1.0" encoding="utf-8"?>
       <ARBCreateSubscriptionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
         <merchantAuthentication>
-          <name>8rF8vgXK89p4</name>
-          <transactionKey>3Pr9W4n64FSF74y5</transactionKey>
+          <name>x</name>
+          <transactionKey>y</transactionKey>
         </merchantAuthentication>
           <refId> </refId><subscription>      <name>Subscription of '.$name.'</name>
       <paymentSchedule>
