@@ -74,7 +74,7 @@ class Paypal extends PaypalCommon implements
 
     private $post = array();
     
-    private $version = '59.0';
+    private $version = '85.0';
     
     private $credit_card_types = array(
         'visa'             => 'Visa',
@@ -110,6 +110,8 @@ class Paypal extends PaypalCommon implements
      */
     public function authorize($money, CreditCard $creditcard, $options=array())
     {
+        $this->post = array();
+        
         $this->add_creditcard($creditcard);
         $this->add_address($options);
         $this->post['PAYMENTACTION'] = 'Authorization';
@@ -128,6 +130,7 @@ class Paypal extends PaypalCommon implements
      */
     public function purchase($money, CreditCard $creditcard, $options=array())
     {
+        $this->post = array();
 
         $this->add_creditcard($creditcard);
         $this->add_address($options);
@@ -149,6 +152,8 @@ class Paypal extends PaypalCommon implements
     {
         $this->required_options('complete_type', $options);
 
+        $this->post = array();
+        
         $this->post['AUTHORIZATIONID'] = $authorization;
         $this->post['AMT'] = $this->amount($money);
         $this->post['COMPLETETYPE'] = $options['complete_type']; # Complete or NotComplete
@@ -166,8 +171,11 @@ class Paypal extends PaypalCommon implements
      */
     public function void($authorization, $options = array())
     {
+        $this->post = array();
+        
         $this->post['AUTHORIZATIONID'] = $authorization;
         $this->post['NOTE'] = isset($options['note']) ? $options['note'] : null;
+
         return $this->commit('DoVoid');
     }
 
@@ -183,6 +191,8 @@ class Paypal extends PaypalCommon implements
     {
         $this->required_options('refund_type', $options);
 
+        $this->post = array();
+        
         $this->post['REFUNDTYPE'] = $options['refund_type']; //Must be Other, Full or Partial
         if ($this->post['REFUNDTYPE'] != 'Full')
             $this->post['AMT'] = $this->amount($money);
@@ -221,7 +231,7 @@ class Paypal extends PaypalCommon implements
         $this->post['CITY'] = isset($billing_address['city']) ? $billing_address['city'] : null;
         $this->post['STATE'] = isset($billing_address['state']) ? $billing_address['state'] : null;
         $this->post['ZIP'] = isset($billing_address['zip']) ? $billing_address['zip'] : null;
-        $this->post['COUNTRYCODE'] = isset($billing_address['country']) ? Country::find($billing_address['country'])->getCode('alpha2') : null;
+        $this->post['COUNTRYCODE'] = isset($billing_address['country']) ? Country::find($billing_address['country'])->getCode('alpha2')->__toString() : null;
     }
 
     /**
