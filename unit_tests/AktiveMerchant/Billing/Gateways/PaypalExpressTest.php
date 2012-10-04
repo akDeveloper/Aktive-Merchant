@@ -27,16 +27,16 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
         Base::mode('test');
 
         $this->gateway = new PaypalExpress(array(
-            'login' => PAYPAL_LOGIN,
-            'password' => PAYPAL_PASS,
-            'signature' => PAYPAL_SIG,
+            'login' => 'x',
+            'password' => 'y',
+            'signature' => 'z',
             'currency' => 'EUR'
         )
     );
         $this->amount = 100;
 
         $this->options = array(
-            'order_id' => 'REF' . $this->gateway->generate_unique_id(),
+            'order_id' => 'REF' . $this->gateway->generateUniqueId(),
             'email' => "buyer@email.com",
             'description' => 'Paypal Express Test Transaction',
             'billing_address' => array(
@@ -69,11 +69,32 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
             'cancel_return_url' => 'http://example.com',
         );
         $options = array_merge($this->options, $options);
-        $response = $this->gateway->setup_authorize($this->amount, $options);
+        
+        $this->mock_request($this->successful_setup_authorize_response());
+        
+        $response = $this->gateway->setupAuthorize($this->amount, $options);
+
+        $request_body = $this->request->getBody();
+        $this->assertEquals(
+            $this->successful_setup_authorize_request(),
+            $request_body
+        );
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
+        
         $token = $response->token();
         $this->assertFalse(empty($token));
+    }
+
+    private function successful_setup_authorize_request()
+    {
+        return "METHOD=SetExpressCheckout&PAYMENTREQUEST_0_AMT=100.00&RETURNURL=http%3A%2F%2Fexample.com&CANCELURL=http%3A%2F%2Fexample.com&EMAIL=buyer%40email.com&PAYMENTREQUEST_0_PAYMENTACTION=Authorization&USER=x&PWD=y&VERSION=63.0&SIGNATURE=z&PAYMENTREQUEST_0_CURRENCYCODE=EUR";
+    }
+
+    private function successful_setup_authorize_response()
+    {
+        return "TOKEN=EC%2d8LV868742E9298213&TIMESTAMP=2012%2d10%2d04T00%3a33%3a08Z&CORRELATIONID=b11ac5e2a3057&ACK=Success&VERSION=63%2e0&BUILD=3881757";
     }
 
     public function testSetExpressPurchase()
@@ -83,10 +104,31 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
             'cancel_return_url' => 'http://example.com',
         );
         $options = array_merge($this->options, $options);
-        $response = $this->gateway->setup_purchase($this->amount, $options);
+        
+        $this->mock_request($this->successful_setup_purchase_response());
+        
+        $response = $this->gateway->setupPurchase($this->amount, $options);
+
+        $request_body = $this->request->getBody();
+        $this->assertEquals(
+            $this->successful_setup_purchase_request(),
+            $request_body
+        );
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
+        
         $token = $response->token();
         $this->assertFalse(empty($token));
+    }
+
+    private function successful_setup_purchase_request()
+    {
+        return "METHOD=SetExpressCheckout&PAYMENTREQUEST_0_AMT=100.00&RETURNURL=http%3A%2F%2Fexample.com&CANCELURL=http%3A%2F%2Fexample.com&EMAIL=buyer%40email.com&PAYMENTREQUEST_0_PAYMENTACTION=Sale&USER=x&PWD=y&VERSION=63.0&SIGNATURE=z&PAYMENTREQUEST_0_CURRENCYCODE=EUR";
+    }
+
+    private function successful_setup_purchase_response()
+    {
+        return "TOKEN=EC%2d2KK82117LS1153937&TIMESTAMP=2012%2d10%2d04T00%3a33%3a10Z&CORRELATIONID=5d59521b7935a&ACK=Success&VERSION=63%2e0&BUILD=3881757";
     }
 }

@@ -43,8 +43,7 @@ class PaypalExpress extends PaypalCommon
     }
 
     /**
-     * method from Merchant_Billing_Gateway
-     * overridden to allow negative values
+     * Method from Gateway overridden to allow negative values
      */
     public function amount($money)
     {
@@ -118,6 +117,8 @@ class PaypalExpress extends PaypalCommon
 
         $this->required_options('return_url, cancel_return_url', $options);
 
+        $this->post = array();
+
         $params = array(
             'METHOD'               => 'SetExpressCheckout',
             'PAYMENTREQUEST_0_AMT' => $this->amount($money),
@@ -146,6 +147,8 @@ class PaypalExpress extends PaypalCommon
 
         $this->required_options('token, payer_id', $options);
 
+        $this->post = array();
+        
         $params = array(
             'METHOD'               => 'DoExpressCheckoutPayment',
             'PAYMENTREQUEST_0_AMT' => $this->amount($money),
