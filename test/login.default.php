@@ -48,4 +48,7 @@ define('pos_id','' );
 define('user','' );
 define('e_password','' );
 define('channel_type','' );
+
+define('PSIGATE_LOGIN', '');
+define('PSIGATE_PASS', '');
 ?>

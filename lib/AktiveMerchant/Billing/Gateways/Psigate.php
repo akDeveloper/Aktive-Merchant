@@ -1,4 +1,15 @@
 <?php
+
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Interfaces as Interfaces;
+use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Billing\Exception;
+use AktiveMerchant\Billing\Response;
+
 /**
  * Merchant driver for {link http://www.psigate.com/ PSiGate}.
  *
@@ -7,8 +18,10 @@
  * @license http://www.opensource.org/licenses/mit-license.php
  * @see http://www.psigate.com/
  */
-
-class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge, Merchant_Billing_Gateway_Credit {
+class Psigate extends Gateway implements
+    Interfaces\Charge,
+    Interfaces\Credit
+{
 
     const LIVE_URL = "https://secure.psigate.com:7934/Messenger/XMLMessenger";
     const TEST_URL = "https://dev.psigate.com:7989/Messenger/XMLMessenger";
@@ -32,7 +45,6 @@ class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merch
 
     public function __construct($options)
     {
-        parent::__construct($options);
         $this->required_options('login, password', $options);
         $this->options = $options;
     }
@@ -46,10 +58,10 @@ class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merch
      * 
      * Values are:
      * <ul>
-     *   <li>Merchant_Billing_Psigate::TEST_MODE_ALWAYS_AUTH - Authorize every request (default)
-     *   <li>Merchant_Billing_Psigate::TEST_MODE_ALWAYS_DECLINE - Decline every request
-     *   <li>Merchant_Billing_Psigate::TEST_MODE_RANDOM - Randomly authorize or decline requests
-     *   <li>Merchant_Billing_Psigate::TEST_MODE_FRAUD - Treat every request as a fraud alert
+     *   <li>Psigate::TEST_MODE_ALWAYS_AUTH - Authorize every request (default)
+     *   <li>Psigate::TEST_MODE_ALWAYS_DECLINE - Decline every request
+     *   <li>Psigate::TEST_MODE_RANDOM - Randomly authorize or decline requests
+     *   <li>Psigate::TEST_MODE_FRAUD - Treat every request as a fraud alert
      * </ul>
      * 
      * @param string $mode New value for test mode (unset or NULL to keep current value)
@@ -62,14 +74,14 @@ class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merch
         return $last_mode;
     }
 
-    public function authorize($money, Merchant_Billing_CreditCard $creditcard, $options = array())
+    public function authorize($money, CreditCard $creditcard, $options = array())
     {
         // Ruby code required order_id, but PSiGate doesn't require this, so we don't either
         $options['CardAction'] = 1;
         return $this->commit($money, $creditcard, $options);
     }
 
-    public function purchase($money, Merchant_Billing_CreditCard $creditcard, $options = array())
+    public function purchase($money, CreditCard $creditcard, $options = array())
     {
         // Ruby code required order_id, but PSiGate doesn't require this, so we don't either
         $options['CardAction'] = 0;
@@ -92,7 +104,8 @@ class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merch
         return $this->commit($money, NULL, $options);
     }
 
-    public function void($authorization, $options = array()) {
+    public function void($authorization, $options = array()) 
+    {
         $options['CardAction'] = 9;
         $authdata = $this->unpack_authorization_string($authorization);
         $options['transaction_id'] = $authdata['transaction_id'];
@@ -110,15 +123,27 @@ class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merch
      * @param unknown_type $orderid
      * @param unknown_type $transactionid
      */
-    private function pack_authorization_values($orderid, $transactionid) {
+    private function pack_authorization_values($orderid, $transactionid)
+    {
         return join("&", array(self::AUTHSTR_VERSION,urlencode($orderid), urlencode($transactionid)));
     }
 
-    private function unpack_authorization_string($authstr) {
+    private function unpack_authorization_string($authstr) 
+    {
+        
         $split = split("&",$authstr);
-        if ($split === FALSE) throw new Merchant_Billing_Exception("Invalid authorization string");
-        if ($split[0] != self::AUTHSTR_VERSION) throw new Merchant_Billing_Exception("Invalid authorization string version");
-        if (count($split) != 3) throw new Merchant_Billing_Exception("Error parsing authorization string");
+        
+        if ($split === FALSE) {
+            throw new Exception("Invalid authorization string");
+        }
+        
+        if ($split[0] != self::AUTHSTR_VERSION) {
+            throw new Exception("Invalid authorization string version");
+        }
+        
+        if (count($split) != 3) {
+            throw new Exception("Error parsing authorization string");
+        }
 
         return array(
             'order_id'       => urldecode($split[1]),
@@ -126,8 +151,9 @@ class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merch
         );
     }
 
-    private function commit($money, Merchant_Billing_CreditCard $creditcard = NULL, $options = array()) {
-        $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
+    private function commit($money, CreditCard $creditcard = NULL, $options = array()) 
+    {
+        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
         // Log request, but mask real user information
         if ($creditcard === NULL) {
@@ -135,7 +161,10 @@ class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merch
         } else {
             $log_card = clone $creditcard;
             $log_card->number = $this->mask_cardnum($log_card->number);
-            if ($log_card->verification_value) $log_card->verification_value = $this->mask_cvv($log_card->verification_value);
+            
+            if ($log_card->verification_value) {
+                $log_card->verification_value = $this->mask_cvv($log_card->verification_value);
+            }
         }
 
         // Make the request
@@ -143,16 +172,26 @@ class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merch
         $response = $this->parse($data);
 
         // Make sure the response is valid and doesn't contain an error
-        if (empty($response['approved'])) throw new Merchant_Billing_Exception("Error parsing merchant response: No status information");
-        if ($response['approved'] == 'ERROR') throw new Merchant_Billing_Exception("Merchant error: " . (isset($response['errmsg']) ? $response['errmsg'] : 'Unknown error'));
-        if ($response['approved'] != 'APPROVED' && $response['approved'] != 'DECLINED') throw new Merchant_Billing_Exception("Merchant error: Unknown status '$response[approved]'");
+        if (empty($response['approved'])) {
+            throw new Exception("Error parsing merchant response: No status information");
+        }
+        
+        if ($response['approved'] == 'ERROR') {
+            throw new Exception("Merchant error: " . (isset($response['errmsg']) ? $response['errmsg'] : 'Unknown error'));
+        }
+        
+        if (   $response['approved'] != 'APPROVED' 
+            && $response['approved'] != 'DECLINED'
+        ) {
+            throw new Exception("Merchant error: Unknown status '$response[approved]'");
+        }
 
-        return new Merchant_Billing_Response(
+        return new Response(
             $this->success_from($response),
             $this->message_from($response),
             $response,
             array(
-                'test' => $this->is_test(),
+                'test' => $this->isTest(),
                 'authorization' => (isset($response['orderid']) && isset($response['transrefnumber'])) 
                 ? $this->pack_authorization_values($response['orderid'],$response['transrefnumber']) 
                 : NULL,
@@ -165,7 +204,8 @@ class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merch
             ));
     }
 
-    private function message_from($response) {
+    private function message_from($response)
+    {
         if ($this->success_from($response)) {
             return self::SUCCESS_MESSAGE;
         } else {
@@ -177,11 +217,13 @@ class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merch
         }
     }
 
-    private function success_from($response) {
+    private function success_from($response)
+    {
         return $response['approved'] == "APPROVED";
     }
 
-    private function parse($response_xml) {
+    private function parse($response_xml)
+    {
         $response = array(
             'errmsg' => 'Unknown Error',
             'complete' => false,
@@ -192,28 +234,30 @@ class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merch
             $xml = simplexml_load_string($response_xml);
             $results = $xml->xpath('//Result/*');
             if ($results === FALSE) {
-                throw new Merchant_Billing_Exception("Xpath parsing failed");
+                throw new Exception("Xpath parsing failed");
             }
             foreach ($results as $elt) {
                 $response[strtolower($elt->getName())] = (string) $elt;
             }
-        } catch (Exception $ex) {
-            throw new Merchant_Billing_Exception("Error parsing XML response from merchant", 0, $ex);
+        } catch (\Exception $ex) {
+            throw new Exception("Error parsing XML response from merchant", 0, $ex);
         }
 
         return $response;
     }
 
-    protected function post_data($money, $creditcard, $options) {
+    protected function post_data($money, $creditcard, $options)
+    {
         $params = $this->parameters($money, $creditcard, $options);
-        $xml = new SimpleXMLElement("<Order />");
+        $xml = new \SimpleXMLElement("<Order />");
         foreach ($params as $k => $v) {
             if ($v !== NULL) $xml->addChild($k, $v);
         }
         return $xml->asXML();
     }
 
-    private function parameters($money, Merchant_Billing_CreditCard $creditcard = NULL, $options = array()) {
+    private function parameters($money, CreditCard $creditcard = NULL, $options = array()) 
+    {
         $params = array(
             'StoreID' => $this->options['login'],
             'Passphrase' => $this->options['password'],
@@ -256,11 +300,13 @@ class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merch
             'country' => 'country',
             'company' => 'company',
         );
+
         if (isset($options['billing_address'])) {
             foreach($addrfields as $p => $o) {
                 if (isset($options['billing_address'][$o])) $params['B'.$p] = $options['billing_address'][$o];
             }
         }
+        
         if (isset($options['shipping_address'])) {
             foreach($addrfields as $o => $p) {
                 if (isset($options['shipping_address'][$o])) $params['S'.$p] = $options['shipping_address'][$o];
@@ -271,14 +317,14 @@ class Merchant_Billing_Psigate extends Merchant_Billing_Gateway implements Merch
             $params['TransRefNumber'] = $options['transaction_id'];
         }
 
-        if ($this->is_test()) {
+        if ($this->isTest()) {
             if (empty($this->test_mode)) $this->test_mode = self::TEST_MODE_ALWAYS_AUTH;
             switch($this->test_mode) {
             case    self::TEST_MODE_ALWAYS_AUTH: $params['TestResult'] = 'A'; break;
             case self::TEST_MODE_ALWAYS_DECLINE: $params['TestResult'] = 'D'; break;
             case          self::TEST_MODE_FRAUD: $params['TestResult'] = 'F'; break;
             case         self::TEST_MODE_RANDOM: $params['TestResult'] = 'R'; break;
-            default: throw new Merchant_Billing_Exception("Invalid test mode");
+            default: throw new Exception("Invalid test mode");
             }
         }
 
