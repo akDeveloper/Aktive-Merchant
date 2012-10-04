@@ -69,22 +69,13 @@ class PaypalTest extends AktiveMerchant\TestCase
     {
         $this->assertNotNull($this->gateway);
 
-
         $this->assertNotNull($this->creditcard);
-
-        $this->assertInstanceOf(
-            '\\AktiveMerchant\\Billing\\Gateway', 
-            $this->gateway
-        );
-
-        $this->assertInstanceOf(
-            '\\AktiveMerchant\\Billing\\Interfaces\\Charge', 
-            $this->gateway
-        );
         
-        $this->assertInstanceOf(
-            '\\AktiveMerchant\\Billing\\Interfaces\\Credit', 
-            $this->gateway
+        $this->assertImplementation(
+            array(
+                'Charge',
+                'Credit'
+            )
         );
     }
 

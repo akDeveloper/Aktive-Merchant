@@ -43,14 +43,14 @@ class HsbcSecureEpaymentsTest extends AktiveMerchant\TestCase
 
         $this->amount = 100;
         $this->creditcard = new CreditCard(array(
-                "first_name" => "John",
-                "last_name" => "Doe",
-                "number" => "4111111111111111",
-                "month" => "01",
-                "year" => "2015",
-                "verification_value" => "000"
-                )
-        );
+            "first_name" => "John",
+            "last_name" => "Doe",
+            "number" => "4111111111111111",
+            "month" => "01",
+            "year" => "2015",
+            "verification_value" => "000"
+        )
+    );
         $this->options = array(
             'order_id' => 'REF' . $this->gateway->generateUniqueId(),
             'description' => 'Test Transaction',
@@ -64,23 +64,16 @@ class HsbcSecureEpaymentsTest extends AktiveMerchant\TestCase
         $this->authorization = '483e6382-7d13-3001-002b-0003bac00fc9';
     }
 
-    public function testInitialization() {
+    public function testInitialization() 
+    {
 
-      $this->assertNotNull($this->gateway);
-      
-      $this->assertNotNull($this->creditcard);
-      
-      $this->assertInstanceOf(
-          '\\AktiveMerchant\\Billing\\Gateway', 
-          $this->gateway
-      );
-      
-      $this->assertInstanceOf(
-          '\\AktiveMerchant\\Billing\\Interfaces\\Charge', 
-          $this->gateway
-      );
+        $this->assertNotNull($this->gateway);
+
+        $this->assertNotNull($this->creditcard);
+
+        $this->assertImplementation(array('Charge'));
     }
-    
+
     // Tests 
 
     public function testSuccessfulAuthorization()
@@ -95,7 +88,7 @@ class HsbcSecureEpaymentsTest extends AktiveMerchant\TestCase
         $this->assert_success($response);
         $this->assertEquals('Approved.', $response->message());
     }
-    
+
     public function testUnsuccessfulAuthorization()
     {
         $this->mock_request($this->failed_authorize_response());

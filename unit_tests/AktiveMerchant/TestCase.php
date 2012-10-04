@@ -30,4 +30,19 @@ class TestCase extends \PHPUnit_Framework_TestCase
 
         $this->gateway->setRequest($this->request); 
     }
+
+    protected function assertImplementation(array $billing_interfaces)
+    {
+        $this->assertInstanceOf(
+            '\\AktiveMerchant\\Billing\\Gateway', 
+            $this->gateway
+        );
+        
+        foreach ($billing_interfaces as $b) {
+            $this->assertInstanceOf(
+                "\\AktiveMerchant\\Billing\\Interfaces\\$b", 
+                $this->gateway
+            ); 
+        }
+    }
 }
