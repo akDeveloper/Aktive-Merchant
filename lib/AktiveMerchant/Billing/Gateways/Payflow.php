@@ -91,6 +91,8 @@ XML;
         $credit_card,
         $options
     ) {
+        $default_currency = static::$default_currency;
+
         $bodyXml = <<<XML
              <{$action}>
                 <PayData>
