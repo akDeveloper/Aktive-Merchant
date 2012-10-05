@@ -71,7 +71,6 @@ class Example extends Gateway implements
 
     /**
      * The currency supported by the gateway as ISO 4217 currency code.
-     * the format 
      *
      * @var string The ISO 4217 currency code
      */
@@ -276,15 +275,15 @@ class Example extends Gateway implements
      *
      * @return Response
      */
-    private function commit($action, $money, $parameters)
+    private function commit($action, $money, $parameters = array())
     {
-        $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
+        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
         $data = $this->ssl_post($url, $this->post_data($action, $parameters));
 
         $response = $this->parse($data);
 
-        $test_mode = $this->is_test();
+        $test_mode = $this->isTest();
 
         return new Response(
             $this->success_from($response),

@@ -31,7 +31,6 @@ abstract class Gateway
 
     /**
      * The currency supported by the gateway as ISO 4217 currency code.
-     * the format 
      *
      * @var string The ISO 4217 currency code
      */   
