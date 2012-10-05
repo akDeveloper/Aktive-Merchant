@@ -26,13 +26,11 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
     {
         Base::mode('test');
 
-        $this->gateway = new PaypalExpress(array(
-            'login' => 'x',
-            'password' => 'y',
-            'signature' => 'z',
-            'currency' => 'EUR'
-        )
-    );
+        $options = $this->getFixtures()->offsetGet('paypal_express');
+        
+        $options['currency'] = 'EUR';
+
+        $this->gateway = new PaypalExpress($options);
         $this->amount = 100;
 
         $this->options = array(

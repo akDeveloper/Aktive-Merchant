@@ -28,10 +28,8 @@ class CardstreamTest extends AktiveMerchant\TestCase
     public function setUp()
     {
         Base::mode('test');
-
-        $login_info = array(
-            'login' => 'x',
-            'password' => 'y');
+        
+        $login_info = $this->getFixtures()->offsetGet('cardstream');
 
         $this->gateway = new Cardstream($login_info);
 

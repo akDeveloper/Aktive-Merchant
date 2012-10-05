@@ -59,9 +59,8 @@ class PsigateTest extends AktiveMerchant\TestCase
      */
     function setUp()
     {
-        $this->login_info = array(
-            'login' => PSIGATE_LOGIN,
-            'password' => PSIGATE_PASS);
+        $this->login_info = $this->getFixtures()->offsetGet('psigate');
+        
         $this->gateway = new TestPsigate($this->login_info);
 
         Base::mode('test');

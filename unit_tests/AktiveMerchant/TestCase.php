@@ -6,6 +6,13 @@ namespace AktiveMerchant;
 
 class TestCase extends \PHPUnit_Framework_TestCase
 {
+
+    public function getFixtures()
+    {
+        $ini = parse_ini_file("fixtures.ini", true);
+        return new \ArrayIterator($ini);
+    }
+
     protected function assert_success($response)
     {
         $this->assertTrue($response->success());

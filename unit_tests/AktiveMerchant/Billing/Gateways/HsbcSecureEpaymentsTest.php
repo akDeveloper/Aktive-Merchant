@@ -33,12 +33,10 @@ class HsbcSecureEpaymentsTest extends AktiveMerchant\TestCase
     {
         Base::mode('test');
 
-        $options = array(
-            'login' => 'x',
-            'password' => 'y',
-            'client_id' => 'z',
-            'currency' => 'EUR'
-        );
+        $options = $this->getFixtures()->offsetGet('hsbc');
+        
+        $options['currency'] = 'EUR';
+
         $this->gateway = new HsbcSecureEpayments($options);
 
         $this->amount = 100;

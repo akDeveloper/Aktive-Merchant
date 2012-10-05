@@ -26,9 +26,8 @@ class EwayTest extends AktiveMerchant\TestCase
     {
         Base::mode('test');
 
-        $login_info = array(
-            'login' => 'x',
-        );
+        $login_info = $this->getFixtures()->offsetGet('eway');
+        
         $this->gateway = new Eway($login_info);
 
         $this->amount = 100;

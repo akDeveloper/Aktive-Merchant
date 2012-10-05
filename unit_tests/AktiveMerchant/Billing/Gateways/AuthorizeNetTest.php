@@ -9,7 +9,7 @@ use AktiveMerchant\Billing\CreditCard;
 require_once 'config.php';
 
 /**
- * AuthorizeNetTest class.
+ * Unit tests for AuthorizeNet gateway.
  *
  *
  * @package Aktive-Merchant
@@ -33,10 +33,8 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
     {
         Base::mode('test');
 
-        $login_info = array(
-            'login' => 'x',
-            'password' => 'y'
-        );
+        $login_info = $this->getFixtures()->offsetGet('authorize_net');
+        
         $this->gateway = new AuthorizeNet($login_info);
 
         $this->amount = 100;

@@ -29,13 +29,11 @@ class PaypalTest extends AktiveMerchant\TestCase
     {
         Base::mode('test');
 
-        $this->gateway = new Paypal(array(
-            'login' => 'x',
-            'password' => 'y',
-            'signature' => 'z',
-            'currency' => 'USD'
-        )
-    );
+        $options = $this->getFixtures()->offsetGet('paypal_pro');
+        
+        $options['currency'] = 'USD';
+
+        $this->gateway = new Paypal($options);
         $this->amount = 100;
         $this->creditcard = new CreditCard(array(
             "first_name" => "John",

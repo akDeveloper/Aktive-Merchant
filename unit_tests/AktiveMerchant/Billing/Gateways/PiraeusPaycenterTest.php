@@ -31,14 +31,9 @@ class PiraeusPaycenterTest extends AktiveMerchant\TestCase
     {
         Base::mode('test');
 
-        $options = array(
-            'acquire_id' => 'x',
-            'merchant_id' => 'y',
-            'pos_id' => 'z',
-            'user' => 'b',
-            'password' => 'a',
-            'channel_type' => 'c'
-        );
+
+        $options = $this->getFixtures()->offsetGet('piraeus_paycenter');
+
         $this->gateway = new PiraeusPaycenter($options);
 
         $this->amount = 100;

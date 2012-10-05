@@ -27,10 +27,8 @@ class RealexTest extends AktiveMerchant\TestCase
     {
         Base::mode('test');
 
-        $login_info = array(
-            'login' => 'x',
-            'password' => 'y');
-
+        $login_info = $this->getFixtures()->offsetGet('realex');
+        
         $this->gateway = new Realex($login_info);
 
         $this->amount = 100;
