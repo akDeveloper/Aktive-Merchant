@@ -1,0 +1,25 @@
+{
+    "name": "aktive_merchant/aktive_merchant",
+    "description": "Aktive-Merchant provides a common interface to process payments using multiple gateways.",
+    "keywords": ["payments", "merchant", "gateway"],
+    "homepage": "https://github.com/akDeveloper/Aktive-Merchant",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Andreas Kollaros",
+            "email": "andreas.kollaros@gmail.com",
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3"
+    },
+    "autoload": {
+        "psr-0": {"AktiveMerchant": "lib/"}
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "develop"
+        }
+    }
+}
