@@ -29,25 +29,27 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
     /**
      * Setup
      */
-    function setUp()
+    public function setUp()
     {
         Base::mode('test');
 
         $login_info = array(
             'login' => 'x',
-            'password' => 'y');
+            'password' => 'y'
+        );
         $this->gateway = new AuthorizeNet($login_info);
 
         $this->amount = 100;
-        $this->creditcard = new CreditCard(array(
-            "first_name" => "John",
-            "last_name" => "Doe",
-            "number" => "4111111111111111",
-            "month" => "01",
-            "year" => "2015",
-            "verification_value" => "000"
-        )
-    );
+        $this->creditcard = new CreditCard(
+            array(
+                "first_name" => "John",
+                "last_name" => "Doe",
+                "number" => "4111111111111111",
+                "month" => "01",
+                "year" => "2015",
+                "verification_value" => "000"
+            )
+        );
         $this->options = array(
             'order_id' => 'REF' . $this->gateway->generateUniqueId(),
             'description' => 'Autorize.net Test Transaction',
