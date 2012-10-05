@@ -1,12 +1,21 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Interfaces as Interfaces;
+use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Billing\Response;
+
 /**
  * AktiveMerchant Barclay's ePDQ Gateway Library
  *
  * @package Aktive-Merchant
  * @author  Kieran Graham (AirPOS Ltd.)
  */
-class Merchant_Billing_ePDQ extends Merchant_Billing_Gateway implements Merchant_Billing_Gateway_Charge
+class ePDQ extends Gateway implements Interfaces\Charge
 {
     const TEST_URL = 'https://secure2.mde.epdq.co.uk:11500';
     const LIVE_URL = 'https://secure2.mde.epdq.co.uk:11500';
@@ -87,11 +96,11 @@ class Merchant_Billing_ePDQ extends Merchant_Billing_Gateway implements Merchant
      * Authorize
      *
      * @param int - Amount to charge for authorize.
-     * @param Merchant_Billing_CreditCard - Credit card to charge.
+     * @param CreditCard - Credit card to charge.
      * @param array - Options to pass.
-     * @return Merchant_Billing_Response
+     * @return Response
      */
-    public function authorize($amount, Merchant_Billing_CreditCard $creditcard, $options = array())
+    public function authorize($amount, CreditCard $creditcard, $options = array())
     {
         $this->build_xml($amount, $creditcard, 'PreAuth', $options);
         return $this->commit(__FUNCTION__);
@@ -103,9 +112,9 @@ class Merchant_Billing_ePDQ extends Merchant_Billing_Gateway implements Merchant
      * @param int - Amount to charge for purchase.
      * @param Merchant_billing_CreditCard - Credit card to charge.
      * @param array - Options to pass.
-     * @return Merchant_Billing_Response
+     * @return Response
      */
-    public function purchase($amount, Merchant_Billing_CreditCard $creditcard, $options = array())
+    public function purchase($amount, CreditCard $creditcard, $options = array())
     {
         $this->build_xml($amount, $creditcard, 'Auth', $options);
         return $this->commit(__FUNCTION__);
@@ -139,11 +148,11 @@ class Merchant_Billing_ePDQ extends Merchant_Billing_Gateway implements Merchant
      * Build XML
      *
      * @param int
-     * @param Merchant_Billing_CreditCard
+     * @param CreditCard
      * @param string
      * @param array
      */
-    private function build_xml($amount, Merchant_Billing_CreditCard $creditcard, $type, $options=array())
+    private function build_xml($amount, CreditCard $creditcard, $type, $options=array())
     {
         $this->start_xml();
         $this->insert_data($amount, $creditcard, $type, $options);
@@ -154,11 +163,11 @@ class Merchant_Billing_ePDQ extends Merchant_Billing_Gateway implements Merchant
      * Insert Data
      *
      * @param int
-     * @param Merchant_Billing_CreditCard
+     * @param CreditCard
      * @param string
      * @param array
      */
-    private function insert_data($amount, Merchant_Billing_CreditCard $creditcard, $type, $options=array())
+    private function insert_data($amount, CreditCard $creditcard, $type, $options=array())
     {
         $month = $this->cc_format($creditcard->month, 'two_digits');
         $year = $this->cc_format($creditcard->year, 'two_digits');
@@ -325,10 +334,10 @@ XML;
      */
     private function commit($action)
     {
-        $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
+        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
         $response = $this->parse($this->ssl_post($url, $this->xml));
 
-        return new Merchant_Billing_Response($this->success_from($action, $response), $this->message_from($response), $response, $this->options_from($response));
+        return new Response($this->success_from($action, $response), $this->message_from($response), $response, $this->options_from($response));
     }
 
     /**
