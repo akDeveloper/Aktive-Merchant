@@ -14,7 +14,7 @@
     "require": {
         "php": ">=5.3.3",
         "ext-curl": "*",
-        "ext-simplxml": "*"
+        "ext-simplexml": "*"
     },
     "autoload": {
         "psr-0": {"AktiveMerchant": "lib/"}
