@@ -12,14 +12,16 @@
         }
     ],
     "require": {
-        "php": ">=5.3.3"
+        "php": ">=5.3.3",
+        "ext-curl": "*",
+        "ext-simplxml": "*"
     },
     "autoload": {
         "psr-0": {"AktiveMerchant": "lib/"}
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "develop"
+            "dev-master": "master-dev"
         }
     }
 }
