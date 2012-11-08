@@ -1,11 +1,13 @@
 <?php
 
+namespace AktiveMerchant\Billing\Integrations;
+
 /**
  * Description of Merchant_Billing_FormHelper
  *
  * @author Andreas Kollaros
  */
-class Merchant_Billing_FormHelper
+class FormHelper
 {
 
     protected function hidden_field_tag($field, $value)

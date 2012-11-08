@@ -1,11 +1,13 @@
 <?php
 
+namespace AktiveMerchant\Billing\Integrations;
+
 /**
  * Description of Eurobank
  *
  * @author Andreas Kollaros
  */
-class Merchant_Billing_Integration_Eurobank extends Merchant_Billing_Helper
+class Eurobank extends Helper
 {
 
     public function __construct($order, $account, $options=array())
@@ -16,10 +18,12 @@ class Merchant_Billing_Integration_Eurobank extends Merchant_Billing_Helper
         ));
 
         $this->mapping('customer', array(
-            'first_name' => 'first_name',
-            'last_name' => 'last_name'
+            'first_name' => 'firstname',
+            'last_name' => 'lastname'
         ));
         $this->mapping('currency', 'currency_code');
+        
+        $this->mapping('amount', 'amount');
     }
 
 }

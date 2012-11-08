@@ -1,11 +1,15 @@
 <?php
 
+namespace AktiveMerchant\Billing\Integrations;
+
+use AktiveMerchant\Common\Country;
+
 /**
  * Description of Merchant_Billing_Helper
  *
  * @author Andreas Kollaros
  */
-class Merchant_Billing_Helper extends Merchant_Billing_FormHelper
+class Helper extends FormHelper
 {
 
     private $fields = array();
@@ -102,8 +106,8 @@ class Merchant_Billing_Helper extends Merchant_Billing_FormHelper
 
     private function lookup_country_code($name_or_code)
     {
-        $country = Merchant_Country::find($name_or_code);
-        return (string) $country->code($this->country_format);
+        $country = Country::find($name_or_code);
+        return (string) $country->getCode($this->country_format);
     }
 
 }

@@ -1,11 +1,13 @@
 <?php
 
+namespace AktiveMerchant\Billing\Integrations;
+
 /**
  * Description of Integration
  *
  * @author Andreas Kollaros
  */
-class Merchant_Billing_Integration
+class Integration
 {
 
     private function __construct()
@@ -20,7 +22,7 @@ class Merchant_Billing_Integration
 
         require_once dirname(__FILE__) . "/" . $options['service'] . '.php';
 
-        $service_class = 'Merchant_Billing_Integration_' . $options['service'];
+        $service_class = 'AktiveMerchant\\Billing\\Integrations\\' . $options['service'];
         unset($options['service']);
 
         return new $service_class($order, $account, $options);

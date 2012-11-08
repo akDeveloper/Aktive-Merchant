@@ -1,5 +1,7 @@
 <?php
-require_once('../lib/merchant.php');
+require_once('../autoload.php');
+
+use AktiveMerchant\Billing\Integrations\Integration;
 
 try {
   $options = array(
@@ -7,7 +9,7 @@ try {
       'currency' => 'EUR',
       'service' => 'Eurobank'
       );
-  $intergration = Merchant_Billing_Integration::payment_service_for('1000', 'test@test.com', $options);
+  $intergration = Integration::payment_service_for('1000', 'test@test.com', $options);
 
 
   $intergration->billing_address(array('country'=>'Greece'))
@@ -15,6 +17,7 @@ try {
                 ->customer(array('first_name' => 'John','last_name' => 'Doe'));
 
   print_r($intergration);
+  echo $intergration->to_html();
 } catch (Exception $exc) {
   echo $exc->getMessage();
 }
