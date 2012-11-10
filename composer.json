@@ -18,10 +18,5 @@
     },
     "autoload": {
         "psr-0": {"AktiveMerchant": "lib/"}
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "master-dev"
-        }
     }
 }
