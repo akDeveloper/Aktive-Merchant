@@ -19,17 +19,11 @@ require_once dirname(__FILE__) . "/centinel/CentinelResponse.php";
 
 class Centinel extends Gateway
 {
-    const TEST_URL = 'https://centineltest.cardinalcommerce.com/maps/txns.asp';
-    const LIVE_URL = 'https://centinel.cardinalcommerce.com/maps/txns.asp';
-
-    # The countries the gateway supports merchants from as 2 digit ISO country codes
+    protected $test_url = 'https://centineltest.cardinalcommerce.com/maps/txns.asp';
+    protected $live_url = 'https://centinel.cardinalcommerce.com/maps/txns.asp';
 
     public static $supported_countries = array('US', 'GR');
-
-    # The card types supported by the payment gateway
     public static $homepage_url = 'http://www.cardinalcommerce.com';
-
-    # The homepage URL of the gateway
     public static $display_name = 'Centinel 3D Secure';
     public static $money_format = 'cents';
     public static $default_currency = 'EUR';
