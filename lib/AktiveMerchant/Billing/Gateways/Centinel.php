@@ -52,7 +52,7 @@ class Centinel extends Gateway
         $this->add_invoice($money, $options);
         $this->add_creditcard($creditcard);
 
-        return $this->commit('cmpi_lookup', $money, array());
+        return $this->commit('cmpi_lookup', $money, $options);
     }
 
     public function authenticate($options=array())
@@ -60,7 +60,7 @@ class Centinel extends Gateway
         $this->required_options('payload, transaction_id', $options);
         $this->add_cmpi_lookup_data($options);
 
-        return $this->commit('cmpi_authenticate', null, array());
+        return $this->commit('cmpi_authenticate', null, $options);
     }
 
     /* Private */
@@ -144,7 +144,7 @@ XML;
     {
         $url = $this->is_test() ? static::TEST_URL : static::LIVE_URL;
 
-        $data = $this->ssl_post($url, $this->post_data($action, $parameters, array('timeout' => '10')));
+        $data = $this->ssl_post($url, $this->post_data($action), $parameters);
 
         $options = array('test' => $this->is_test());
 
@@ -176,7 +176,7 @@ XML;
         return $response['error_desc'];
     }
 
-    private function post_data($action, $parameters = array())
+    private function post_data($action)
     {
         $data = <<<XML
       <?xml version="1.0" encoding="UTF-8"?>
