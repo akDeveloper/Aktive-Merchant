@@ -19,7 +19,9 @@ class Request implements RequestInterface
 
     protected $body;
 
-    protected $timeout = 0;
+    protected $connect_timeout = 0;
+
+    protected $request_timeout = 0;
 
     protected $allow_unsafe_ssl = 1;
 
@@ -43,7 +45,13 @@ class Request implements RequestInterface
         }
 
         if (isset($options['timeout'])) {
-            $this->timeout = $options['timeout'];
+            $this->connect_timeout = $options['timeout'];
+        } elseif (isset($options['connect_timeout'])) {
+            $this->connect_timeout = $options['connect_timeout'];
+        }
+
+        if (isset($options['request_timeout'])) {
+            $this->request_timeout = $options['request_timeout'];
         }
 
         if (isset($options['allow_unsafe_ssl'])) {
@@ -144,7 +152,8 @@ class Request implements RequestInterface
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FORBID_REUSE, 1);
             curl_setopt($curl, CURLOPT_FRESH_CONNECT, 1);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $this->timeout);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $this->connect_timeout);
+            curl_setopt($curl, CURLOPT_TIMEOUT, $this->request_timeout);
             curl_setopt($curl, CURLOPT_USERAGENT, $this->user_agent);
 
             if ($this->method == self::METHOD_POST) {
