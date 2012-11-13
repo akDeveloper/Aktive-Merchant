@@ -23,13 +23,11 @@ class Centinel extends Gateway
     const LIVE_URL = 'https://centinel.cardinalcommerce.com/maps/txns.asp';
 
     # The countries the gateway supports merchants from as 2 digit ISO country codes
-
     public static $supported_countries = array('US', 'GR');
 
-    # The card types supported by the payment gateway
-    public static $homepage_url = 'http://www.cardinalcommerce.com';
-
     # The homepage URL of the gateway
+    public static $homepage_url = 'http://www.cardinalcommerce.com';
+    
     public static $display_name = 'Centinel 3D Secure';
     public static $money_format = 'cents';
     public static $default_currency = 'EUR';
@@ -144,7 +142,7 @@ XML;
 
     private function commit($action, $money, $parameters)
     {
-        $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
+        $url = $this->is_test() ? static::TEST_URL : static::LIVE_URL;
 
         $data = $this->ssl_post($url, $this->post_data($action, $parameters, array('timeout' => '10')));
 
