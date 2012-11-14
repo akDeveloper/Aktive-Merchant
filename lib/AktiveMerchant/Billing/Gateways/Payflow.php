@@ -16,40 +16,34 @@ class Payflow extends PayflowCommon
 
     function authorize($money, $credit_card_or_reference, $options = array())
     {
-        $request = $this->build_sale_or_authorization_request(
+        $this->build_sale_or_authorization_request(
             'Authorization',
             $money,
             $credit_card_or_reference,
             $options
         );
 
-        return $this->commit($request);
+        return $this->commit($options);
     }
 
     function purchase($money, $credit_card_or_reference, $options = array())
     {
-        $request = $this->build_sale_or_authorization_request(
+        $this->build_sale_or_authorization_request(
             'Purchase', 
             $money,
             $credit_card_or_reference,
             $options
         );
 
-        return $this->commit($request);
+        return $this->commit($options);
     }
 
-    private function build_sale_or_authorization_request(
-        $action,
-        $money,
-        $credit_card_or_reference,
-        $options
-    ) {
+    private function build_sale_or_authorization_request($action, $money, $credit_card_or_reference, $options) {
         return is_string($credit_card_or_reference)
             ? $this->build_reference_sale_or_authorization_request(
                 $action,
                 $money,
-                $credit_card_or_reference,
-                $options
+                $credit_card_or_reference
             )
             : $this->build_credit_card_request(
                 $action,
@@ -59,12 +53,7 @@ class Payflow extends PayflowCommon
             );
     }
 
-    private function build_reference_sale_or_authorization_request(
-        $action,
-        $money,
-        $reference,
-        $options
-    ) {
+    private function build_reference_sale_or_authorization_request($action, $money, $reference) {
         $default_currency = self::$default_currency;
         $bodyXml = <<<XML
              <{$action}>
@@ -85,12 +74,7 @@ XML;
         return $this->build_request($bodyXml);
     }
 
-    private function build_credit_card_request(
-        $action,
-        $money,
-        $credit_card,
-        $options
-    ) {
+    private function build_credit_card_request($action, $money, $credit_card, $options) {
         $default_currency = static::$default_currency;
 
         $bodyXml = <<<XML

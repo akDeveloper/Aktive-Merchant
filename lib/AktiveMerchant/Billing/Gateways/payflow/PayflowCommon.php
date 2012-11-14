@@ -46,14 +46,14 @@ class PayflowCommon extends Gateway
 
     function capture($money, $authorization, $options)
     {
-        $request = $this->build_reference_request('Capture', $money, $authorization, $options);
-        return $this->commit($request);
+        $this->build_reference_request('Capture', $money, $authorization);
+        return $this->commit($options);
     }
 
     function void($authorization, $options)
     {
-        $request = $this->build_reference_request('Void', null, $authorization, $options);
-        return $this->commit($request);
+        $this->build_reference_request('Void', null, $authorization);
+        return $this->commit($options);
     }
 
     protected function build_request($body)
@@ -86,7 +86,7 @@ XML;
 XML;
     }
 
-    private function build_reference_request($action, $money, $authorization, $options)
+    private function build_reference_request($action, $money, $authorization)
     {
         $bodyXml = <<<XML
              <{$action}>
@@ -185,10 +185,11 @@ XML;
         }
     }
 
-    protected function commit()
+    protected function commit($options)
     {
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
-        $response = $this->parse($this->ssl_post($url, $this->xml));
+        $data = $this->ssl_post($url, $this->xml, $options);
+        $response = $this->parse($data);
         $this->xml = null;
 
         return new Merchant_Billing_Response(
