@@ -166,7 +166,7 @@ class Request implements RequestInterface
             $response = curl_exec($curl);
 
             // Check for outright failure
-            if ($response === FALSE) {
+            if ($response === false) {
                 $ex = new Exception(curl_error($curl), curl_errno($curl));
                 curl_close($curl);
                 throw $ex;
@@ -177,12 +177,12 @@ class Request implements RequestInterface
             
             curl_close($curl);
             
-            if (($curl_info['http_code'] < 200) || ($curl_info['http_code'] >= 300)) {
+            if ($curl_info['http_code'] != 200) {
                 $ex = new Exception(
                     "HTTP Status #" 
                     . $curl_info['http_code']."\n"
                     . "CurlInfo:\n"
-                    . print_r($curl_info, TRUE)
+                    . print_r($curl_info, true)
                 );
                 throw $ex;
             }
