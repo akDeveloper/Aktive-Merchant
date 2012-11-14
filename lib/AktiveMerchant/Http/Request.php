@@ -168,9 +168,7 @@ class Request implements RequestInterface
             
             curl_close($curl);
             
-            if (   ($curl_info['http_code'] < 200) 
-                && ($curl_info['http_code'] >= 300)
-            ) {
+            if (($curl_info['http_code'] < 200) || ($curl_info['http_code'] >= 300)) {
                 $ex = new Exception(
                     "HTTP Status #" 
                     . $curl_info['http_code']."\n"
