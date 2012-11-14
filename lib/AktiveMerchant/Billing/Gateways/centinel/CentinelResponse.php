@@ -15,14 +15,21 @@ use AktiveMerchant\Billing\Response;
  */
 class CentinelResponse extends Response
 {
-
     public function message()
     {
-        if ($this->enrolled == 'N')
+        if (isset($this->params['enrolled']) && $this->params['enrolled'] == 'N')
             return 'Cardholder not enrolled! ';
-        return $this->error_no . ": " . $this->message;
+        
+        return $this->params['error_no'] . ": " . $this->message;
     }
 
-}
+    public function is_liability_shifted()
+    {
+        // Not a cmpi lookup
+        if(!isset($this->params['enrolled']))
+        	return false;
 
-?>
+        return ($this->params['enrolled'] == 'N') ||
+    		($this->params['pares_status'] == 'A' && empty($this->params['cavv']));
+    }
+}
