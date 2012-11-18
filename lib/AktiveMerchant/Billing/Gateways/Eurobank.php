@@ -119,7 +119,7 @@ class Eurobank extends Gateway implements
      */
     private function commit()
     {
-        $url = $this->is_test() ? self::TEST_URL : self::LIVE_URL;
+        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
         $post_data = 'APACScommand=NewRequest&data=' . trim($this->xml);
         $response = $this->parse($this->ssl_post($url, $post_data));
@@ -189,7 +189,7 @@ class Eurobank extends Gateway implements
     private function options_from($response)
     {
         $options = array();
-        $options['test'] = $this->is_test();
+        $options['test'] = $this->isTest();
         $options['authorization'] = $response['reference'];
         $options['proxypay_ref'] = $response['proxypay_ref'];
         $options['sequence'] = $response['sequence'];
