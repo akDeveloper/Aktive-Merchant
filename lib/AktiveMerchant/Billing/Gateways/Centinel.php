@@ -77,7 +77,7 @@ XML;
     {
         $order_number = isset($options['order_id']) ? $options['order_id'] : null;
 
-        $amount = $this->is_test() ? $this->amount("1") : $this->amount($money);
+        $amount = $this->isTest() ? $this->amount("1") : $this->amount($money);
         $default_currency = self::$default_currency;
         $this->post .= <<<XML
       <OrderNumber>{$order_number}</OrderNumber>
@@ -142,11 +142,11 @@ XML;
 
     private function commit($action, $money, $parameters)
     {
-        $url = $this->is_test() ? static::TEST_URL : static::LIVE_URL;
+        $url = $this->isTest() ? static::TEST_URL : static::LIVE_URL;
 
         $data = $this->ssl_post($url, $this->post_data($action), $parameters);
 
-        $options = array('test' => $this->is_test());
+        $options = array('test' => $this->isTest());
 
         switch ($action) {
             case 'cmpi_lookup':
