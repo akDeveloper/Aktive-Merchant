@@ -23,13 +23,17 @@ class CentinelResponse extends Response
         return $this->params['error_no'] . ": " . $this->message;
     }
 
-    public function is_liability_shifted()
+    public function isLiabilityShifted()
     {
-        // Not a cmpi lookup
-        if(!isset($this->params['enrolled']))
-        	return false;
+        if(!$this->isCmpiLookupResponse())
+            return false;
 
         return ($this->params['enrolled'] == 'N') ||
-    		($this->params['pares_status'] == 'A' && empty($this->params['cavv']));
+            ($this->params['pares_status'] == 'A' && empty($this->params['cavv']));
+    }
+
+    private function isCmpiLookupResponse()
+    {
+        return isset($this->params['enrolled']);
     }
 }
