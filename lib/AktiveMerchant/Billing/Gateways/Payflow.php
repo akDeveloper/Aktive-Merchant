@@ -9,7 +9,6 @@ use AktiveMerchant\Billing\Interfaces as Interfaces;
 
 class Payflow extends PayflowCommon
 {
-
     public static $supported_cardtypes = array('add', 'modify', 'cancel', 'inquiry', 'reactivate', 'payment');
     public static $homepage_url = 'https://www.paypal.com/cgi-bin/webscr?cmd=_payflow-pro-overview-outside';
     public static $display_name = 'PayPal Payflow Pro';
@@ -29,7 +28,7 @@ class Payflow extends PayflowCommon
     function purchase($money, $credit_card_or_reference, $options = array())
     {
         $this->build_sale_or_authorization_request(
-            'Purchase', 
+            'Sale', 
             $money,
             $credit_card_or_reference,
             $options

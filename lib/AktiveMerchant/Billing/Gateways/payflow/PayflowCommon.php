@@ -3,11 +3,13 @@
 namespace AktiveMerchant\Billing\Gateways;
 
 use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\Response;
 
 class PayflowCommon extends Gateway
 {
     const TEST_URL = 'https://pilot-payflowpro.paypal.com';
     const LIVE_URL = 'https://payflowpro.paypal.com';
+    
     protected $XMLNS = 'http://www.paypal.com/XMLPay';
     protected $CARD_MAPPING = array(
         'visa' => 'Visa',
@@ -192,7 +194,7 @@ XML;
         $response = $this->parse($data);
         $this->xml = null;
 
-        return new Merchant_Billing_Response(
+        return new Response(
             $response['Result'] == 0,
             $response['Message'],
             $response,
