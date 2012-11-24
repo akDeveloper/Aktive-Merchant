@@ -168,10 +168,16 @@ XML;
 
     private function success_from($response)
     {
-        if(isset($response['acs_url']) && empty($response['acs_url']))
+        $cardholderEnrolled = isset($response['acs_url']);
+        $acsUrlNotProvided = empty($response['acs_url']);
+        
+        if($cardholderEnrolled && $acsUrlNotProvided)
             return false;
 
-        if(isset($response['pares_status']) && !in_array($response['pares_status'], array('Y', 'A')))
+        $isCmpiAuthenticateResponse = isset($response['pares_status']);
+        $autheticationFailed = !in_array($response['pares_status'], array('Y', 'A'));
+
+        if($isCmpiAuthenticateResponse && $autheticationFailed)
           return false;
 
         return $response['error_no'] == '0';
