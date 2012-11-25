@@ -151,7 +151,7 @@ XML;
         return $response;
     }
 
-    private function parse_element($response, $node)
+    private function parse_element(&$response, $node)
     {
         $nodeName = $node->getName();
 
