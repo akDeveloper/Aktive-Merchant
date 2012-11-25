@@ -126,6 +126,9 @@ class PaypalExpress extends PaypalCommon
             'CANCELURL'            => $options['cancel_return_url']
         );
 
+        if(isset($options['header_image']))
+            $params['HDRIMG'] = $options['header_image'];
+
         $this->post = array_merge(
             $this->post, 
             $params, 

@@ -81,20 +81,20 @@ class HsbcSecureEpayments extends Gateway implements Interfaces\Charge
     public function authorize($amount, \AktiveMerchant\Billing\CreditCard $creditcard, $options = array())
     {
         $this->build_xml($amount, 'PreAuth', $creditcard, $options);
-        return $this->commit(__FUNCTION__);
+        return $this->commit(__FUNCTION__, $options);
     }
 
     public function purchase($amount, \AktiveMerchant\Billing\CreditCard $creditcard, $options = array())
     {
         $this->build_xml($amount, 'Auth', $creditcard, $options);
-        return $this->commit(__FUNCTION__);
+        return $this->commit(__FUNCTION__, $options);
     }
 
     public function capture($amount, $authorization, $options = array())
     {
         $options['authorization'] = $authorization;
         $this->build_xml($amount, 'PostAuth', null, $options);
-        return $this->commit(__FUNCTION__);
+        return $this->commit(__FUNCTION__, $options);
     }
 
     /**
@@ -303,10 +303,11 @@ XML;
 XML;
     }
 
-    private function commit($action)
+    private function commit($action, $options)
     {
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
-        $response = $this->parse($this->ssl_post($url, $this->xml));
+        $data = $this->ssl_post($url, $this->xml, $options);
+        $response = $this->parse($data);
 
         $r = new \AktiveMerchant\Billing\Response($this->success_from($action, $response),
                 $this->message_from($response),
@@ -397,7 +398,7 @@ XML;
         $options['fraud_review'] = isset($response['return_code']) ? in_array($response['return_code'], $this->FRAUDULENT) : false;
 
         if (isset($response['cvv2_resp'])) {
-            if (in_array($response['cvv2_resp'], $this->HSBC_CVV_RESPONSE_MAPPINGS))
+            if ( array_key_exists($response['cvv2_resp'], $this->HSBC_CVV_RESPONSE_MAPPINGS) )
                 $options['cvv_result'] = $this->HSBC_CVV_RESPONSE_MAPPINGS[$response['cvv2_resp']];
         }
         $options['avs_result'] = $this->avs_code_from($response);
