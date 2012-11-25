@@ -19,7 +19,9 @@ class Request implements RequestInterface
 
     protected $body;
 
-    protected $timeout = 0;
+    protected $connect_timeout = 0;
+
+    protected $request_timeout = 0;
 
     protected $allow_unsafe_ssl = 1;
 
@@ -43,7 +45,13 @@ class Request implements RequestInterface
         }
 
         if (isset($options['timeout'])) {
-            $this->timeout = $options['timeout'];
+            $this->connect_timeout = $options['timeout'];
+        } elseif (isset($options['connect_timeout'])) {
+            $this->connect_timeout = $options['connect_timeout'];
+        }
+
+        if (isset($options['request_timeout'])) {
+            $this->request_timeout = $options['request_timeout'];
         }
 
         if (isset($options['allow_unsafe_ssl'])) {
@@ -139,10 +147,13 @@ class Request implements RequestInterface
             curl_setopt($curl, CURLINFO_HEADER_OUT, 1);
             curl_setopt($curl, CURLOPT_HTTPHEADER, $this->headers);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, $this->allow_unsafe_ssl);
+            curl_setopt($curl, CURLOPT_SSLVERSION, 3);
+            curl_setopt($curl, CURLOPT_SSL_CIPHER_LIST, 'RC4-MD5');
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FORBID_REUSE, 1);
             curl_setopt($curl, CURLOPT_FRESH_CONNECT, 1);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $this->timeout);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $this->connect_timeout);
+            curl_setopt($curl, CURLOPT_TIMEOUT, $this->request_timeout);
             curl_setopt($curl, CURLOPT_USERAGENT, $this->user_agent);
 
             if ($this->method == self::METHOD_POST) {
@@ -155,7 +166,7 @@ class Request implements RequestInterface
             $response = curl_exec($curl);
 
             // Check for outright failure
-            if ($response === FALSE) {
+            if ($response === false) {
                 $ex = new Exception(curl_error($curl), curl_errno($curl));
                 curl_close($curl);
                 throw $ex;
@@ -166,14 +177,12 @@ class Request implements RequestInterface
             
             curl_close($curl);
             
-            if (   ($curl_info['http_code'] < 200) 
-                && ($curl_info['http_code'] >= 300)
-            ) {
+            if ($curl_info['http_code'] != 200) {
                 $ex = new Exception(
                     "HTTP Status #" 
                     . $curl_info['http_code']."\n"
                     . "CurlInfo:\n"
-                    . print_r($curl_info, TRUE)
+                    . print_r($curl_info, true)
                 );
                 throw $ex;
             }
