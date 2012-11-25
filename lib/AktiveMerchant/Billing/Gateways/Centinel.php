@@ -174,8 +174,9 @@ XML;
         if($cardholderEnrolled && $acsUrlNotProvided)
             return false;
 
-        $isCmpiAuthenticateResponse = isset($response['pares_status']);
-        $autheticationFailed = !in_array($response['pares_status'], array('Y', 'A'));
+        $authStatus = isset($response['pares_status']) ? $response['pares_status'] : null;
+        $isCmpiAuthenticateResponse = !is_null($authStatus);
+        $autheticationFailed = !in_array($authStatus, array('Y', 'A'));
 
         if($isCmpiAuthenticateResponse && $autheticationFailed)
           return false;
