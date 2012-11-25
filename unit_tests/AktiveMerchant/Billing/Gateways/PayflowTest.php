@@ -4,11 +4,11 @@
 
 require_once'config.php';
 
-use AktiveMerchant\Billing\Gateways\PayflowUk;
+use AktiveMerchant\Billing\Gateways\Payflow;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
-class PayflowUkTest extends AktiveMerchant\TestCase
+class PayflowTest extends AktiveMerchant\TestCase
 {
 
     public $gateway;
@@ -20,9 +20,9 @@ class PayflowUkTest extends AktiveMerchant\TestCase
     {
         Base::mode('test');
 
-        $login_info = $this->getFixtures()->offsetGet('payflowuk');
+        $login_info = $this->getFixtures()->offsetGet('payflow');
         
-        $this->gateway = new PayflowUk($login_info);
+        $this->gateway = new Payflow($login_info);
 
         $this->amount = 100.00;
 
