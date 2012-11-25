@@ -61,6 +61,8 @@ class PayflowTest extends AktiveMerchant\TestCase
         $this->mock_request($this->successful_purchase_response());
         $resp = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
         $this->assertTrue($resp->success());
+        $this->assertEquals('Approved', $resp->message());
+        $this->assertEquals('VTHD55395864', $resp->authorization());
     }
 
     public function testAuthorization()

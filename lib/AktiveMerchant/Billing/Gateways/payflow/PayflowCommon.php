@@ -145,46 +145,52 @@ XML;
         if (isset($transactionAttrs['Duplicate']) && $transactionAttrs['Duplicate'] == 'true')
             $response['duplicate'] = true;
 
-        foreach ($root->children() as $node)
-            $this->parse_element($response, $node);
+        foreach ($root->children() as $node){
+            $response = array_merge($response, $this->parse_element($node));
+        }
 
         return $response;
     }
 
-    private function parse_element(&$response, $node)
+    private function parse_element($node)
     {
+        $parsed = array();
+
         $nodeName = $node->getName();
 
         switch (true) {
             case $nodeName == 'RPPaymentResult':
-                if (!isset($response[$nodeName]))
-                    $response[$nodeName] = array();
+                if (!isset($parsed[$nodeName]))
+                    $parsed[$nodeName] = array();
 
                 $payment_result_response = array();
 
                 foreach ($node->children() as $child)
-                    $this->parse_element($payment_result_response, $child);
+                    $payment_result_response = array_merge($payment_result_response, $this->parse_element($child));
 
                 foreach ($payment_result_response as $key => $value)
-                    $response[$nodeName][$key] = $value;
+                    $parsed[$nodeName][$key] = $value;
                 break;
 
             case $node->children()->count() > 0:
                 foreach ($node->children() as $child)
-                    $this->parse_element($response, $child);
+                    $parsed = array_merge($parsed, $this->parse_element($child));
+                
                 break;
 
             case preg_match('/amt$/', $nodeName):
-                $response[$nodeName] = $node->attributes()->Currency;
+                $parsed[$nodeName] = $node->attributes()->Currency;
                 break;
 
             case $nodeName == 'ExtData':
-                $response[$node->attributes()->Name] = $node->attributes()->Value;
+                $parsed[$node->attributes()->Name] = $node->attributes()->Value;
                 break;
 
             default:
-                $response[$nodeName] = (string) $node;
+                $parsed[$nodeName] = (string) $node;
         }
+
+        return $parsed;
     }
 
     protected function commit($options)
