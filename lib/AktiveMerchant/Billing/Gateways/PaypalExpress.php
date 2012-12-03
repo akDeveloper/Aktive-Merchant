@@ -54,9 +54,9 @@ class PaypalExpress extends PaypalCommon
 
         $cents = $money * 100;
         if (!is_numeric($money)) {
-            throw new \InvalidArgumentException('money amount must be a number.');
+            throw new Merchant_Billing_Exception('money amount must be an integer in cents.');
         }
-        
+
         return ($this->money_format() == 'cents') 
             ? number_format($cents, 0, '', '') 
             : number_format($money, 2);
