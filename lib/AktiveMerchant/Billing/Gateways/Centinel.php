@@ -15,7 +15,6 @@ use AktiveMerchant\Billing\Response;
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-require_once dirname(__FILE__) . "/centinel/CentinelResponse.php";
 
 class Centinel extends Gateway
 {
