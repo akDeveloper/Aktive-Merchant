@@ -1,6 +1,6 @@
 <?php
 
-namespace AktiveMerchant\Billing\Gateways;
+namespace AktiveMerchant\Billing\Gateways\Payflow;
 
 use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\Response;
