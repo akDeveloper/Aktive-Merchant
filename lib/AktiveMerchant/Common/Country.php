@@ -38,6 +38,87 @@ class Country
      */
     private $codes = array();
 
+    public function __construct(array $options = array())
+    {
+        $options = new Options($options);
+        Options::required('name, alpha2, alpha3, numeric', $options);
+
+        $this->name = $options['name'];
+        unset($options['name']);
+        
+        foreach ($options as $k => $v) {
+            $this->codes[] = new CountryCode($v);
+        }
+    }
+
+    /**
+     * @param string $format The format to display the Country name (alpha2, 
+     *                       alpha3 or numeric)
+     *
+     *
+     * @return CountryCode A CountryCode object.
+     */
+    public function getCode($format)
+    {
+        foreach ($this->codes as $code) {
+            if ($code->getFormat() == $format) {
+                return $code;
+            }
+        }
+    }
+
+    /**
+     * Returns the full name of a country.
+     *
+     * @return string Country full name
+     */
+    public function __toString()
+    {
+        return $this->name;
+    }
+
+    /**
+     * Returns a Country object based on a given alpha or numeric code.
+     *
+     * <code>
+     *      $country = Country::find(300);
+     *      $country = Country::find('GR');
+     *      $country = Country::find('GRC');
+     * </code>
+     *
+     * @param string|integer Alpha name or numeric code of a country 
+     *
+     * @return Country A Country object.
+     */
+    public static function find($name)
+    {
+        if (empty($name))
+            throw new \InvalidArgumentException('Cannot lookup country for an empty name');
+
+        if (strlen($name) == 2 || strlen($name) == 3) {
+            $upcase_name = strtoupper($name);
+            $country_code = new CountryCode($name);
+            $country_format = $country_code->getFormat();
+            foreach (self::$COUNTRIES as $c) {
+                if ($c[$country_format] == $upcase_name) {
+                    $country = $c;
+                    break;
+                }
+            }
+        } else {
+            foreach (self::$COUNTRIES as $c) {
+                if ($c['name'] == $name) {
+                    $country = $c;
+                    break;
+                }
+            }
+        }
+        if (!isset($country))
+            throw new \OutOfRangeException("No country could be found for name {$name}");
+
+        return new Country($country);
+    }
+
     /**
      * List of countries with full names alpha2, alpha3 and numeric codes.
      *
@@ -290,103 +371,4 @@ class Country
         array('alpha2' => 'ZM', 'name' => 'Zambia', 'alpha3' => 'ZMB', 'numeric' => '894'),
         array('alpha2' => 'ZW', 'name' => 'Zimbabwe', 'alpha3' => 'ZWE', 'numeric' => '716')
     );
-
-    public function __construct($options = array())
-    {
-        required_options('name, alpha2, alpha3, numeric', $options);
-
-        $this->name = $options['name'];
-        unset($options['name']);
-        
-        foreach ($options as $k => $v) {
-            $this->codes[] = new CountryCode($v);
-        }
-    }
-
-    /**
-     * @param string $format The format to display the Country name (alpha2, 
-     *                       alpha3 or numeric)
-     *
-     *
-     * @return CountryCode A CountryCode object.
-     */
-    public function getCode($format)
-    {
-        foreach ($this->codes as $code) {
-            if ($code->getFormat() == $format) {
-                return $code;
-            }
-        }
-    }
-
-    /**
-     * Returns the full name of a country.
-     *
-     * @return string Country full name
-     */
-    public function __toString()
-    {
-        return $this->name;
-    }
-
-    /**
-     * Returns a Country object based on a given alpha or numeric code.
-     *
-     * <code>
-     *      $country = Country::find(300);
-     *      $country = Country::find('GR');
-     *      $country = Country::find('GRC');
-     * </code>
-     *
-     * @param string|integer Alpha name or numeric code of a country 
-     *
-     * @return Country A Country object.
-     */
-    public static function find($name)
-    {
-        if (empty($name))
-            throw new Exception('Cannot lookup country for an empty name');
-
-        if (strlen($name) == 2 || strlen($name) == 3) {
-            $upcase_name = strtoupper($name);
-            $country_code = new CountryCode($name);
-            $country_format = $country_code->getFormat();
-            foreach (self::$COUNTRIES as $c) {
-                if ($c[$country_format] == $upcase_name) {
-                    $country = $c;
-                    break;
-                }
-            }
-        } else {
-            foreach (self::$COUNTRIES as $c) {
-                if ($c['name'] == $name) {
-                    $country = $c;
-                    break;
-                }
-            }
-        }
-        if (!isset($country))
-            throw new \Exception("No country could be found for name {$name}");
-
-        return new Country($country);
-    }
-
-}
-
-/**
- * RequiresParameters
- * @param string comma seperated parameters. Represent keys of $options array
- * @param array the key/value hash of options to compare with
- */
-function required_options($required, $options = array())
-{
-    $required = explode(',', $required);
-    foreach ($required as $r) {
-        if (!array_key_exists(trim($r), $options)) {
-            throw new Exception($r . " parameter is required!");
-            break;
-            return false;
-        }
-    }
-    return true;
 }
