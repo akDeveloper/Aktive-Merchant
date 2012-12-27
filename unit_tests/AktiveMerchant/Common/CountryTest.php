@@ -56,4 +56,20 @@ class CountryTest extends PHPUnit_Framework_TestCase
         
         $this->assertEquals($country->getCode('numeric')->__toString(), 300);
     }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testFailFindCountryEmptyValue()
+    {
+        $country = Country::find('');
+    }
+
+    /**
+     * @expectedException \OutOfRangeException
+     */
+    public function testNotFoundCountry()
+    {
+        $country = Country::find('Asgard');
+    }
 }
