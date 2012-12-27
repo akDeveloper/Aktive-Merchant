@@ -30,23 +30,23 @@ class CentinelTest extends AktiveMerchant\TestCase
             'number' => '5105105105105100',
             'month' => 11,
             'year' => 2009,
-            'first_name' => 'Cody',
-            'last_name' => 'Fauser',
+            'first_name' => 'John',
+            'last_name' => 'Doe',
             'verification_value' => '000',
             'type' => 'master'
         ));
 
         $this->options = array(
             'billing_address' => array(
-                'name' => 'Cody Fauser',
-                'address1' => '1234 Shady Brook Lane',
-                'city' => 'Ottawa',
+                'name' => 'John Doe',
+                'address1' => '1234 my address',
+                'city' => 'Neverland',
                 'state' => 'ON',
                 'country' => 'CA',
                 'zip' => '90210',
                 'phone' => '555-555-5555'
             ),
-            'email' => 'cody@example.com',
+            'email' => 'john@example.com',
             'order_id' => '123456',
             'payload' => 'payload',
             'transaction_id' => '78910'

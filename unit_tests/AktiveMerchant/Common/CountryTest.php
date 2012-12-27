@@ -13,7 +13,7 @@ use AktiveMerchant\Common\Country;
  *
  */
 
-require_once '../lib/autoload.php';
+require_once '../autoload.php';
 
 class CountryTest extends PHPUnit_Framework_TestCase
 {

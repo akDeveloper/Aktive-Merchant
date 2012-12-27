@@ -45,14 +45,10 @@ class PsigateTest extends AktiveMerchant\TestCase
     public $amount;
     public $options;
     public $creditcard;
-    public $ordernum;
+    public $ordernum = 0;
     public $base_amount;
     public $ordername;
     private $login_info;
-
-    function __construct() {
-        $this->ordernum = 0;
-    }
 
     /**
      * Setup
