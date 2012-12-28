@@ -9,6 +9,7 @@ use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Exception;
 use AktiveMerchant\Billing\Response;
+use AktiveMerchant\Common\Options;
 
 /**
  * Merchant driver for {link http://authorize.net/ Authorize.net}.
@@ -71,9 +72,9 @@ class AuthorizeNet extends Gateway implements
 
     public function __construct($options)
     {
-        $this->required_options('login, password', $options);
+        Options::required('login, password', $options);
 
-        $this->options = $options;
+        $this->options = new Options($options);
     }
 
     /**
@@ -84,8 +85,10 @@ class AuthorizeNet extends Gateway implements
      *
      * @return Response
      */
-    public function authorize($money, \AktiveMerchant\Billing\CreditCard $creditcard, $options = array())
+    public function authorize($money, CreditCard $creditcard, $options = array())
     {
+        $options = new Options($options);
+
         $this->add_invoice($options);
         $this->add_creditcard($creditcard);
         $this->add_address($options);
@@ -103,8 +106,9 @@ class AuthorizeNet extends Gateway implements
      *
      * @return Response
      */
-    public function purchase($money, \AktiveMerchant\Billing\CreditCard $creditcard, $options = array())
+    public function purchase($money, CreditCard $creditcard, $options = array())
     {
+        $options = new Options($options);
 
         $this->add_invoice($options);
         $this->add_creditcard($creditcard);
@@ -125,6 +129,8 @@ class AuthorizeNet extends Gateway implements
      */
     public function capture($money, $authorization, $options = array())
     {
+        $options = new Options($options);
+
         $this->post = array('trans_id' => $authorization);
         $this->add_customer_data($options);
         return $this->commit('PRIOR_AUTH_CAPTURE', $money);
@@ -153,7 +159,7 @@ class AuthorizeNet extends Gateway implements
      */
     public function credit($money, $identification, $options = array())
     {
-        $this->required_options('card_number', $options);
+        Options::required('card_number', $options);
         $this->post = array(
             'trans_id' => $identification,
             'card_num' => $options['card_number']
@@ -172,12 +178,22 @@ class AuthorizeNet extends Gateway implements
      */
     public function recurring($money, CreditCard $creditcard, $options=array())
     {
-        $this->required_options('length, unit, start_date, occurrences, billing_address', $options);
-        $this->required_options('first_name, last_name', $options['billing_address']);
+        $options = new Options($options);
+
+        Options::required(
+            'length, unit, start_date, occurrences, billing_address',
+            $options
+        );
+
+        Options::required(
+            'first_name, last_name', 
+            $options['billing_address']
+        );
 
         $amount = $this->amount($money);
 
-        $ref_id = isset($parameters['order_id']) ? $parameters['order_id'] : " ";
+        $ref_id = $options['order_id'];
+
         $this->xml = "<refId>$ref_id</refId>";
         $this->xml .= "<subscription>";
         $this->arb_add_subscription($amount, $options);
@@ -189,14 +205,14 @@ class AuthorizeNet extends Gateway implements
 
     /**
      *
-     * @param string     $subscription_id subscription id returned from recurring method
+     * @param string     $subscription_id subscription id returned from 
+     *                                    recurring method
      * @param CreditCard $creditcard
      *
      * @return Response
      */
-    public function updateRecurring($subscription_id, \AktiveMerchant\Billing\CreditCard $creditcard)
+    public function updateRecurring($subscription_id, CreditCard $creditcard)
     {
-
         $this->xml = <<<XML
             <subscriptionId>$subscription_id</subscriptionId>
               <subscription>
@@ -209,13 +225,13 @@ XML;
 
     /**
      *
-     * @param string $subscription_id subscription id return from recurring method
+     * @param string $subscription_id subscription id return from recurring 
+     *                                method
      *
      * @return Response
      */
     public function cancelRecurring($subscription_id)
     {
-
         $this->xml = "<subscriptionId>$subscription_id</subscriptionId>";
 
         return $this->recurring_commit('cancel');
@@ -244,7 +260,10 @@ XML;
             #$parameters['test_request'] = 'TRUE';
         }
 
-        $data = $this->ssl_post($url, $this->post_data($action, $parameters, $this->post));
+        $data = $this->ssl_post(
+            $url, 
+            $this->post_data($action, $parameters, $this->post)
+        );
 
         $response = $this->parse($data);
 
@@ -336,7 +355,9 @@ XML;
             }
         }
 
-        return $response['response_reason_text'] === null ? '' : $response['response_reason_text'];
+        return $response['response_reason_text'] === null 
+            ? '' 
+            : $response['response_reason_text'];
     }
 
     /**
@@ -393,11 +414,11 @@ XML;
 
     private function add_invoice($options)
     {
-        $this->post['invoice_num'] = isset($options['order_id']) ? $options['order_id'] : null;
-        $this->post['description'] = isset($options['description']) ? $options['description'] : null;
+        $this->post['invoice_num'] = $options['order_id'];
+        $this->post['description'] = $options['description'];
     }
 
-    private function add_creditcard(\AktiveMerchant\Billing\CreditCard $creditcard)
+    private function add_creditcard(CreditCard $creditcard)
     {
         $this->post['method'] = 'CC';
         $this->post['card_num'] = $creditcard->number;
@@ -408,7 +429,7 @@ XML;
         $this->post['last_name'] = $creditcard->last_name;
     }
 
-    private function expdate(\AktiveMerchant\Billing\CreditCard $creditcard)
+    private function expdate(CreditCard $creditcard)
     {
         $year = $this->cc_format($creditcard->year, 'two_digits');
         $month = $this->cc_format($creditcard->month, 'two_digits');
@@ -421,29 +442,21 @@ XML;
             ? $options['billing_address'] 
             : $options['address'];
 
-        $this->post['address']  = isset($address['address1']) ? $address['address1'] : null;
-        $this->post['company']  = isset($address['company'])  ? $address['company']  : null;
-        $this->post['phone']    = isset($address['phone'])    ? $address['phone']    : null;
-        $this->post['zip']      = isset($address['zip'])      ? $address['zip']      : null;
-        $this->post['city']     = isset($address['city'])     ? $address['city']     : null;
-        $this->post['country']  = isset($address['country'])  ? $address['country']  : null;
-        $this->post['state']    = isset($address['state'])    ? $address['state']    : 'n/a';
+        $this->post['address']  = $address['address1'];
+        $this->post['company']  = $address['company'];
+        $this->post['phone']    = $address['phone'];
+        $this->post['zip']      = $address['zip'];
+        $this->post['city']     = $address['city'];
+        $this->post['country']  = $address['country'];
+        $this->post['state']    = $address['state'];
     }
 
     private function add_customer_data($options)
     {
-        if (isset($options['email'])) {
-            $this->post['email'] = isset($options['email']) ? $options['email'] : null;
-            $this->post['email_customer'] = false;
-        }
-
-        if (isset($options['customer'])) {
-            $this->post['cust_id'] = $options['customer'];
-        }
-
-        if (isset($options['ip'])) {
-            $this->post['customer_ip'] = $options['ip'];
-        }
+        $this->post['email'] = $options['email'];
+        $this->post['email_customer'] = false;
+        $this->post['cust_id'] = $options['customer'];
+        $this->post['customer_ip'] = $options['ip'];
     }
 
     private function add_duplicate_window()
@@ -461,7 +474,11 @@ XML;
 
         $headers = array("Content-type: text/xml");
 
-        $data = $this->ssl_post($url, $this->arb_post_data($action, $parameters), array('headers' => $headers));
+        $data = $this->ssl_post(
+            $url, 
+            $this->arb_post_data($action, $parameters), 
+            array('headers' => $headers)
+        );
 
         $response = $this->arb_parse($data);
 
@@ -518,7 +535,7 @@ XML;
         return $response['result_code'] == 'Ok';
     }
 
-    private function arb_add_creditcard(\AktiveMerchant\Billing\CreditCard $creditcard)
+    private function arb_add_creditcard(CreditCard $creditcard)
     {
         $expiration_date = $this->cc_format($creditcard->year, 'four_digits') . "-" .
             $this->cc_format($creditcard->month, 'two_Digits');
