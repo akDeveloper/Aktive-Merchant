@@ -10,6 +10,7 @@ use AktiveMerchant\Http\Request;
 use AktiveMerchant\Billing\Exception;
 use AktiveMerchant\Common\CurrencyCode;
 use AktiveMerchant\Http\RequestInterface;
+use AktiveMerchant\Common\Options;
 
 /**
  * Gateway abstract class
@@ -251,25 +252,9 @@ abstract class Gateway
         return rtrim($string, "& ");
     }
 
-    /**
-     * RequiresParameters
-     *
-     * @throws AktiveMerchant\Billing\Exception If a required parameter is missing
-     *
-     * @param string comma seperated parameters. Represent keys of $options array
-     * @param array the key/value hash of options to compare with
-     */
     protected function required_options($required, $options = array())
     {
-        $required = explode(',', $required);
-        foreach ($required as $r) {
-            if (!array_key_exists(trim($r), $options)) {
-                throw new Exception($r . " parameter is required!");
-                break;
-                return false;
-            }
-        }
-        return true;
+        return Options::required($required, $options);
     }
 
     /**
@@ -297,7 +282,7 @@ abstract class Gateway
     /**
      * Numeric Currency Codes
      *
-     * Return numeric represantation of currency codes
+     * Return numeric represantation of ISO 4217 currency code.
      */
     protected function currency_lookup($code)
     {
