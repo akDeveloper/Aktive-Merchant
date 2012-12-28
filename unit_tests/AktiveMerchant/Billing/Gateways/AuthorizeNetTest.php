@@ -60,6 +60,7 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
 
         $this->recurring_options = array(
             'amount' => 100,
+            'order_id' => 'REF' . $this->gateway->generateUniqueId(),
             'subscription_name' => 'Test Subscription 1',
             'billing_address' => array(
                 'first_name' => 'John' . $this->gateway->generateUniqueId(),
@@ -185,7 +186,8 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
             . " "
             . $this->recurring_options['billing_address']['last_name'];
         $firstanme = $this->recurring_options['billing_address']['first_name'];
-        $this->assertEquals($request_body, $this->successful_recurring_request($name, $firstanme));
+        $order_id = $this->recurring_options['order_id'];
+        $this->assertEquals($request_body, $this->successful_recurring_request($name, $firstanme, $order_id));
 
         $this->assert_success($response);
 
@@ -203,7 +205,7 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
         $this->assert_success($response);
     }
 
-    private function successful_recurring_request($name, $firstname)
+    private function successful_recurring_request($name, $firstname, $order_id)
     {
         return '<?xml version="1.0" encoding="utf-8"?>
       <ARBCreateSubscriptionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
@@ -211,7 +213,7 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
           <name>x</name>
           <transactionKey>y</transactionKey>
         </merchantAuthentication>
-          <refId> </refId><subscription>      <name>Subscription of '.$name.'</name>
+          <refId>'.$order_id.'</refId><subscription>      <name>Subscription of '.$name.'</name>
       <paymentSchedule>
         <interval>
           <length>11</length>
