@@ -5,6 +5,10 @@
 namespace AktiveMerchant\Billing\Gateways;
 
 use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\Gateways\Paypal\PaypalCommon;
+use AktiveMerchant\Billing\Gateways\Paypal\PaypalExpressResponse;
+use AktiveMerchant\Billing\Interfaces as Interfaces;
+
 /**
  * Description of PaypalExpress
  *
@@ -12,9 +16,6 @@ use AktiveMerchant\Billing\Gateway;
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-require_once dirname(__FILE__) . "/paypal/PaypalCommon.php";
-require_once dirname(__FILE__) . "/paypal/PaypalExpressResponse.php";
-
 class PaypalExpress extends PaypalCommon
 {
     const TEST_REDIRECT_URL = 'https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=';
@@ -52,11 +53,11 @@ class PaypalExpress extends PaypalCommon
 
         $cents = $money * 100;
         if (!is_numeric($money)) {
-            throw new Merchant_Billing_Exception('money amount must be a positive Integer in cents.');
+            throw new \InvalidArgumentException('money amount must be an integer in cents.');
         }
         return ($this->money_format() == 'cents') ? number_format($cents, 0, '', '') : number_format($money, 2);
     }
-
+    
     /**
      * Authorize and Purchase actions
      *
@@ -274,5 +275,3 @@ class PaypalExpress extends PaypalCommon
     }
 
 }
-
-?>
