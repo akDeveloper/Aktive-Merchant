@@ -574,14 +574,14 @@ class Realex extends Gateway implements
     {
         $this->xml->addChild('orderid', $options['order_id']);
         $this->xml->addChild('pasref', $options['pasref']);
-        $this->xml->addChild('authcode', $options['authcode']);
+        $this->xml->addChild('authcode', $authorization);
     }
 
     private function add_comments($options)
     {
         if (isset($options['description'])) {
             $comments = $this->xml->addChild('comments');
-            $comment = $comments->addChild('comment');
+            $comment =  $comments->addChild('comment', substr($options['description'], 0, 255));
             $comment->addAttribute('id', 1);
         }
     }
