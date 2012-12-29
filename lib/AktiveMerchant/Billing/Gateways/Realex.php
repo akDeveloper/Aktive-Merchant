@@ -304,7 +304,7 @@ class Realex extends Gateway implements
     {
 
         // build the xml object
-        $this->xml = new \SimpleXMLElement('<request type="auth"></request>');
+        $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="auth"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
         $this->add_merchant_details($options);
@@ -338,7 +338,7 @@ class Realex extends Gateway implements
     private function build_capture_request($authorization, $options)
     {
         // build the xml object
-        $this->xml = new \SimpleXMLElement('<request type="settle"></request>');
+        $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="settle"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
         $this->add_merchant_details($options);
@@ -357,7 +357,7 @@ class Realex extends Gateway implements
     private function build_credit_request($money, $authorization, $options)
     {
         // build the xml object
-        $this->xml = new \SimpleXMLElement('<request type="rebate"></request>');
+        $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="rebate"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
         $this->add_merchant_details($options);
@@ -386,7 +386,7 @@ class Realex extends Gateway implements
     private function build_void_request($authorization, $options)
     {
         // build the xml object
-        $this->xml = new \SimpleXMLElement('<request type="void"></request>');
+        $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="void"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
         $this->add_merchant_details($options);
@@ -405,7 +405,7 @@ class Realex extends Gateway implements
     private function build_cancel_card_request($options = array())
     {
         // build the xml object
-        $this->xml = new \SimpleXMLElement('<request type="card-cancel-card"></request>');
+        $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="card-cancel-card"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
         $this->add_merchant_details($options);
@@ -427,7 +427,7 @@ class Realex extends Gateway implements
     private function build_new_card_request($creditcard, $options = array())
     {
         // build the xml object
-        $this->xml = new \SimpleXMLElement('<request type="card-new"></request>');
+        $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="card-new"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
         $this->add_merchant_details($options);
         $this->xml->addChild('orderid', $options['order_id']);
@@ -453,7 +453,7 @@ class Realex extends Gateway implements
     private function build_new_payer_request($options)
     {
         // build the xml object
-        $this->xml = new \SimpleXMLElement('<request type="payer-new"></request>');
+        $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="payer-new"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
         $this->add_merchant_details($options);
         $this->xml->addChild('orderid', $options['order_id']);
@@ -487,7 +487,7 @@ class Realex extends Gateway implements
     private function build_receipt_in_request($money, $options)
     {
         // build the xml object
-        $this->xml = new \SimpleXMLElement('<request type="receipt-in"></request>');
+        $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="receipt-in"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
         $this->add_merchant_details($options);
         $this->xml->addChild('orderid', $options['order_id']);
