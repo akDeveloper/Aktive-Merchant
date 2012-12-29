@@ -679,13 +679,13 @@ class Realex extends Gateway implements
         case '103':
             $message = ($this->in_test_mode($response)) ? $response_message : $this->messages['DECLINED'];
             break;
-        case preg_match("/^2[0-9][0-9]/", $result, $matches):
+        case (bool) preg_match("/^2[0-9][0-9]/", $result, $matches):
             $message = $this->messages['BANK_ERROR'];
             break;
-        case preg_match("/^3[0-9][0-9]/", $result, $matches):
+        case (bool) preg_match("/^3[0-9][0-9]/", $result, $matches):
             $message = $this->messages['REALEX_ERROR'];
             break;
-        case preg_match("/^5[0-9][0-9]/", $result, $matches):
+        case (bool) preg_match("/^5[0-9][0-9]/", $result, $matches):
             $message = $response_message;
             break;
         case '600':
