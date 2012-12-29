@@ -129,4 +129,12 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
     {
         return "TOKEN=EC%2d2KK82117LS1153937&TIMESTAMP=2012%2d10%2d04T00%3a33%3a10Z&CORRELATIONID=5d59521b7935a&ACK=Success&VERSION=63%2e0&BUILD=3881757";
     }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testFailAmount()
+    {
+       $this->gateway->amount('string');
+    }
 }
