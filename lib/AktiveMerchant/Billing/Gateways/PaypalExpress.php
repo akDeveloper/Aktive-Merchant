@@ -4,7 +4,10 @@
 
 namespace AktiveMerchant\Billing\Gateways;
 
+use AktiveMerchant\Billing\Exception;
 use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\Gateways\Paypal\PaypalCommon;
+use AktiveMerchant\Billing\Gateways\Paypal\PaypalExpressResponse;
 /**
  * Description of PaypalExpress
  *
@@ -12,8 +15,6 @@ use AktiveMerchant\Billing\Gateway;
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-require_once dirname(__FILE__) . "/paypal/PaypalCommon.php";
-require_once dirname(__FILE__) . "/paypal/PaypalExpressResponse.php";
 
 class PaypalExpress extends PaypalCommon
 {
@@ -52,7 +53,7 @@ class PaypalExpress extends PaypalCommon
 
         $cents = $money * 100;
         if (!is_numeric($money)) {
-            throw new Merchant_Billing_Exception('money amount must be an integer in cents.');
+            throw new Exception('money amount must be an integer in cents.');
         }
 
         return ($this->money_format() == 'cents') 
