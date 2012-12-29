@@ -766,6 +766,7 @@ class Realex extends Gateway implements
         $params['pasref'] = (string) $response->pasref;
         $params['order_id'] = (string) $response->orderid;
         $params['batch_id'] = (string) $response->batchid;
+        $params['account'] = (string) $response->account;
         $params['timestamp'] = (int) $attribs['timestamp'];
 
         return $params;
