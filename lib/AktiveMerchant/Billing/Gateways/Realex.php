@@ -238,7 +238,7 @@ class Realex extends Gateway implements
     public function unstore($reference, $options=array())
     {
         $this->required_options('order_id', $options);
-        $this->build_cancel_card_request($reference, $options);
+        $this->build_cancel_card_request($options);
         return $this->commit('recurring');
     }
 
@@ -402,7 +402,7 @@ class Realex extends Gateway implements
         $this->add_comments($options);
     }
 
-    private function build_cancel_card_request($creditcard, $options = array())
+    private function build_cancel_card_request($options = array())
     {
         // build the xml object
         $this->xml = new \SimpleXMLElement('<request type="card-cancel-card"></request>');
