@@ -12,8 +12,8 @@ use AktiveMerchant\Billing\Response;
 /**
  * Realex
  *
- * @package default
- * @author Simon Hamilton
+ * @package Aktive-Merchant
+ * @author  Simon Hamilton
  */
 class Realex extends Gateway implements 
     Interfaces\Charge, 
@@ -115,7 +115,7 @@ class Realex extends Gateway implements
     public function authorize($money, CreditCard $creditcard, $options=array())
     {
         $this->required_options('order_id', $options);
-        $this->build_purchase_or_authorization_request('authorisation', $money, $creditcard, $options);
+        $this->build_purchase_or_authorization_request('authorization', $money, $creditcard, $options);
         return $this->commit();
     }
 
@@ -686,7 +686,7 @@ class Realex extends Gateway implements
             $message = $this->messages['REALEX_ERROR'];
             break;
         case preg_match("/^5[0-9][0-9]/", $result, $matches):
-            $message = $reponse_message;
+            $message = $response_message;
             break;
         case '600':
         case '601':
