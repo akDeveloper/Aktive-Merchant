@@ -346,7 +346,7 @@ class Realex extends Gateway implements
 
         $digest = array(
             $this->timestamp,
-            $options['merchant']['login'],
+            $options['login'],
             $options['order_id']
         );
 
@@ -373,7 +373,7 @@ class Realex extends Gateway implements
 
         $digest = array(
             $this->timestamp,
-            $options['merchant']['login'],
+            $options['login'],
             $options['order_id'],
             $this->amount($money),
             $currency
@@ -394,7 +394,7 @@ class Realex extends Gateway implements
 
         $digest = array(
             $this->timestamp,
-            $options['merchant']['login'],
+            $options['login'],
             $options['order_id']
         );
 
@@ -415,7 +415,7 @@ class Realex extends Gateway implements
 
         $digest = array(
             $this->timestamp,
-            $options['merchant']['login'],
+            $options['login'],
             $options['user']['id'],
             $options['payment_method']
         );
@@ -438,7 +438,7 @@ class Realex extends Gateway implements
 
         $digest = array(
             $this->timestamp,
-            $options['merchant']['login'],
+            $options['login'],
             $options['order_id'],
             '',
             '',
@@ -474,7 +474,7 @@ class Realex extends Gateway implements
 
         $digest = array(
             $this->timestamp,
-            $options['merchant']['login'],
+            $options['login'],
             $options['order_id'],
             '',
             '',
@@ -505,7 +505,7 @@ class Realex extends Gateway implements
 
         $digest = array(
             $this->timestamp,
-            $options['merchant']['login'],
+            $options['login'],
             $options['order_id'],
             $this->amount($money),
             $currency,
