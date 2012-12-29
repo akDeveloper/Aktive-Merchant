@@ -448,6 +448,7 @@ class Realex extends Gateway implements
         );
 
         $this->add_signed_digest($digest, $options);
+        $this->add_comments($options);
     }
 
     private function build_new_payer_request($options)
