@@ -68,7 +68,7 @@ class CentinelResponse extends Response
      */
     private function customerDeclinedEnrollment()
     {
-        return $this->params['pares_status'] == 'A' && empty($this->params['cavv']);
+        return isset($this->params['pares_status']) && $this->params['pares_status'] == 'A' && empty($this->params['cavv']);
     }
 
     private function isCmpiLookupResponse()
