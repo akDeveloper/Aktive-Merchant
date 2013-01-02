@@ -4,8 +4,9 @@
 
 namespace AktiveMerchant\Billing\Gateways;
 
-use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\Gateways\Centinel\CentinelResponse;
 use AktiveMerchant\Billing\Response;
 
 /**
