@@ -406,7 +406,7 @@ XML;
         return $options;
     }
 
-    private function success_from($action, $response)
+    protected function success_from($action, $response)
     {
         if ($action == 'authorize' || $action == 'purchase' || $action == 'capture') {
             $transaction_status = $this->TRANSACTION_STATUS_MAPPINGS['accepted'];
