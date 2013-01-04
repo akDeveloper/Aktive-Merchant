@@ -305,7 +305,7 @@ XML;
 
     private function commit($action, $options)
     {
-        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
+        $url = $this->isTest() ? static::TEST_URL : static::LIVE_URL;
         $data = $this->ssl_post($url, $this->xml, $options);
         $response = $this->parse($data);
 
