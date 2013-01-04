@@ -4,6 +4,7 @@ namespace AktiveMerchant\Billing\Gateways;
 
 use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Country;
 
 /**
@@ -259,7 +260,7 @@ XML;
 
     private function add_address($options)
     {
-        $country = AktiveMerchant\Common\Country::find($options['country'])
+        $country = Country::find($options['country'])
             ->code('numeric');
         
         $this->xml .= <<<XML
@@ -309,7 +310,7 @@ XML;
         $data = $this->ssl_post($url, $this->xml, $options);
         $response = $this->parse($data);
 
-        $r = new \AktiveMerchant\Billing\Response($this->success_from($action, $response),
+        $r = new Response($this->success_from($action, $response),
                 $this->message_from($response),
                 $response,
                 $this->options_from($response)
