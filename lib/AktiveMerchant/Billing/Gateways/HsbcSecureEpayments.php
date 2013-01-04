@@ -35,7 +35,7 @@ class HsbcSecureEpayments extends Gateway implements Interfaces\Charge
         '7' => 'U'
     );
 
-    private $TRANSACTION_STATUS_MAPPINGS = array(
+    protected $TRANSACTION_STATUS_MAPPINGS = array(
         'accepted' => "A",
         'declined' => "D",
         'fraud' => "F",
