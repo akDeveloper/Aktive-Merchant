@@ -260,8 +260,7 @@ XML;
 
     private function add_address($options)
     {
-        $country = Country::find($options['country'])
-            ->code('numeric');
+        $country = Country::find($options['country'])->getCode('numeric');
         
         $this->xml .= <<<XML
       <Address>
