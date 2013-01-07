@@ -4,6 +4,8 @@
 
 namespace AktiveMerchant\Billing;
 
+use AktiveMerchant\Common\Options;
+
 /**
  * Response to a merchant request.
  *
@@ -16,7 +18,14 @@ class Response
 
     protected $success;
     protected $message;
+
+    /**
+     * Available parameters returned by gateway response.
+     * 
+     * @var Options
+     */
     protected $params;
+
     protected $test;
     protected $authorization;
     protected $avs_result;
@@ -44,7 +53,7 @@ class Response
     {
         $this->success = $success;
         $this->message = $message;
-        $this->params  = $params;
+        $this->params  = new Options($params);
 
         $this->test          = isset($options['test'])          ? $options['test'] : false;
         $this->authorization = isset($options['authorization']) ? $options['authorization'] : null;
@@ -55,7 +64,7 @@ class Response
 
     public function __get($name)
     {
-        return isset($this->params[$name]) ? $this->params[$name] : null;
+        return $this->params[$name];
     }
 
     /**
@@ -127,7 +136,7 @@ class Response
 
     /**
      *
-     * @return array All additional parameters available for this response 
+     * @return Options All additional parameters available for this response 
      */
     public function params()
     {
