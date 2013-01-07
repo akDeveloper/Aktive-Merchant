@@ -2,7 +2,7 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-namespace AktiveMerchant\Billing\Gateways;
+namespace AktiveMerchant\Billing\Gateways\Paypal;
 
 use AktiveMerchant\Billing\Response;
 /**
@@ -25,6 +25,7 @@ class PaypalExpressResponse extends Response
         $first_name = $this->params['FIRSTNAME'];
         $middle_name = isset($this->params['MIDDLENAME']) ? $this->params['MIDDLENAME'] : null;
         $last_name = $this->params['LASTNAME'];
+        
         return implode(' ', array_filter(array($first_name, $middle_name, $last_name)));
     }
 
@@ -68,5 +69,3 @@ class PaypalExpressResponse extends Response
     }
 
 }
-
-?>
