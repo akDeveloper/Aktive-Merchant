@@ -2,9 +2,8 @@
 
 namespace AktiveMerchant\Billing\Gateways;
 
-require_once 'payflow/PayflowCommon.php';
-require_once 'payflow/PayflowResponse.php';
-
+use AktiveMerchant\Billing\Gateways\Payflow\PayflowCommon;
+use AktiveMerchant\Billing\Gateways\Payflow\PayflowResponse;
 use AktiveMerchant\Billing\Interfaces as Interfaces;
 
 class Payflow extends PayflowCommon

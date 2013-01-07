@@ -6,7 +6,7 @@ namespace AktiveMerchant\Billing\Gateways;
 
 use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
-use AktiveMerchant\Billing\Response;
+use AktiveMerchant\Billing\Gateways\Centinel\CentinelResponse;
 
 /**
  * Description of Centinel gateway
@@ -15,8 +15,6 @@ use AktiveMerchant\Billing\Response;
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-require_once dirname(__FILE__) . "/centinel/CentinelResponse.php";
-
 class Centinel extends Gateway
 {
     const TEST_URL = 'https://centineltest.cardinalcommerce.com/maps/txns.asp';

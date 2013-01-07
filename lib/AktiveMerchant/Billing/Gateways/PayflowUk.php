@@ -13,5 +13,3 @@ class PayflowUk extends Payflow
     public static $display_name = 'PayPal Payflow Pro (UK)';
 
 }
-
-?>

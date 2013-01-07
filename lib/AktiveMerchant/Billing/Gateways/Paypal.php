@@ -4,13 +4,12 @@
 
 namespace AktiveMerchant\Billing\Gateways;
 
-require_once __DIR__ . "/paypal/PaypalCommon.php";
-
 use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Exception;
 use AktiveMerchant\Billing\Response;
+use AktiveMerchant\Billing\Gateways\Paypal\PaypalCommon;
 use AktiveMerchant\Common\Country;
 
 
