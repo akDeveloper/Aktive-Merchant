@@ -17,54 +17,59 @@ class PaypalExpressResponse extends Response
 
     public function email()
     {
-        return $this->params['EMAIL'];
+        return $this->paramOrNull('EMAIL');
     }
 
     public function name()
     {
-        $first_name = $this->params['FIRSTNAME'];
-        $middle_name = isset($this->params['MIDDLENAME']) ? $this->params['MIDDLENAME'] : null;
-        $last_name = $this->params['LASTNAME'];
+        $first_name = $this->paramOrNull('FIRSTNAME');
+        $middle_name = $this->paramOrNull('MIDDLENAME');
+        $last_name = $this->paramOrNull('LASTNAME');
         return implode(' ', array_filter(array($first_name, $middle_name, $last_name)));
     }
 
     public function token()
     {
-        return $this->params['TOKEN'];
+        return $this->paramOrNull('TOKEN');
     }
 
     public function payer_id()
     {
-        return $this->params['PAYERID'];
+        return $this->paramOrNull('PAYERID');
     }
 
     public function payer_country()
     {
-        return $this->params['SHIPTOCOUNTRYNAME'];
+        return $this->paramOrNull('SHIPTOCOUNTRYNAME');
     }
 
     public function amount()
     {
-        return $this->params['AMT'];
+        return $this->paramOrNull('AMT');
     }
 
     public function address()
     {
         return array(
-            'name' => $this->params['SHIPTONAME'],
-            'address1' => $this->params['SHIPTOSTREET'],
-            'city' => $this->params['SHIPTOCITY'],
-            'state' => $this->params['SHIPTOSTATE'],
-            'zip' => $this->params['SHIPTOZIP'],
-            'country_code' => $this->params['SHIPTOCOUNTRYCODE'],
-            'country' => $this->params['SHIPTOCOUNTRYNAME'],
-            'address_status' => $this->params['ADDRESSSTATUS']
+            'name' => $this->paramOrNull('SHIPTONAME'),
+            'address1' => $this->paramOrNull('SHIPTOSTREET'),
+            'city' => $this->paramOrNull('SHIPTOCITY'),
+            'state' => $this->paramOrNull('SHIPTOSTATE'),
+            'zip' => $this->paramOrNull('SHIPTOZIP'),
+            'country_code' => $this->paramOrNull('SHIPTOCOUNTRYCODE'),
+            'country' => $this->paramOrNull('SHIPTOCOUNTRYNAME'),
+            'address_status' => $this->paramOrNull('ADDRESSSTATUS')
         );
     }
 
     public function note()
     {
-        return isset($this->params['NOTE']) ? $this->params['NOTE'] : null;
+        return $this->param('NOTE');
+    }
+
+    private function paramOrNull($name)
+    {
+        return isset($this->params[$name]) ? $this->params[$name] : null;
     }
 
 }
