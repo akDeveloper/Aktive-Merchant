@@ -1,7 +1,7 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-namespace AktiveMerchant\Billing\Gateways;
+namespace AktiveMerchant\Billing\Gateways\Payflow;
 
 use AktiveMerchant\Billing\Response;
 
