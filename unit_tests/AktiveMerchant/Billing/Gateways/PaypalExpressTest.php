@@ -87,7 +87,7 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
 
     private function successful_setup_authorize_request()
     {
-        return "METHOD=SetExpressCheckout&PAYMENTREQUEST_0_AMT=100.00&RETURNURL=http%3A%2F%2Fexample.com&CANCELURL=http%3A%2F%2Fexample.com&EMAIL=buyer%40email.com&PAYMENTREQUEST_0_PAYMENTACTION=Authorization&USER=x&PWD=y&VERSION=63.0&SIGNATURE=z&PAYMENTREQUEST_0_CURRENCYCODE=EUR";
+        return "PAYMENTREQUEST_0_SHIPTOSTREET=1234+Penny+Lane&PAYMENTREQUEST_0_SHIPTOCITY=Jonsetown&PAYMENTREQUEST_0_SHIPTOSTATE=NC&PAYMENTREQUEST_0_SHIPTOCOUNTRYCODE=US&PAYMENTREQUEST_0_SHIPTOZIP=23456&METHOD=SetExpressCheckout&PAYMENTREQUEST_0_AMT=100.00&RETURNURL=http%3A%2F%2Fexample.com&CANCELURL=http%3A%2F%2Fexample.com&EMAIL=buyer%40email.com&USER=x&PWD=y&VERSION=94.0&SIGNATURE=z&PAYMENTREQUEST_0_CURRENCYCODE=EUR&PAYMENTREQUEST_0_PAYMENTACTION=Authorization";
     }
 
     private function successful_setup_authorize_response()
@@ -122,7 +122,7 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
 
     private function successful_setup_purchase_request()
     {
-        return "METHOD=SetExpressCheckout&PAYMENTREQUEST_0_AMT=100.00&RETURNURL=http%3A%2F%2Fexample.com&CANCELURL=http%3A%2F%2Fexample.com&EMAIL=buyer%40email.com&PAYMENTREQUEST_0_PAYMENTACTION=Sale&USER=x&PWD=y&VERSION=63.0&SIGNATURE=z&PAYMENTREQUEST_0_CURRENCYCODE=EUR";
+        return "PAYMENTREQUEST_0_SHIPTOSTREET=1234+Penny+Lane&PAYMENTREQUEST_0_SHIPTOCITY=Jonsetown&PAYMENTREQUEST_0_SHIPTOSTATE=NC&PAYMENTREQUEST_0_SHIPTOCOUNTRYCODE=US&PAYMENTREQUEST_0_SHIPTOZIP=23456&METHOD=SetExpressCheckout&PAYMENTREQUEST_0_AMT=100.00&RETURNURL=http%3A%2F%2Fexample.com&CANCELURL=http%3A%2F%2Fexample.com&EMAIL=buyer%40email.com&USER=x&PWD=y&VERSION=94.0&SIGNATURE=z&PAYMENTREQUEST_0_CURRENCYCODE=EUR&PAYMENTREQUEST_0_PAYMENTACTION=Sale";
     }
 
     private function successful_setup_purchase_response()
@@ -136,5 +136,98 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
     public function testFailAmount()
     {
        $this->gateway->amount('string');
+    }
+
+    public function testSuccessCapture()
+    {
+        $options = array(
+            'complete_type' => 'Complete'
+        );
+        $amount = 46;
+        $authorization = '2HR32227AR146560V';
+
+        $this->mock_request($this->successful_capture_response());
+
+        $response = $this->gateway->capture($amount, $authorization, $options);
+
+        $request_body = $this->request->getBody();
+        $this->assertEquals(
+            $this->successful_capture_request(),
+            $request_body
+        );
+
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+    }
+
+    private function successful_capture_request()
+    {
+        return "METHOD=DoCapture&AMT=46.00&AUTHORIZATIONID=2HR32227AR146560V&COMPLETETYPE=Complete&USER=x&PWD=y&VERSION=94.0&SIGNATURE=z&PAYMENTREQUEST_0_CURRENCYCODE=EUR";
+    }
+
+    private function successful_capture_response()
+    {
+        return "AUTHORIZATIONID=2HR32227AR146560V&TIMESTAMP=2012%2d12%2d30T00%3a10%3a28Z&CORRELATIONID=63805563cde4f&ACK=Success&VERSION=94%2e0&BUILD=4181146&TRANSACTIONID=36D84615R8185650E&PARENTTRANSACTIONID=2HR32227AR146560V&TRANSACTIONTYPE=expresscheckout&PAYMENTTYPE=instant&ORDERTIME=2012%2d12%2d30T00%3a10%3a26Z&AMT=46%2e00&FEEAMT=1%2e63&TAXAMT=0%2e00&CURRENCYCODE=EUR&PAYMENTSTATUS=Completed&PENDINGREASON=None&REASONCODE=None&PROTECTIONELIGIBILITY=Eligible&PROTECTIONELIGIBILITYTYPE=ItemNotReceivedEligible%2cUnauthorizedPaymentEligible";
+    }
+
+    public function testSuccessCredit()
+    {
+        $options = array(
+            'refund_type' => 'Full'
+        );
+        $amount = 46;
+        $identification = '36D84615R8185650E';
+
+        $this->mock_request($this->successful_credit_response());
+
+        $response = $this->gateway->credit($amount, $identification, $options);
+
+        $request_body = $this->request->getBody();
+        $this->assertEquals(
+            $this->successful_credit_request(),
+            $request_body
+        );
+
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+    }
+
+    private function successful_credit_request()
+    {
+        return "REFUNDTYPE=Full&TRANSACTIONID=36D84615R8185650E&METHOD=RefundTransaction&USER=x&PWD=y&VERSION=94.0&SIGNATURE=z&PAYMENTREQUEST_0_CURRENCYCODE=EUR";
+    }
+
+    private function successful_credit_response()
+    {
+        return "REFUNDTRANSACTIONID=98R99007WE150102S&FEEREFUNDAMT=1%2e33&GROSSREFUNDAMT=46%2e00&NETREFUNDAMT=44%2e67&CURRENCYCODE=USD&TOTALREFUNDEDAMOUNT=46%2e00&TIMESTAMP=2012%2d12%2d30T00%3a13%3a21Z&CORRELATIONID=b906e26f283d&ACK=Success&VERSION=94%2e0&BUILD=4181146&REFUNDSTATUS=Instant&PENDINGREASON=None";
+    }
+
+
+    public function testSuccessVoid()
+    {
+        $authorization = '0NT65969AG744642L';
+
+        $this->mock_request($this->successful_void_response());
+
+        $response = $this->gateway->void($authorization);
+
+        $request_body = $this->request->getBody();
+        $this->assertEquals(
+            $this->successful_void_request(),
+            $request_body
+        );
+
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+    }
+
+    private function successful_void_request()
+    {
+        return "METHOD=DoVoid&AUTHORIZATIONID=0NT65969AG744642L&USER=x&PWD=y&VERSION=94.0&SIGNATURE=z&PAYMENTREQUEST_0_CURRENCYCODE=EUR";
+    }
+
+    private function successful_void_response()
+    {
+        return "AUTHORIZATIONID=0NT65969AG744642L&TIMESTAMP=2012%2d12%2d30T00%3a16%3a17Z&CORRELATIONID=931e3b8291997&ACK=Success&VERSION=94%2e0&BUILD=4181146";
     }
 }

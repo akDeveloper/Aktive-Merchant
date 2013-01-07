@@ -125,5 +125,3 @@ class PaypalCommon extends Gateway
     }
 
 }
-
-?>
