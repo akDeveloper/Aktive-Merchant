@@ -277,11 +277,20 @@ class PaypalExpress extends PaypalCommon
 
         if (isset($options['items'])) {
             foreach ($options['items'] as $key => $item) {
-                $params["L_PAYMENTREQUEST_0_NAME$key"]   = $item['name'];
-                $params["L_PAYMENTREQUEST_0_DESC$key"]   = $item['description'];
-                $params["L_PAYMENTREQUEST_0_AMT$key"]    = $this->amount($item['unit_price']);
-                $params["L_PAYMENTREQUEST_0_QTY$key"]    = $item['quantity'];
-                $params["L_PAYMENTREQUEST_0_NUMBER$key"] = $item['id'];
+                if(isset($item['name']))
+                    $params["L_PAYMENTREQUEST_0_NAME$key"]   = $item['name'];
+
+                if(isset($item['description']))
+                    $params["L_PAYMENTREQUEST_0_DESC$key"]   = $item['description'];
+                
+                if(isset($item['unit_price']))
+                    $params["L_PAYMENTREQUEST_0_AMT$key"]    = $this->amount($item['unit_price']);
+                
+                if(isset($item['quantity']))
+                    $params["L_PAYMENTREQUEST_0_QTY$key"]    = $item['quantity'];
+                
+                if(isset($item['id']))
+                    $params["L_PAYMENTREQUEST_0_NUMBER$key"] = $item['id'];
             }
         }
 
