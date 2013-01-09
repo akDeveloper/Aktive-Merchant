@@ -4,6 +4,7 @@ namespace AktiveMerchant\Billing\Gateways;
 
 use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Country;
 
 /**
@@ -34,7 +35,7 @@ class HsbcSecureEpayments extends Gateway implements Interfaces\Charge
         '7' => 'U'
     );
 
-    private $TRANSACTION_STATUS_MAPPINGS = array(
+    protected $TRANSACTION_STATUS_MAPPINGS = array(
         'accepted' => "A",
         'declined' => "D",
         'fraud' => "F",
@@ -259,8 +260,7 @@ XML;
 
     private function add_address($options)
     {
-        $country = AktiveMerchant\Common\Country::find($options['country'])
-            ->code('numeric');
+        $country = Country::find($options['country'])->getCode('numeric');
         
         $this->xml .= <<<XML
       <Address>
@@ -305,11 +305,11 @@ XML;
 
     private function commit($action, $options)
     {
-        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
+        $url = $this->isTest() ? static::TEST_URL : static::LIVE_URL;
         $data = $this->ssl_post($url, $this->xml, $options);
         $response = $this->parse($data);
 
-        $r = new \AktiveMerchant\Billing\Response($this->success_from($action, $response),
+        $r = new Response($this->success_from($action, $response),
                 $this->message_from($response),
                 $response,
                 $this->options_from($response)
@@ -406,7 +406,7 @@ XML;
         return $options;
     }
 
-    private function success_from($action, $response)
+    protected function success_from($action, $response)
     {
         if ($action == 'authorize' || $action == 'purchase' || $action == 'capture') {
             $transaction_status = $this->TRANSACTION_STATUS_MAPPINGS['accepted'];

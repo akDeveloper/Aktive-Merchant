@@ -4,7 +4,7 @@
 
 namespace AktiveMerchant\Billing\Gateways;
 
-use namespace AktiveMerchant\Billing\Gateways\Centinel;
+use AktiveMerchant\Billing\Gateways\Centinel;
 
 /**
  * Extension of Centinel gateway that connects to the
