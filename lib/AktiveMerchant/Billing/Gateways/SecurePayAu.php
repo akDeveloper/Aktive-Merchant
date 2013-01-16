@@ -8,6 +8,7 @@ use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
+use AktiveMerchant\Billing\Gateways\SecurePayAu\ExtendedDateTime;
 
 /**
  * Description of Example
@@ -68,14 +69,13 @@ class SecurePayAu extends Gateway implements
       static private $PERIODIC_TYPES = array(
         'add_triggered'    => 4,
         'remove_triggered' => null,
-        'trigger'          => ninull
+        'trigger'          => null
       );
 
       static private $SUCCESS_CODES = [ '00', '08', '11', '16', '77' ];
 
-      function __construct($options = []) {
+      function __construct($options = array()) {
         $this->required_options(array('login', 'password'), $options);
-        parent::__construct();
       }
 
       function purchase($money, CreditCard $credit_card, $options = array()) {
@@ -89,7 +89,7 @@ class SecurePayAu extends Gateway implements
         //  commit_periodic(build_periodic_item(:trigger, money, nil, options))
         //end
 
-      function authorize($money, $credit_card, $options = array()) {
+      function authorize($money, CreditCard $credit_card, $options = array()) {
         $this->required_options('order_id', $options);
         return $this->commit('authorization', $this->build_purchase_request($money, $credit_card, $options));
       }
@@ -118,7 +118,7 @@ class SecurePayAu extends Gateway implements
 
       function unstore($identification, $options = array()) {
         $options['billing_id'] = $identification;
-        return $this->commit_periodic($this->build_periodic_item('remove_triggered', $options['amount'], null, $options));
+        return $this->commit_periodic($this->build_periodic_item('remove_triggered', @$options['amount'], null, $options));
       }
 
       private
@@ -136,9 +136,9 @@ class SecurePayAu extends Gateway implements
 
       function build_purchase_request($money, $credit_card, $options) {
 
-        $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?>');
+        $xml = $this->build_base_xml();
         $xml->addChild("amount", $this->amount($money));
-        $xml->addChild("currency", $options['currency'] ?: $this->currency($money));
+        $xml->addChild("currency", @$options['currency'] ?: $this->currency($money));
         $xml->addChild("purchaseOrderNo", preg_replace("/[ ']/", "", $options["order_id"]));
 
         $this->addCCInfo($xml, $credit_card);
@@ -146,41 +146,52 @@ class SecurePayAu extends Gateway implements
         return $xml->asXML();
       }
 
+      function currency() {
+        return self::$default_currency;
+      }
+
+      function build_base_xml() {
+        return $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><SecurePayMessage></SecurePayMessage>');
+      }
+
       function build_reference_request($money, $reference) {
-        $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?>');
+        $xml = $this->build_base_xml();
 
         list($transaction_id, $order_id, $preauth_id, $original_amount) = explode("*", $reference);
 
         $xml->addChild("amount", $money ? $this->amount($money) : $original_amount);
-        $xml->addChild("currency", $options['currency'] ?: $this->currency($money));
+        $xml->addChild("currency", @$options['currency'] ?: $this->currency($money));
         $xml->addChild("txnID", $transaction_id);
         $xml->addChild("purchaseOrderNo", $order_id);
         $xml->addChild("preauthID", $preauth_id);
         return $xml->asXML();
       }
 
+      function request_timeout() {
+        return self::$request_timeout;
+      }
+
       function addBaseMessages($xml) {
-        $pay = $xml->addChild("SecurePayMessage");
-        $messageInfo = $pay->addChild("MessageInfo");
+        $messageInfo = $xml->addChild("MessageInfo");
         $messageInfo->addChild("messageID", substr($this->generateUniqueId(), 0, 30));
         $messageInfo->addChild("messageTimestamp", $this->generate_timestamp());
         $messageInfo->addChild("timeoutValue", $this->request_timeout());
         $messageInfo->addChild("apiVersion", self::API_VERSION);
 
-        $merchantInfo = $pay->addChild("MerchantInfo");
-        $merchantInfo->addChild("merchantID", $this->options['login']);
-        $merchantInfo->addChild("password", $this->options['password']);
+        $merchantInfo = $xml->addChild("MerchantInfo");
+        $merchantInfo->addChild("merchantID", @$this->options['login']);
+        $merchantInfo->addChild("password", @$this->options['password']);
 
-        return $pay;
+        return $xml;
       }
 
       function build_request($action, $body) {
-        $xml = new SimpleXMLElement;
+        $xml = $this->build_base_xml();
         
-        $pay = $this->addMessageAndMerchantInfo($xml);
+        $pay = $this->addBaseMessages($xml);
 
         $pay->addChild("RequestType", "Payment");
-        $payment = $this->addChild("Payment");
+        $payment = $pay->addChild("Payment");
 
         $txnList = $payment->addChild("TxnList");
         $txnList["count"] = 1;
@@ -207,7 +218,7 @@ class SecurePayAu extends Gateway implements
 
 
       function build_periodic_item($action, $money, $credit_card, $options) {
-        $xml = new SimpleXMLElement;
+        $xml = $this->build_base_xml();
         $xml->addChild("actionType", self::$PERIODIC_ACTIONS[$action]);
         $xml->addChild("clientID", $options['billing_id']);
 
@@ -222,7 +233,7 @@ class SecurePayAu extends Gateway implements
     }
 
       function build_periodic_request($body) {
-        $xml = new SimpleXMLElement;
+        $xml = $this->build_base_xml();
         $pay = $this->addBaseMessages($xml);
 
         $pay->addChild("RequestType", "Periodic");
@@ -256,16 +267,16 @@ class SecurePayAu extends Gateway implements
     }
 
     function isSuccess($response) {
-        return in_array($response["response_code"], self::SUCCESS_CODES);
+        return in_array(@$response["response_code"], self::$SUCCESS_CODES);
     }
 
 
       function authorization_from($response) {
-        return implode("*", array($response['txn_id'], $response['purchase_order_no'], $response['preauth_id'], $response['amount']));
+        return implode("*", array(@$response['txn_id'], @$response['purchase_order_no'], @$response['preauth_id'], @$response['amount']));
       }
 
       function message_from($response) {
-        return $response["response_text"] ?: $response['status_description'];
+        return @$response["response_text"] ?: @$response['status_description'];
       }
 
       function expdate($credit_card) {
@@ -273,13 +284,36 @@ class SecurePayAu extends Gateway implements
       }
 
       function parse($body) {
-        return new SimpleXMLElement($body);
+        $xml = simplexml_load_string(trim($body));
+        if(!$xml) {
+            $errors = array();
+            foreach(libxml_get_errors() as $error) {
+                $errors[] = $error->message;
+                throw new Exception(implode("\n\r", $errors));
+            }
+        }
+
+        $response = array();
+        foreach($xml->children() as $v) {
+            $this->parseElement($response, $v);
+        }
+        return $response;
+      }
+
+      function parseElement(&$response, $element) {
+        if($element->children()) {
+            foreach($element->children() as $child) {
+                $this->parseElement($response, $child);
+            }
+        } else {
+            $response[$this->underscore($element->getName())] = (string)$element;
+        }
       }
 
       function generate_timestamp() {
       # YYYYDDMMHHNNSSKKK000sOOO
-        $date = new DateTime;
-        return $date->format("%Y%d%m%H%M%S{$date->usec()}+000");
+        $date = new ExtendedDateTime;
+        return $date->format("YdmHMSu+000");
     }
 }
 
