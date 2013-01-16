@@ -74,7 +74,15 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
     { 
         $options = new Options($this->options);
 
-        $exists = Options::required('login, password', $options);
+        $this->assertTrue(Options::required('login, password', $options), "Required options should accept comma delimited string");
+        $this->assertTrue(Options::required(array('login', 'password'), $options), "Required options should accept array");
+    }
+
+    public function testRequiredArray()
+    {
+        $options = new Options($this->options);
+
+        $exists = Options::required(array("login", "password"), $options);
 
         $this->assertTrue($exists);
     }
@@ -87,6 +95,16 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
         $options = new Options($this->options);
 
         $exists = Options::required('pass', $options);       
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testFailRequiredArray()
+    {
+        $options = new Options($this->options);
+
+        $exists = Options::required(array('pass'), $options);       
     }
 
     /**
