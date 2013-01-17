@@ -297,7 +297,7 @@ abstract class Gateway
 
     protected function underscore($string)
     {
-      $word = preg_replace("/\\/", "/", $string);
+      $word = preg_replace('#\\\\#', "/", $string);
       $word = preg_replace('/([A-Z\d]+)([A-Z][a-z])/','\1_\2', $word);
       $word = preg_replace('/([a-z\d])([A-Z])/','\1_\2', $word);
       $word = strtr($word, array("-" => "_"));

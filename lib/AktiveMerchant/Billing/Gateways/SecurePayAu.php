@@ -267,16 +267,16 @@ class SecurePayAu extends Gateway implements
     }
 
     function isSuccess($response) {
-        return in_array(@$response["response_code"], self::$SUCCESS_CODES);
+        return in_array($response["response_code"], self::$SUCCESS_CODES);
     }
 
 
       function authorization_from($response) {
-        return implode("*", array(@$response['txn_id'], @$response['purchase_order_no'], @$response['preauth_id'], @$response['amount']));
+        return implode("*", array($response['txn_id'], $response['purchase_order_no'], $response['preauth_id'], $response['amount']));
       }
 
       function message_from($response) {
-        return @$response["response_text"] ?: @$response['status_description'];
+        return $response["response_text"] ?: $response['status_description'];
       }
 
       function expdate($credit_card) {
@@ -293,7 +293,7 @@ class SecurePayAu extends Gateway implements
             }
         }
 
-        $response = array();
+        $response = new Options;
         foreach($xml->children() as $v) {
             $this->parseElement($response, $v);
         }
