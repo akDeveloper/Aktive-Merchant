@@ -70,6 +70,8 @@ class Moneris extends Gateway
     # The display name of the gateway
     public static $display_name = 'Moneris Payment Gateway (eSelect Plus)';
 
+    public static $default_currency;
+
     private $options;
     private $post;
 
@@ -114,6 +116,8 @@ class Moneris extends Gateway
             $this->capture        = 'us_completion';
             $this->void           = 'us_purchasecorrection';
             $this->credit         = 'us_refund';
+
+            static::$default_currency = 'USD';
         } elseif($options['region'] == 'CA')  {
             $this->TEST_URL = self::CA_TEST_URL;
             $this->LIVE_URL = self::CA_LIVE_URL;
@@ -126,6 +130,8 @@ class Moneris extends Gateway
             $this->capture        = 'completion';
             $this->void           = 'purchasecorrection';
             $this->credit         = 'refund';
+
+            static::$default_currency = 'CAD';
         }
     }
 
