@@ -2,7 +2,7 @@
 
 namespace AktiveMerchant\Billing\Gateways\SecurePayAu;
 
-class ExtendedDateTime extends \DateTime {
+class DateTime extends \DateTime {
     /**
      * Returns new DateTime object.  Adds microtime for "now" dates
      * @param string $sTime
