@@ -8,7 +8,7 @@ use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
-use AktiveMerchant\Billing\Gateways\SecurePayAu\ExtendedDateTime;
+use AktiveMerchant\Billing\Gateways\SecurePayAu\DateTime;
 
 /**
  * Description of Example
@@ -312,7 +312,7 @@ class SecurePayAu extends Gateway implements
 
       function generate_timestamp() {
       # YYYYDDMMHHNNSSKKK000sOOO
-        $date = new ExtendedDateTime;
+        $date = new DateTime;
         return $date->format("YdmHMSu+000");
     }
 }
