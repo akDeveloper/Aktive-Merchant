@@ -9,6 +9,8 @@ use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Billing\Gateways\SecurePayAu\DateTime;
+use AktiveMerchant\Common\Options;
+
 
 /**
  * Description of Example
