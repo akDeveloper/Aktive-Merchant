@@ -15,12 +15,12 @@ class TestCase extends \PHPUnit_Framework_TestCase
 
     protected function assert_success($response)
     {
-        $this->assertTrue($response->success());
+        $this->assertTrue($response->success(), "Response should be successful but is not. Message was: {$response->message()}");
     }
 
     protected function assert_failure($response)
     {
-        $this->assertFalse($response->success());
+        $this->assertFalse($response->success(), "Response should be failure but is not. Message was: {$response->message()}");
     }
 
     protected function mock_request($answer)

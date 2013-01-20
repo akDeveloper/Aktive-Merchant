@@ -281,11 +281,7 @@ abstract class Gateway
         );
 
         $request->setBody($data);
-
-        $request->setAdapter($this->getAdapter());
-
         if (true == $request->send()) {
-            
             return $request->getResponseBody();
         }
     }

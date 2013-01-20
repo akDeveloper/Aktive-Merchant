@@ -228,7 +228,8 @@ XML;
     $this->assertNotNull($response = $this->gateway->store($this->credit_card, array('billing_id' => 'test3', 'amount' => 123)));
     $this->assertInstanceOf('\AktiveMerchant\Billing\Response', $response);
     $this->assertEquals("Successful", $response->message());
-    $this->assertEquals('test3', $response->params['client_id']);
+    $params = $response->params();
+    $this->assertEquals('test3', $params['client_id']);
   }
 
   function test_successful_unstore() {
@@ -237,7 +238,8 @@ XML;
     $this->assertNotNull($response = $this->gateway->unstore('test2'));
     $this->assertInstanceOf('\AktiveMerchant\Billing\Response', $response);
     $this->assertEquals("Successful", $response->message());
-    $this->assertEquals('test2', $response->params['client_id']);
+    $params = $response->params();
+    $this->assertEquals('test2', $params['client_id']);
   }
 
   function test_successful_triggered_payment() {
