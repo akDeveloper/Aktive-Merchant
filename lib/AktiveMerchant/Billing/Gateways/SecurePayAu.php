@@ -7,6 +7,7 @@ namespace AktiveMerchant\Billing\Gateways;
 use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Billing\StoredCreditCard;
 use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Billing\Gateways\SecurePayAu\DateTime;
 use AktiveMerchant\Common\Options;
@@ -35,7 +36,7 @@ class SecurePayAu extends Gateway implements
       public static $test_periodic_url = 'https://test.securepay.com.au/xmlapi/periodic';
       public static $live_periodic_url = 'https://api.securepay.com.au/xmlapi/periodic';
 
-      public static $supported_countries = ['AU'];
+      public static $supported_countries = array('AU');
       public static $supported_cardtypes = ['visa', 'master', 'american_express', 'diners_club', 'jcb'];
 
       # The homepage URL of the gateway
@@ -48,6 +49,8 @@ class SecurePayAu extends Gateway implements
 
       public static $money_format = 'cents';
       public static $default_currency = 'AUD';
+
+      protected $options = array();
 
       # 0 Standard Payment
       # 4 Refund
@@ -78,11 +81,17 @@ class SecurePayAu extends Gateway implements
 
       function __construct($options = array()) {
         $this->required_options(array('login', 'password'), $options);
+        $this->options = $options;
       }
 
       function purchase($money, CreditCard $credit_card, $options = array()) {
         $this->required_options('order_id', $options);
-        return $this->commit('purchase', $this->build_purchase_request( $money, $credit_card, $options));
+        if($credit_card instanceof StoredCreditCard) {
+            $options["billing_id"] = $credit_card->billing_id();
+            return $this->commit_periodic($this->build_periodic_item('trigger', $money, null, $options));
+        } else {
+            return $this->commit('purchase', $this->build_purchase_request( $money, $credit_card, $options));
+        }
     }
 
         //If not CC. Not sure why we aren't supporting this.
@@ -127,10 +136,10 @@ class SecurePayAu extends Gateway implements
 
     function addCCInfo($xml, $credit_card) {
       $ccInfo = $xml->addChild("CreditCardInfo");
-      $ccInfo->addChild("cardNumber", $credit_card->number);
+      $ccInfo->addChild("cardNumber", @$credit_card->number);
       $ccInfo->addChild("expiryDate", $this->expdate($credit_card));
 
-      if($credit_card->verification_value) {
+      if(@$credit_card->verification_value) {
           $ccInfo->addChild("cvv", $credit_card->verification_value);
       }
       return $ccInfo;
@@ -159,13 +168,14 @@ class SecurePayAu extends Gateway implements
       function build_reference_request($money, $reference) {
         $xml = $this->build_base_xml();
 
-        list($transaction_id, $order_id, $preauth_id, $original_amount) = explode("*", $reference);
+        @list($transaction_id, $order_id, $preauth_id, $original_amount) = explode("*", $reference);
+
+        $original_amount = $original_amount ?: 0;
 
         $xml->addChild("amount", $money ? $this->amount($money) : $original_amount);
-        $xml->addChild("currency", @$options['currency'] ?: $this->currency($money));
         $xml->addChild("txnID", $transaction_id);
         $xml->addChild("purchaseOrderNo", $order_id);
-        $xml->addChild("preauthID", $preauth_id);
+        if($preauth_id) $xml->addChild("preauthID", $preauth_id);
         return $xml->asXML();
       }
 
@@ -181,8 +191,8 @@ class SecurePayAu extends Gateway implements
         $messageInfo->addChild("apiVersion", self::API_VERSION);
 
         $merchantInfo = $xml->addChild("MerchantInfo");
-        $merchantInfo->addChild("merchantID", @$this->options['login']);
-        $merchantInfo->addChild("password", @$this->options['password']);
+        $merchantInfo->addChild("merchantID", $this->options['login']);
+        $merchantInfo->addChild("password", $this->options['password']);
 
         return $xml;
       }
@@ -198,13 +208,29 @@ class SecurePayAu extends Gateway implements
         $txnList = $payment->addChild("TxnList");
         $txnList["count"] = 1;
 
-        $txn = $txnList->addChild("Txn");
+        $txn = $txnList->addChild("Txn", new \SimpleXMLElement($body));
         $txn["ID"] = 1;
         $txn->addChild("txnType", self::$TRANSACTIONS[$action]);
         $txn->addChild("txnSource", 23);
-        $txn->addChild($body);
 
-        return $txn->asXML();
+        $dom = dom_import_simplexml($xml);
+        $this->importChildNodes($dom->getElementsByTagName("Txn")->item(0), $body);
+
+        return $dom->ownerDocument->saveXML();
+    }
+
+    function importChildNodes($node, $xml) {
+        
+        $body = dom_import_simplexml(new \SimpleXMLElement($xml));
+        foreach($body->childNodes as $child) {
+            $node->appendChild($node->ownerDocument->importNode($child, true));
+        }
+    }
+
+
+    function ssl_post($endpoint, $data, $options = array()) {
+        $options = $options + array("headers" => array("Content-Type: text/xml;charset=ISO-8859-1"));
+        return parent::ssl_post($endpoint, $data, $options);
     }
 
     function commit($action, $request) {
@@ -224,7 +250,7 @@ class SecurePayAu extends Gateway implements
         $xml->addChild("actionType", self::$PERIODIC_ACTIONS[$action]);
         $xml->addChild("clientID", $options['billing_id']);
 
-        $this->addCCInfo($xml, $credit_card);
+        if(!$credit_card instanceof StoredCreditCard) $this->addCCInfo($xml, $credit_card);
         $xml->addChild("amount", $this->amount($money));
 
         if(self::$PERIODIC_TYPES[$action]) {
@@ -246,9 +272,12 @@ class SecurePayAu extends Gateway implements
 
         $item = $list->addChild("PeriodicItem");
         $item["ID"] = 1;
-        $item->addChild($body);
 
-        return $xml->asXML();
+        $dom = dom_import_simplexml($xml);
+        $this->importChildNodes($dom->getElementsByTagName("PeriodicItem")->item(0), $body);
+
+
+        return $dom->ownerDocument->saveXML();
     }
 
     function commit_periodic($request) {
@@ -282,7 +311,7 @@ class SecurePayAu extends Gateway implements
       }
 
       function expdate($credit_card) {
-        return $this->cc_format($credit_card->month, 'two_digits')."/".$this->cc_format($credit_card->year, "two_digits");
+        return $this->cc_format(@$credit_card->month, 'two_digits')."/".$this->cc_format(@$credit_card->year, "two_digits");
       }
 
       function parse($body) {
@@ -315,7 +344,7 @@ class SecurePayAu extends Gateway implements
       function generate_timestamp() {
       # YYYYDDMMHHNNSSKKK000sOOO
         $date = new DateTime;
-        return $date->format("YdmHMSu+000");
+        return $date->format("YdmGis000000");
     }
 }
 
