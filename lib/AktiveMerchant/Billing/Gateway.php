@@ -216,7 +216,6 @@ abstract class Gateway
         );
         $request->setBody($data);
         if (true == $request->send()) {
-
             return $request->getResponseBody();
         }
     }
@@ -295,10 +294,13 @@ abstract class Gateway
         return false;
     }
 
-    private function underscore($string)
+    protected function underscore($string)
     {
-        return strtolower(preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $string));
+      $word = preg_replace('#\\\\#', "/", $string);
+      $word = preg_replace('/([A-Z\d]+)([A-Z][a-z])/','\1_\2', $word);
+      $word = preg_replace('/([a-z\d])([A-Z])/','\1_\2', $word);
+      $word = strtr($word, array("-" => "_"));
+      return strtolower($word);
     }
-            
 
 }

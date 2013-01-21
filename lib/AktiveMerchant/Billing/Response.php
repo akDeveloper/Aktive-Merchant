@@ -53,7 +53,7 @@ class Response
     {
         $this->success = $success;
         $this->message = $message;
-        $this->params  = new Options($params);
+        $this->params  = $params instanceof Options ? $params : new Options($params);
 
         $this->test          = isset($options['test'])          ? $options['test'] : false;
         $this->authorization = isset($options['authorization']) ? $options['authorization'] : null;

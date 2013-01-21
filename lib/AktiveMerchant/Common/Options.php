@@ -117,12 +117,14 @@ class Options implements \ArrayAccess, \Iterator
      *
      * @throws AktiveMerchant\Billing\Exception If a required parameter is missing
      *
-     * @param string comma seperated parameters. Represent keys of $options array
+     * @param string|array comma seperated parameters. Represent keys of $options array
      * @param array  the key/value hash of options to compare with
      */
     public static function required($required, $options = array())
     {
-        $required = explode(',', $required);
+        if(!is_array($required)) {
+            $required = explode(',', $required);
+        }
 
         foreach ($required as $r) {
 
