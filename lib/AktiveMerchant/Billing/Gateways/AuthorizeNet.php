@@ -472,7 +472,7 @@ XML;
     {
         $url = $this->isTest() ? self::TEST_ARB_URL : self::LIVE_ARB_URL;
 
-        $headers = array("Content-type: text/xml");
+        $headers = array("Content-Type: text/xml");
 
         $data = $this->ssl_post(
             $url, 
