@@ -16,6 +16,11 @@ class Base
     /**
      * @var string
      */
+    const VERSION = "1.0.6";
+
+    /**
+     * @var string
+     */
     public static $gateway_mode;
 
     /**
@@ -54,17 +59,17 @@ class Base
      * for AuthorizeNet gateway will be authorize_net
      *
      * <code>
-     * AktiveMerchant\Billing\Base::gateway('authorize_net');
+     *      AktiveMerchant\Billing\Base::gateway('authorize_net');
      * </code>
      * 
-     * @param  string $name the underscored name of the gateway
-     * @param  array  $options
+     * @param  string $name    the underscored name of the gateway.
+     * @param  array  $options the options for gateway construct.
      *
      * @return AktiveMerchant\Billing\Gateway the gateway instance
      */
     public static function gateway($name=null, $options = array())
     {
-        $gateway = "\\AktiveMerchant\\Billing\\Gateways\\" . self::_camelize($name);
+        $gateway = "\\AktiveMerchant\\Billing\\Gateways\\" . self::camelize($name);
 
         if (class_exists($gateway))
             return new $gateway($options);
@@ -72,7 +77,7 @@ class Base
         throw new Exception("Unable to load class: {$gateway}.");
     }
 
-    private static function _camelize($string)
+    private static function camelize($string)
     {
         return str_replace(' ', '', ucwords(str_replace('_', ' ', $string)));
     }
@@ -80,5 +85,3 @@ class Base
         
 
 }
-
-?>
