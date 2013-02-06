@@ -1,5 +1,5 @@
 <?php
-require_once('../../lib/merchant.php');
+require_once('../../autoload.php');
 require_once('../login.php');
 
 use AktiveMerchant\Billing\Base;
@@ -23,7 +23,7 @@ $cc = new CreditCard( array(
 );
 
 $options = array(
-    'order_id' => 'REF' . $gateway->generate_unique_id(),
+    'order_id' => 'REF' . $gateway->generateUniqueId(),
     'description' => 'Autorize.net Test Transaction',
     'address' => array(
         'address1' => '1234 Street',
@@ -38,7 +38,6 @@ try {
     } else {
         $response = $gateway->authorize("0.01", $cc, $options);
         echo $response->message()."\n";
-        print_r($response);
     }
 
 } catch (Exception $e) {
