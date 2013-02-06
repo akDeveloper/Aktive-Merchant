@@ -10,6 +10,8 @@ use AktiveMerchant\Http\Request;
 use AktiveMerchant\Billing\Exception;
 use AktiveMerchant\Common\CurrencyCode;
 use AktiveMerchant\Http\RequestInterface;
+use AktiveMerchant\Http\AdapterInterface;
+use AktiveMerchant\Http\Adapter\cUrl;
 use AktiveMerchant\Common\Options;
 
 /**
@@ -74,12 +76,21 @@ abstract class Gateway
     
     private $debit_cards = array('switch', 'solo');
     
+    /**
+     * Request instance.
+     * 
+     * @var RequestInterface
+     * @access protected
+     */
     protected $request;
-
-    public function setRequest(RequestInterface $request)
-    {
-        $this->request = $request;
-    }
+    
+    /**
+     * Adapter to use for request.
+     * 
+     * @var AdapterInterface
+     * @access protected
+     */
+    protected $adapter;
 
     public function money_format()
     {
@@ -167,6 +178,38 @@ abstract class Gateway
         return in_array($this->card_brand($creditcard), $this->debit_cards);
     }
 
+    public function setRequest(RequestInterface $request)
+    {
+        $this->request = $request;
+    }
+
+    /**
+     * Gets the adapter to execute the request.
+     * Defaulr is cUrl. 
+     * 
+     * @access public
+     * @return AdapterInterface
+     */
+    public function getAdapter()
+    {
+        $this->adapter = $this->adapter ?: new cUrl();
+
+        return $this->adapter;
+    }
+
+    /**
+     * Sets a custom adapter to perform the request.
+     * Adapter must implements AdaperInterface.
+     * 
+     * @param  AdapterInterface $adapter 
+     * @access public
+     * @return void
+     */
+    public function setAdapter(AdapterInterface $adapter)
+    {
+        $this->adapter = $adapter;
+    }
+
     /**
      * Send an HTTPS GET request to a remote server, and return the response.
      * 
@@ -174,7 +217,7 @@ abstract class Gateway
      * @param string $data Body to include with the request 
      * @param array $options Additional options for the request (see {@link Merchant_Connection::request()})
 	 * @return string Response from server
-     * @throws Merchant_Billing_Exception If the request fails at the HTTP layer
+     * @throws AktiveMerchant\Billing\Exception If the request fails at the HTTP layer
      */
     protected function ssl_get($endpoint, $data, $options = array())
     {
@@ -188,7 +231,7 @@ abstract class Gateway
      * @param string $data Body to include with the request 
      * @param array $options Additional options for the request (see {@link Merchant_Connection::request()})
 	 * @return string Response from server
-     * @throws Merchant_Billing_Exception If the request fails at the HTTP layer
+     * @throws AktiveMerchant\Billing\Exception If the request fails at the HTTP layer
      */
     protected function ssl_post($endpoint, $data, $options = array())
     {
@@ -214,9 +257,13 @@ abstract class Gateway
             $method, 
             $options
         );
-        $request->setBody($data);
-        if (true == $request->send()) {
 
+        $request->setBody($data);
+
+        $request->setAdapter($this->getAdapter());
+
+        if (true == $request->send()) {
+            
             return $request->getResponseBody();
         }
     }

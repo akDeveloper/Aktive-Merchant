@@ -5,6 +5,7 @@
 namespace AktiveMerchant\Mock;
 
 use AktiveMerchant\Http\RequestInterface;
+use AktiveMerchant\Http\AdapterInterface;
 
 /**
  * Request Mock class 
@@ -26,6 +27,8 @@ class Request implements RequestInterface
     
     protected $body;
     
+    protected $adapter;
+    
     public function setUrl($url)
     {
         $this->url = $url;
@@ -46,7 +49,7 @@ class Request implements RequestInterface
         return $this->method;
     }
     
-    public function setHeaders($headers) 
+    public function setHeaders(array $headers) 
     {
         $this->headers = $headers;
     }
@@ -69,5 +72,10 @@ class Request implements RequestInterface
     public function getResponseBody()
     {
         
+    }
+
+    public function setAdapter(AdapterInterface $adapter)
+    {
+        $this->adapter = $adapter;
     }
 }
