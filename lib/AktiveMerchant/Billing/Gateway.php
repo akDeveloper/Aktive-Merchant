@@ -73,9 +73,7 @@ abstract class Gateway
      * @var string
      */   
     public static $display_name;
-    
-    private $debit_cards = array('switch', 'solo');
-    
+     
     /**
      * Request instance.
      * 
@@ -92,6 +90,8 @@ abstract class Gateway
      */
     protected $adapter;
 
+    private $debit_cards = array('switch', 'solo');
+    
     public function money_format()
     {
         $class = get_class($this);
@@ -138,6 +138,12 @@ abstract class Gateway
         return in_array($card_type, $this->supported_cardtypes());
     }
 
+    /**
+     * Checks if gateway is in test mode. 
+     * 
+     * @access public
+     * @return boolean
+     */
     public function isTest()
     {
         return Base::$gateway_mode == 'test';
@@ -167,17 +173,30 @@ abstract class Gateway
     protected function card_brand($source)
     {
         $result = isset($source->brand) ? $source->brand : $source->type;
+        
         return strtolower($result);
     }
 
     public function requires_start_date_or_issue_number(CreditCard $creditcard)
     {
         $card_band = $this->card_brand($creditcard);
-        if (empty($card_band))
+
+        if (empty($card_band)) {
+            
             return false;
+        }
+
         return in_array($this->card_brand($creditcard), $this->debit_cards);
     }
 
+    /**
+     * Sets the request instance.
+     * Usefull for testing purposes.
+     * 
+     * @param  RequestInterface $request 
+     * @access public
+     * @return void
+     */
     public function setRequest(RequestInterface $request)
     {
         $this->request = $request;
@@ -199,7 +218,7 @@ abstract class Gateway
 
     /**
      * Sets a custom adapter to perform the request.
-     * Adapter must implements AdaperInterface.
+     * Adapter must implements AdapterInterface.
      * 
      * @param  AdapterInterface $adapter 
      * @access public
@@ -269,13 +288,27 @@ abstract class Gateway
     }
 
     
-    // Utils
+    /* -(  Utils  ) -------------------------------------------------------- */
 
+    /**
+     * Returns a unique identifier. 
+     * 
+     * @access public
+     * @since  Method available since Release 1.0.0
+     * @return string
+     */
     public function generateUniqueId()
     {
         return substr(uniqid(rand(), true), 0, 10);
     }
 
+    /**
+     * Returns a unique identifier. 
+     * 
+     * @access public
+     * @deprecated Method deprecated in Release 1.0.0
+     * @return string
+     */
     public function generate_unique_id()
     {
         trigger_error('generate_unique_id method is deprecated. Use generateUniqueId');
@@ -299,18 +332,34 @@ abstract class Gateway
         return rtrim($string, "& ");
     }
 
+    /**
+     * required_options 
+     * 
+     * @param string comma seperated parameters. Represent keys of $options array
+     * @param array  the key/value hash of options to compare with
+     * @access protected
+     * @return boolean
+     */
     protected function required_options($required, $options = array())
     {
         return Options::required($required, $options);
     }
 
     /**
-     * CreditCardFormatting
+     * Formats values from a credit card.
+     *
+     * Used to format mont or year values to 2 or 4 digit numbers.
+     * 
+     * @param  integer $number  The number to format
+     * @param  string  $options 'two_digits' or 'four_digits'
+     * @access protected
+     * @return void
      */
     protected function cc_format($number, $options)
     {
-        if (empty($number))
+        if (empty($number)) {
             return '';
+        }
 
         switch ($options) {
             case 'two_digits':
@@ -327,9 +376,12 @@ abstract class Gateway
     }
     
     /**
-     * Numeric Currency Codes
-     *
-     * Return numeric represantation of ISO 4217 currency code.
+     * Lookup for numeric currency codes and returns numeric represantation
+     * of ISO 4217 currency code.
+     * 
+     * @param  string $code 
+     * @access protected
+     * @return string|false
      */
     protected function currency_lookup($code)
     {
