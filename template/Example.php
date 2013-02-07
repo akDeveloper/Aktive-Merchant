@@ -27,24 +27,17 @@ class Example extends Gateway implements
     const LIVE_URL = 'https://example.com/live';
 
     /**
-     * Money format supported by this gateway.
-     * Can be 'dollars' or 'cents'
-     *
-     * @var string Money format 'dollars' | 'cents'
+     * {@inheritdoc}
      */
     public static $money_format = 'dollars';
 
     /**
-     * The countries supported by the gateway as 2 digit ISO country codes.
-     *
-     * @var array
+     * {@inheritdoc}
      */
-    public static $supported_countries = array('US', 'GR');
+    public static $supported_countries = array();
 
     /**
-     * The card types supported by the payment gateway
-     *
-     * @var array
+     * {@inheritdoc}
      */
     public static $supported_cardtypes = array(
         'visa',
@@ -56,23 +49,17 @@ class Example extends Gateway implements
     );
 
     /**
-     * The homepage URL of the gateway
-     *
-     * @var string
+     * {@inheritdoc}
      */
     public static $homepage_url = 'http://www.example.net';
 
     /**
-     * The display name of the gateway
-     *
-     * @var string
+     * {@inheritdoc}
      */
     public static $display_name = 'New Gateway';
 
     /**
-     * The currency supported by the gateway as ISO 4217 currency code.
-     *
-     * @var string The ISO 4217 currency code
+     * {@inheritdoc}
      */
     public static $default_currency = 'USD';
 
@@ -84,7 +71,7 @@ class Example extends Gateway implements
     private $options;
 
     /**
-     *
+     * Contains the main body of the request.
      *
      * @var array
      */
@@ -109,16 +96,7 @@ class Example extends Gateway implements
     }
 
     /**
-     * Binds the given amount to customer creditcard
-     *
-     * creditcard is not charged yet. a capture action required for charging the
-     * creditcard.
-     *
-     * @param number     $money
-     * @param CreditCard $creditcard
-     * @param array      $options
-     *
-     * @return Response
+     * {@inheritdoc}
      */
     public function authorize($money, CreditCard $creditcard, $options=array())
     {
@@ -131,12 +109,7 @@ class Example extends Gateway implements
     }
 
     /**
-     *
-     * @param  number     $money
-     * @param  CreditCard $creditcard
-     * @param  array      $options
-     *
-     * @return Response
+     * {@inheritdoc}
      */
     public function purchase($money, CreditCard $creditcard, $options=array())
     {
@@ -149,12 +122,7 @@ class Example extends Gateway implements
     }
 
     /**
-     *
-     * @param  number $money
-     * @param  string $authorization (unique value received from authorize action)
-     * @param  array  $options
-     *
-     * @return Response
+     * {@inheritdoc}
      */
     public function capture($money, $authorization, $options = array())
     {
@@ -165,11 +133,7 @@ class Example extends Gateway implements
     }
 
     /**
-     *
-     * @param  string $authorization
-     * @param  array  $options
-     *
-     * @return Response
+     * {@inheritdoc}
      */
     public function void($authorization, $options = array())
     {
@@ -210,15 +174,15 @@ class Example extends Gateway implements
      *
      * Each of these keys must have an address array like:
      * <code>
-     * $address['name']
-     * $address['company']
-     * $address['address1']
-     * $address['address2']
-     * $address['city']
-     * $address['state']
-     * $address['country']
-     * $address['zip']
-     * $address['phone']
+     *      $address['name']
+     *      $address['company']
+     *      $address['address1']
+     *      $address['address2']
+     *      $address['city']
+     *      $address['state']
+     *      $address['country']
+     *      $address['zip']
+     *      $address['phone']
      * </code>
      * common pattern for address is
      * <code>

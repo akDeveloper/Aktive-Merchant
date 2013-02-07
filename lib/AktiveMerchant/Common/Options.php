@@ -115,10 +115,12 @@ class Options implements \ArrayAccess, \Iterator
     /**
      * Checks if keys in $required parameter exist in the given $options array. 
      *
-     * @throws AktiveMerchant\Billing\Exception If a required parameter is missing
+     * @throws \InvalidArgumentException If a required parameter is missing
      *
      * @param string comma seperated parameters. Represent keys of $options array
      * @param array  the key/value hash of options to compare with
+     *
+     * @return boolean
      */
     public static function required($required, $options = array())
     {

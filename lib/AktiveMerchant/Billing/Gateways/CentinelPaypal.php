@@ -16,4 +16,6 @@ use AktiveMerchant\Billing\Gateways\Centinel;
 class CentinelPaypal extends Centinel 
 {
     const LIVE_URL = 'https://paypal.cardinalcommerce.com/maps/txns.asp';
+    
+    public static $display_name = 'Centinel 3D Secure for Paypal';
 }
