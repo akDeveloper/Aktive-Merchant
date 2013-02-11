@@ -1,8 +1,8 @@
 # Aktive Merchant for PHP
 
-This project is a php port of Ruby's [Active Merchant](http://github.com/Shopify/active_merchant) library.
+This project is a PHP port of [Active Merchant](http://github.com/Shopify/active_merchant) library from Ruby.
 
-The aim is to develop a PHP application to includes payments gateway under a common interface.
+The aim is to develop a PHP application to includes payment gateways under common interfaces.
 
 ## Supported Gateways
 
@@ -24,55 +24,14 @@ The aim is to develop a PHP application to includes payments gateway under a com
 * cUrl
 * SimpleXML
 
-## Usage
+## Documentations
 
-    require_once('path/to/lib/autoload.php');
-    // or require_once('path/to/vendor/autoload.php') if you use composer
-    
-    use AktiveMerchant\Billing\Base;
-    use AktiveMerchant\Billing\CreditCard;
-    
-    Base::mode('test'); # Remove this on production mode
+* [Basic usage](https://github.com/akDeveloper/Aktive-Merchant/wiki/Usage)
+* Creating a gateway
 
-    try {
+## Contributing
 
-      $gateway = new AktiveMerchant\Billing\Gateways\YourPaymentGateway( array(
-        'login' => 'login_id',
-        'password' => 'password'
-      ));
+You can fork this project and implement new gateways.
 
-      # Create a credit card object if you need it.
-      $credit_card = new CreditCard( array(
-        "first_name" => "John",
-        "last_name" => "Doe",
-        "number" => "41111111111111",
-        "month" => "12",
-        "year" => "2012",
-        "verification_value" => "123"
-        )
-      );
-
-      # Extra options for transaction
-      $options = array(
-        'order_id' => 'REF' . $gateway->generate_unique_id(),
-        'description' => 'Test Transaction',
-        'address' => array(
-          'address1' => '1234 Street',
-          'zip' => '98004',
-          'state' => 'WA'
-        )
-      );
-
-      if ( $credit_card->isValid() ) {
-
-        # Authorize transaction
-        $response = $gateway->authorize('100', $credit_card, $options);
-        if ( $response->success() ) {
-          echo 'Success Authorize';
-        } else {
-          echo $response->message();
-        }
-      }
-    } catch (Exception $e) {
-      echo $e->getMessage();
-    }
+Be sure that you checkout the `develop` branch, add your gateway and make your Pull Requests to
+`develop` branch.
