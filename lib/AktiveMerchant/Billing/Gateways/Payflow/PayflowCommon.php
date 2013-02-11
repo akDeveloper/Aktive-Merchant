@@ -183,7 +183,7 @@ XML;
                 break;
 
             case $nodeName == 'ExtData':
-                $parsed[$node->attributes()->Name] = $node->attributes()->Value;
+                $parsed[(string)$node->attributes()->Name] = (string)$node->attributes()->Value;
                 break;
 
             default:
