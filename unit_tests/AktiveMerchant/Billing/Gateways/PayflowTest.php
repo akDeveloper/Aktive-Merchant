@@ -104,6 +104,7 @@ class PayflowTest extends AktiveMerchant\TestCase
             <Message>Approved</Message>
             <PNRef>VTHD55395864</PNRef>
             <OrigResult>0</OrigResult>
+            <ExtData Name="LASTNAME" Value="Gonzalez"></ExtData>
          </TransactionResult>
       </TransactionResults>
    </ResponseData>
