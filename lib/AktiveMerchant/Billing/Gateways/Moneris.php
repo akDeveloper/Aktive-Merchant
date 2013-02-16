@@ -32,9 +32,8 @@ use AktiveMerchant\Common\Options;
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
- * @license http://www.opensource.org/licenses/mit-license.php
+ * @license MIT {@link http://opensource.org/licenses/mit-license.php}
  */
-
 class Moneris extends Gateway 
 {
     const US_TEST_URL = 'https://esplusqa.moneris.com/gateway_us/servlet/MpgRequest';
