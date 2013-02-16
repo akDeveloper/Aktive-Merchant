@@ -171,17 +171,18 @@ class AuthorizeNet extends Gateway implements
     }
 
     /**
-     *
-     * @param number     $money
-     * @param CreditCard $creditcard
-     * @param array      $options
+     * {@inheritdoc}
+     * Optional $options are:
+     *  - 'occurrences' Number of billing occurrences or payments for the 
+     *                  subscription. Default is 9999 for a no end date 
+     *                  (an ongoing subscription).
      */
     public function recurring($money, CreditCard $creditcard, $options=array())
     {
         $options = new Options($options);
 
         Options::required(
-            'length, unit, start_date, occurrences, billing_address',
+            'frequency, period, start_date, billing_address',
             $options
         );
 
@@ -189,6 +190,14 @@ class AuthorizeNet extends Gateway implements
             'first_name, last_name', 
             $options['billing_address']
         );
+
+        if (null == $options->occurrences) {
+            $options->occurrences = '9999';
+        }
+        
+        if ( null == $options->trial_occurrences) {
+            $options->trial_occurrences = 0;
+        }
 
         $amount = $this->amount($money);
 
@@ -566,12 +575,12 @@ XML;
       <name>Subscription of {$options['billing_address']['first_name']} {$options['billing_address']['last_name']}</name>
       <paymentSchedule>
         <interval>
-          <length>{$options['length']}</length>
-          <unit>{$options['unit']}</unit>
+          <length>{$options['frequency']}</length>
+          <unit>{$options['period']}</unit>
         </interval>
         <startDate>{$options['start_date']}</startDate>
         <totalOccurrences>{$options['occurrences']}</totalOccurrences>
-        <trialOccurrences>0</trialOccurrences>
+        <trialOccurrences>{$options['trial_occurrences']}</trialOccurrences>
       </paymentSchedule>
       <amount>$amount</amount>
       <trialAmount>0</trialAmount>
