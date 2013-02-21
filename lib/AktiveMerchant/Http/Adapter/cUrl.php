@@ -198,7 +198,8 @@ class cUrl implements AdapterInterface
             //close connection when it has finished, not pooled for reuse
             CURLOPT_FORBID_REUSE    => 1,
             // Do not use cached connection
-            CURLOPT_FRESH_CONNECT   => 1
+            CURLOPT_FRESH_CONNECT   => 1,
+            CURLOPT_SSLVERSION      => 3
         );
 
         $config = $this->map_config($request->getConfig());
