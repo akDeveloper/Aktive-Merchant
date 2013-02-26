@@ -79,10 +79,55 @@ try {
         echo '<pre>';
         print_r($response);
         echo '</pre>';
+    } elseif ( isset($_GET['recurring']) ) {
+        $options = array(
+            'return_url' => 'http://127.0.0.1/Aktive-Merchant/test/paypal_express/index.php',
+            'cancel_return_url' => 'http://127.0.0.1/Aktive-Merchant/test/paypal_express/index.php?cancel=1',
+            'desc' =>'Golden plan subscription',
+            'items' => array(
+                array(
+                    'name' => 'Golden Plan',
+                    'description' => 'Golden plan subscription',
+                    'unit_price' => 30,
+                    'quantity' => 1,
+                    'id' => '1245345'
+                ),
+            ),
+            'billing_address' => array(
+                'address1' => '1234 Penny Lane',
+                'city' => 'Jonsetown',
+                'state' => 'NC',
+                'country' => 'US',
+                'zip' => '23456'
+            ),
+            'ip' => '127.0.0.1',
+        );
+        $amount = $_POST['amount'];
+        $startdate = new \DateTime("{$_POST['year']}-{$_POST['month']}-{$_POST['day']}");
+
+        $response = $gateway->setupRecurring($amount, $options);
+
+        if ($response->success()) {
+            die ( header('Location: '. $gateway->urlForToken( $response->token() )) );
+        } else {
+            echo $response->message();
+        }
+
+        echo '<pre>';
+        //print_r($response);
+        print_r($startdate);
+        echo '</pre>';
+    } elseif ( isset($_GET['details']) ) {
+
+        $response = $gateway->getRecurringDetails('I-BGKDETHHBHU1');
+
+        echo '<pre>';
+        print_r($response);
+        echo '</pre>';
     } elseif (isset( $_GET['token'] ) ) {
 
-        $response = $gateway->get_details_for( $_GET['token'], $_GET['PayerID']);
-
+        //$response = $gateway->get_details_for( $_GET['token'], $_GET['PayerID']);
+        
         /**
          * You can modify transaction amount according to paypal ship address
          * or even render a form to allow customer choose shipping methods and
@@ -92,13 +137,41 @@ try {
          * make sure you have store somewhere token and payer_id values
          * ex. $_SESSION or Database
          */
-
-        $response = $gateway->authorize($response->amount());
+        $opt = array(
+            'start_date' => '2013-2-16T0:0:0',
+            'period' => 'Month',
+            'frequency' => 1,
+            'token' => $_GET['token'],
+            'description' => 'Golden plan subscription',
+            'items' => array(
+                array(
+                    'name' => 'Golden Plan',
+                    'description' => 'Golden plan subscription',
+                    'unit_price' => 30,
+                    'quantity' => 1,
+                    'id' => '1245345'
+                ),
+            ),
+            'billing_address' => array(
+                'address1' => '1234 Penny Lane',
+                'city' => 'Jonsetown',
+                'state' => 'NC',
+                'country' => 'US',
+                'zip' => '23456'
+            ),
+            'email' => 'john_doe@example.com'
+        );
+        
+        $response = $gateway->recurring(30, $opt);
+        
         if ( $response->success() ) {
             echo 'Success payment!';
         } else {
             echo $response->message();
         }
+        echo '<pre>';
+        print_r($response);
+        echo '</pre>';
     }
 } catch (Exception $exc) {
     echo $exc->getMessage();
@@ -137,6 +210,42 @@ try {
         <legend>Void</legend>
         <label for="authorization">Authorization</label>
         <input type="text" name="authorization" value="" id="authorization" />
+        <input type="submit" />
+    </fieldset>
+</form>
+
+<form method="post" action="/Aktive-Merchant/test/paypal_express/index.php?recurring=1">
+    <fieldset>
+        <legend>Recurring</legend>
+        <label for="amount">Amount</label>
+        <input type="text" name="amount" value="30" id="amount" />
+        <label for="startdate">Start Date</label>
+        <select id="year" name="year">
+            <?php $year = date("Y", time());?>
+            <?php for ($i = $year; $i < $year+10; $i++): ?>
+            <option value="<?php echo $i?>"><?php echo $i?></option>
+            <?php endfor; ?>
+        </select>
+        <select id="month" name="month">
+            <?php for ($i = 1; $i <= 12; $i++): ?>
+            <option value="<?php echo $i?>"><?php echo $i?></option>
+            <?php endfor; ?>
+        </select>
+        <select id="day" name="day">
+            <?php for ($i = 1; $i <= 31 ; $i++): ?>
+            <option value="<?php echo $i?>"><?php echo $i?></option>
+            <?php endfor; ?>
+        </select>
+        <label for="period">Billing Period</label>
+        <select id="period" name="period">
+            <option value="Day">Day</option>
+            <option value="Week">Week</option>
+            <option value="SemiMonth">Semi Month</option>
+            <option value="Month">Month</option>
+            <option value="Year">Year</option>
+        </select>
+        <label for="frequency">Frequency</label>
+        <input type="text" name="frequency" value="1" id="frequency" />
         <input type="submit" />
     </fieldset>
 </form>

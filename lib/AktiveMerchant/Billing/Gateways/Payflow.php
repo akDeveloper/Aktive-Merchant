@@ -73,7 +73,7 @@ XML;
     }
 
     private function build_credit_card_request($action, $money, $credit_card, $options) {
-        $default_currency = static::$default_currency;
+        $default_currency = self::$default_currency;
 
         $bodyXml = <<<XML
              <{$action}>

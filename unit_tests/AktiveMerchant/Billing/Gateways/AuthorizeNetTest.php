@@ -66,9 +66,9 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
                 'first_name' => 'John' . $this->gateway->generateUniqueId(),
                 'last_name' => 'Smith'
             ),
-            'length' => 11,
-            'unit' => 'months',
-            'start_date' => date("Y-m-d", time()),
+            'frequency' => 11,
+            'period' => 'months',
+            'start_date' => date("Y-m-d", strtotime('tomorrow')),
             'occurrences' => 1
         );
     }
@@ -219,7 +219,7 @@ class AuthorizeNetTest extends AktiveMerchant\TestCase
           <length>11</length>
           <unit>months</unit>
         </interval>
-        <startDate>'.date("Y-m-d", time()).'</startDate>
+        <startDate>'.date("Y-m-d", strtotime('tomorrow')).'</startDate>
         <totalOccurrences>1</totalOccurrences>
         <trialOccurrences>0</trialOccurrences>
       </paymentSchedule>

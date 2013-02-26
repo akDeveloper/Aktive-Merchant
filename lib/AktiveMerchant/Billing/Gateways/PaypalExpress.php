@@ -9,6 +9,7 @@ use AktiveMerchant\Billing\Gateways\Paypal\PaypalCommon;
 use AktiveMerchant\Billing\Gateways\Paypal\PaypalExpressResponse;
 use AktiveMerchant\Common\Country;
 use AktiveMerchant\Common\Address;
+use AktiveMerchant\Common\Options;
 /**
  * Description of PaypalExpress
  *
@@ -175,6 +176,55 @@ class PaypalExpress extends PaypalCommon
         return $this->commit('DoVoid'); 
     }
 
+    public function recurring($money, $options = array())
+    {
+        Options::required('start_date, period, frequency, token, description', $options);
+
+        $this->post = array();
+
+        $params = array(
+            'METHOD' => 'CreateRecurringPaymentsProfile',
+            'PROFILESTARTDATE' => $options['start_date'],
+            'BILLINGPERIOD' => $options['period'],
+            'BILLINGFREQUENCY' => $options['frequency'],
+            'AMT' => $this->amount($money),
+            'TOKEN' => urlencode(trim($options['token'])),
+            'DESC' => $options['description'],
+        );
+        
+        $this->add_address($options);
+
+        $this->post = array_merge(
+            $this->post, 
+            $params,
+            $this->get_optional_params($options)
+        );
+        
+        return $this->commit('CreateRecurringPaymentsProfile'); 
+
+    }
+
+    public function getRecurringDetails($profile_id)
+    {
+        $this->post = array();
+
+        $this->post['PROFILEID'] = $profile_id;
+        $this->post['METHOD'] = 'GetRecurringPaymentsProfileDetails';
+    
+        return $this->commit('GetRecurringPaymentsProfileDetails'); 
+    }
+
+    public function setupRecurring($money, $options = array())
+    {
+        
+        $this->post = array();
+        $this->post['L_BILLINGAGREEMENTDESCRIPTION0'] = $options['desc'];
+        $this->post['L_BILLINGTYPE0'] = 'RecurringPayments';
+
+        return $this->setup($money, 'Authorization', $options);
+
+    }
+
     /**
      * Setup Authorize and Purchase actions
      *
@@ -188,6 +238,7 @@ class PaypalExpress extends PaypalCommon
      */
     public function setupAuthorize($money, $options = array())
     {
+        $this->post = array();
         return $this->setup($money, 'Authorization', $options);
     }
 
@@ -200,6 +251,7 @@ class PaypalExpress extends PaypalCommon
      */
     public function setupPurchase($money, $options = array())
     {
+        $this->post = array();
         return $this->setup($money, 'Sale', $options);
     }
 
@@ -207,8 +259,6 @@ class PaypalExpress extends PaypalCommon
     {
 
         $this->required_options('return_url, cancel_return_url', $options);
-
-        $this->post = array();
 
         $params = array(
             'METHOD'               => 'SetExpressCheckout',
@@ -403,7 +453,7 @@ class PaypalExpress extends PaypalCommon
         );
         $this->post = array_merge($this->post, $params);
 
-        return $this->commit($this->urlize($this->post));
+        return $this->commit(null);
     }
 
     /**
@@ -425,7 +475,6 @@ class PaypalExpress extends PaypalCommon
         );
 
         if (   $this->post['METHOD'] == 'SetExpressCheckout' 
-            || $this->post['METHOD'] == 'GetExpressCheckoutDetails'
         ) {
             $params['PAYMENTREQUEST_0_PAYMENTACTION'] = $action;
         }

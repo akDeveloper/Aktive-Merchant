@@ -142,6 +142,8 @@ XML;
     {
         $url = $this->isTest() ? static::TEST_URL : static::LIVE_URL;
 
+        $this->getAdapter()->setOption(CURLOPT_SSLVERSION, 3);
+        
         $data = $this->ssl_post($url, $this->post_data($action), $parameters);
 
         $options = array('test' => $this->isTest());

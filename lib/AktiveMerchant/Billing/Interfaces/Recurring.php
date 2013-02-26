@@ -23,6 +23,11 @@ interface Recurring
     /**
      * Creates a profile using a valid credit card so can charge it in a given 
      * period of time.
+     * $options array must have following info:
+     *  - 'start_date' The date the subscription begins
+     *  - 'period'     Unit for billing during the subscription period. Varies 
+     *                 according gateway
+     *  - 'frequency'  Number of billing periods that make up one billing cycle
      *
      * @param number     $money      The amount to to charge
      * @param Creditcard $creditcard A creditcard instance with a valid number.
