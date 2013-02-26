@@ -150,8 +150,11 @@ abstract class Gateway
     }
 
     /**
-     * @throws AktiveMerchant\Billing\Exception
+     * Accepts the anount of money in base unit and returns cants or base unit 
+     * amount according to the @see $money_format propery.
      *
+     * @throws \InvalidArgumentException
+     * @param  $money The amount of money in base unit, not in cents.
      * @access public 
      * @return integer|float
      */
@@ -162,7 +165,7 @@ abstract class Gateway
 
         $cents = $money * 100;
         if (!is_numeric($money) || $money < 0) {
-            throw new Exception('money amount must be a positive Integer in cents.');
+            throw new \InvalidArgumentException('money amount must be a positive number.');
         }
         
         return ($this->money_format() == 'cents') 
