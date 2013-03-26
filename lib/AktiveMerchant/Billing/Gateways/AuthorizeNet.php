@@ -87,6 +87,8 @@ class AuthorizeNet extends Gateway implements
      */
     public function authorize($money, CreditCard $creditcard, $options = array())
     {
+        $this->post = array();
+        
         $options = new Options($options);
 
         $this->add_invoice($options);
@@ -108,6 +110,8 @@ class AuthorizeNet extends Gateway implements
      */
     public function purchase($money, CreditCard $creditcard, $options = array())
     {
+        $this->post = array();
+        
         $options = new Options($options);
 
         $this->add_invoice($options);
