@@ -86,7 +86,9 @@ class cUrl implements AdapterInterface
 
         curl_close($this->ch);
 
-        if ($curl_info['http_code'] != 200) {
+        if (   $curl_info['http_code'] < 200 
+            || $curl_info['http_code'] >= 500
+        ) {
             $ex = new Exception(
                 "HTTP Status #" 
                 . $curl_info['http_code']."\n"
