@@ -1,0 +1,426 @@
+<?php
+
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Interfaces as Interfaces;
+use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Billing\Response;
+use AktiveMerchant\Common\Options;
+use AktiveMerchant\Common\Address;
+use AktiveMerchant\Http\RequestInterface;
+
+/**
+ * Description of Fat Zebra payment gateway
+ *
+ * @category Gateways
+ * @package  Aktive-Merchant
+ * @author   Andreas Kollaros
+ * @license  MIT License http://www.opensource.org/licenses/mit-license.php
+ * @link     https://github.com/akDeveloper/Aktive-Merchant
+ */
+class FatZebra extends Gateway implements Interfaces\Recurring 
+{
+    const TEST_URL = 'https://gateway.sandbox.fatzebra.com.au/v1.0/';
+    const LIVE_URL = 'https://gateway.fatzebra.com.au/v1.0/';
+
+    /**
+     * {@inheritdoc}
+     */
+    public static $money_format = 'cents';
+
+    /**
+     * {@inheritdoc}
+     */
+    public static $supported_countries = array('AU');
+
+    /**
+     * {@inheritdoc}
+     */
+    public static $supported_cardtypes = array(
+        'visa',
+        'master',
+        'american_express',
+        'jcb',
+    );
+
+    /**
+     * {@inheritdoc}
+     */
+    public static $homepage_url = 'https://www.balancedpayments.com/';
+
+    /**
+     * {@inheritdoc}
+     */
+    public static $display_name = 'Fat Zebra';
+
+    /**
+     * {@inheritdoc}
+     */
+    public static $default_currency = 'AUD';
+
+    /**
+     * Additional options needed by gateway
+     *
+     * @var array
+     */
+    private $options;
+
+    /**
+     * Contains the main body of the request.
+     *
+     * @var array
+     */
+    private $post;
+
+    /**
+     * creates gateway instance from given options.
+     *
+     * @param array $options An array contains login parameters of merchant
+     *                       and optional currency. Login info keys are 'username'
+     *                       and 'token'
+     *
+     * @return Gateway The gateway instance.
+     */
+    public function __construct($options = array())
+    {
+        Options::required('username, token', $options);
+
+        if (isset($options['currency']))
+            self::$default_currency = $options['currency'];
+
+        $this->options = new Options($options);
+    }
+
+    /**
+     * Charge a credit card.
+     *
+     * @param number              $money      Amount of money to charge
+     * @param CreditCard | string $creditcard Credit card to charge or a token 
+     *                                        from a stored credit card
+     * @param array               $options    The order_id reference and coustomer ip.
+     * @access public
+     * @throws \AktiveMerchant\Billing\Exception If the request fails
+     * @return \AktiveMerchant\Billing\Response Response object
+     */
+    public function purchase($money, $creditcard, $options=array())
+    {
+        
+        Options::required('order_id, ip', $options);
+        
+        $this->post = array();
+        
+        $options = new Options($options);
+      
+        $this->add_invoice($options->order_id, $money);
+
+        if (is_string($creditcard)) {
+            Options::required('cvv', $options);
+            $this->post['card_token'] = $creditcard;
+        } else {
+            $this->add_creditcard($creditcard);
+        } 
+
+        $this->add_customer_data($options);
+
+        return $this->commit('purchases');
+    }
+
+    /**
+     *
+     * @param  number $money
+     * @param  string $identification The transaction_id returned from a 
+     *                                success purchase
+     * @param  array  $options        The unique reference for THIS transaction.
+     *                                NOTE. Not the reference from purchase
+     *                                transction.
+     *
+     * @return Response
+     */
+    public function credit($money, $identification, $options = array())
+    {
+        Options::required('order_id', $options);
+
+        $options = new Options($options);
+        
+        $this->post = array('transaction_id' => $identification);
+
+        $this->add_invoice($options, $money);
+        return $this->commit('refunds');
+    }
+
+    /**
+     * Stores a reference of a credit card.
+     * 
+     * @param CreditCard $creditcard 
+     * @access public
+     * @return void
+     */
+    public function store(CreditCard $creditcard)
+    {
+        $this->post = array();
+        
+        $this->add_creditcard($creditcard);
+        
+        return $this->commit('credit_cards');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function recurring($money, CreditCard $creditcard, $options=array())
+    {
+        Options::required('first_name, last_name, email, order_id', $options);
+        $options = new Options($options);
+
+        $this->add_customer_data($options);
+        $this->add_address($options);
+        $this->add_creditcard($creditcard, true);
+        $this->add_invoice($options->order_id);
+
+        return $this->commit('customers');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function updateRecurring($subscription_id, CreditCard $creditcard)
+    {
+    
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function cancelRecurring($subscription_id)
+    {
+    
+    }
+    
+    public function createPlan($money, $options)
+    {
+        Options::required('name, order_id, description', $options);
+        $options = new Options($options);
+
+        $this->post = array();
+
+        $this->add_invoice($options->order_id, $money);
+        
+        $this->post['name'] = $options->name;
+        $this->post['description'] = $options['description'];
+
+        return $this->commit('plans');
+
+    }
+
+    public function getPlans()
+    {
+        return $this->commit('plans', RequestInterface::METHOD_GET);
+    }
+
+    /* -(  Private methods  ) ---------------------------------------------- */
+
+    /**
+     * Options key can be 'shipping address' and 'billing_address' or 'address'
+     *
+     * Each of these keys must have an address array like:
+     * <code>
+     *      $address['name']
+     *      $address['company']
+     *      $address['address1']
+     *      $address['address2']
+     *      $address['city']
+     *      $address['state']
+     *      $address['country']
+     *      $address['zip']
+     *      $address['phone']
+     * </code>
+     * common pattern for address is
+     * <code>
+     * $billing_address = isset($options['billing_address'])
+     *      ? $options['billing_address']
+     *      : $options['address'];
+     * $shipping_address = $options['shipping_address'];
+     * </code>
+     *
+     * @param  array $options
+     *
+     * @return void
+     */
+    private function add_address($options)
+    {
+        $billing_address = $options->billing_address ?: $options->address;
+        $address = new Address($billing_address);
+
+        $address->map('city', 'city')
+            ->map('address1', 'address')
+            ->map('state', 'state')
+            ->map('country', 'country')
+            ->map('zip', 'postcode');
+
+        $this->post['address'] = $address->getMappedFields();
+    }
+    /**
+     * Customer data like e-mail, ip, web browser used for transaction etc
+     *
+     * @param Options $options Options must include the ip address of 
+     *                         customer.
+     */
+    private function add_customer_data($options)
+    {
+        $this->post['customer_ip'] = $options->ip;
+
+        if ($options->first_name && $options->last_name) {
+            $this->post['first_name'] = $options->first_name;
+            $this->post['last_name'] = $options->last_name;
+        }
+
+        if ($options->email) {
+            $this->post['email'] = $options->email;
+        }
+    }
+
+
+    /**
+     * Adds invoice info if exists.
+     *
+     * @param Options $options Options must include a unique order_id.
+     * @param number  $money   The amount of money if needed.
+     */
+    private function add_invoice($order_id, $money=null)
+    {
+        $this->post['reference'] = $order_id;
+        
+        if ($money) {
+            $this->post['amount'] = $this->amount($money);
+        }
+
+    }
+
+    /**
+     * Adds a CreditCard object
+     *
+     * @param CreditCard $creditcard
+     */
+    private function add_creditcard(CreditCard $creditcard, $nested = false)
+    {
+        
+        $post['card_holder'] = $creditcard->name();
+        $post['card_number'] = $creditcard->number;
+        $post['card_expiry'] = $this->cc_format($creditcard->month, 'two_digits')
+            . "/" 
+            . $this->cc_format($creditcard->year,'four_digits');
+        $post['cvv'] = $creditcard->verification_value;
+        
+        if ($nested) {
+            $this->post['card'] = $post;
+        } else {
+            $this->post = array_merge($this->post, $post);
+        }
+
+    }
+
+    /**
+     * Parse the raw data response from gateway
+     *
+     * @param string $body
+     */
+    private function parse($body)
+    {
+        $result = array();
+        $data = json_decode($body);
+
+        $response = is_array($data->response) ? new \stdClass : $data->response;
+        $response->errors = $data->errors;
+        $response->test = isset($data->test) ? $data->test : $respose->test;
+
+        if ($data->successful == true) {
+            if (   (isset($response->authorized) 
+                && $response->authorized == true)
+                || (isset($response->id) 
+                && $response->id !== null)
+            ) {
+                $response->success = true;
+                $response->authorization_id = isset($response->id) ? $response->id : $response->token;
+            }
+        } else {
+            $response->success = false;
+            $response->authorization_id = null;
+        }
+        
+        $response->message = isset($response->message) ? $response->message : $data->errors;
+
+        return (array) $response;
+
+    }
+
+    /**
+     *
+     * @param  string $action
+     * @param  number $money
+     * @param  array  $parameters
+     *
+     * @return Response
+     */
+    private function commit($action, $method=RequestInterface::METHOD_POST)
+    {
+        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
+
+        $url .= $action;
+        
+        $this->getAdapter()->setOption(CURLOPT_USERPWD, "{$this->options->username}:{$this->options->token}");
+
+        $body = empty($this->post) ? null : json_encode($this->post);
+
+        if ($method == RequestInterface::METHOD_POST){
+            $data = $this->ssl_post($url, $body);
+        } else {
+            $data = $this->ssl_get($url, $body);
+        }
+
+        $response = $this->parse($data);
+        
+        $test_mode = $this->isTest();
+
+        return new Response(
+            $this->success_from($response),
+            $this->message_from($response),
+            $response,
+            array(
+                'test' => $test_mode && $response['test'],
+                'authorization' => $response['authorization_id'],
+                'fraud_review' => null,
+                'avs_result' => null,
+                'cvv_result' => null
+            )
+	    );
+    }
+
+    /**
+     * Returns success flag from gateway response
+     *
+     * @param array $response
+     *
+     * @return string
+     */
+    private function success_from($response)
+    {
+        return $response['success'];
+    }
+
+    /**
+     * Returns message (error explanation  or success) from gateway response
+     *
+     * @param array $response
+     *
+     * @return string
+     */
+    private function message_from($response)
+    {
+        return is_array($response['message']) 
+            ? implode(', ',$response['message']) 
+            : $response['message'];
+    }
+}
