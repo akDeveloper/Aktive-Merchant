@@ -35,25 +35,26 @@ class GatewaySupport
         }, $this->supported_gateways);
         
         $max = max($max) + 1;
+        $max_column = 15;
         
         $print = "";
-        $print .=  "Name" . str_repeat(' ', $max - 4);
+        $print .=  "\033[1;36mName" . str_repeat(' ', $max - 4);
         foreach ($this->actions as $action) {
-            $print .=  $action . str_repeat(' ', $max - strlen($action));
+            $print .=  $action . str_repeat(' ', $max_column - strlen($action));
         }
-        $print .=  PHP_EOL;
+        $print .= "\033[0m". PHP_EOL;
+
         
         foreach ($this->supported_gateways as $gateway) {
-            $methods = array();
             $ref = new \ReflectionClass('AktiveMerchant\\Billing\\Gateways\\' . $gateway);
             $display_name = $ref->getStaticPropertyValue('display_name');
             $length = $max - strlen($display_name);
-            $print .=  $display_name . str_repeat(' ', $length > 0 ? $length : 0);
+            $print .= "\033[1;35m".  $display_name ."\033[0m". str_repeat(' ', $length > 0 ? $length : 0);
             foreach ($this->actions as $action) {
-                if (method_exists($gateway, $action)) {
-                    $print .=  "Y" . str_repeat(' ', $max - 1);
+                if ($ref->hasMethod($action)) {
+                    $print .=  "\033[1;32m O\033[0m" . str_repeat(' ', $max_column-2);
                 } else {
-                    $print .=  "N" . str_repeat(' ', $max - 1);
+                    $print .=  "\033[1;31m X\033[0m" . str_repeat(' ', $max_column-2);
                 }
             }
             $print .=  PHP_EOL;
