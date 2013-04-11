@@ -289,7 +289,7 @@ class FatZebraTest extends AktiveMerchant\TestCase
     {
         return '{"successful":true,"response":{"name":"Gold","id":"071-PL-ASM2VKAS","amount":1200,"reference":"'.$order_id.'","description":"Gold Plan","currency":null,"subscription_count":0},"errors":[],"test":true}';
     }
-/*
+
     public function testSuccessfulGetPlans()
     { 
         $this->mock_request($this->successful_getplans_response());
@@ -304,41 +304,37 @@ class FatZebraTest extends AktiveMerchant\TestCase
     {
        return '{"successful":true,"response":[{"name":"testplan1","id":"071-PL-RVV6LKKW","amount":100,"reference":"1d4c5f50-ff98-40fa-94d4-7719faeac267","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-7WLMNQGT","amount":100,"reference":"1ca42037-0353-4ae4-a883-baa1b4435dd8","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-IWR3Z76L","amount":100,"reference":"00b4178b-10fa-475c-9a56-0fd434fcfc14","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-U6AU1T6I","amount":100,"reference":"675d16e3-3b14-4c92-8bfe-eb5cdd4d9e71","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-2OSIGRCQ","amount":100,"reference":"ac437c0f-b382-484f-a576-ad7cc8ffb053","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-D25LUVRZ","amount":100,"reference":"a65e603a-fff1-4834-a920-d2f11579a96f","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-AJDN57EQ","amount":100,"reference":"edd6a5cf-101d-48d0-92de-e422e0187356","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-CA3FA8F8","amount":100,"reference":"4abbef96-b490-445a-b8d2-098794a676fe","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-IIBGYM6I","amount":100,"reference":"ec67ccd7-b53b-4c8a-9a94-06e5577ecd74","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-ZJ8UUMFN","amount":100,"reference":"e5c12a09-06f4-4003-aad2-5ad99ae60e50","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-WRJIBDV1","amount":100,"reference":"e59aa972-5cab-44f8-9e37-9dcd8ae47580","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-FTQ3H0PH","amount":100,"reference":"49e1137d-b2b7-4af8-b0fc-9a53f3302e54","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"Gold","id":"071-PL-ASM2VKAS","amount":1000,"reference":"PLAN9026643195","description":"Gold Plan","currency":null,"subscription_count":0}],"errors":[],"test":true,"records":13,"total_records":13,"page":1,"total_pages":1}'; 
     }
-*/
-
-/*
-    public function testSuccessfulRecurring()
+    
+    public function testSuccessfulGetSinglePlan()
     { 
-        $recurring_options = array(
-            'amount' => 100,
-            'order_id' => 'REF' . $this->gateway->generateUniqueId(),
-            'subscription_name' => 'Test Subscription 1',
-            'first_name' => 'John',
-            'last_name' => 'Smith',
-            'email' => 'john@smith.com',
-            'billing_address' => array(
-                'address1' => '1234 Street',
-                'zip' => '98004',
-                'state' => 'WA',
-                'city' => 'Kooliablin',
-                'country' => 'USA'
-            ),
-            'frequency' => 11,
-            'period' => 'months',
-            'start_date' => date("Y-m-d", strtotime('tomorrow')),
-            'occurrences' => 1
-        );
+        $this->mock_request($this->successful_get_single_plan_response());
 
-        $this->mock_request($this->successful_getplans_response());
-
-        $response = $this->gateway->recurring(
-            10, 
-            $this->creditcard,
-            $recurring_options
-        );
+        $plan_id ='071-PL-ASM2VKAS';
+        $response = $this->gateway->getPlan($plan_id);
         
         $this->assert_success($response);
         $this->assertTrue($response->test());
+        $this->assertEquals($plan_id, $response->params()->id);
     }
-*/
+
+    public function successful_get_single_plan_response()
+    {
+       return '{"successful":true,"response":{"name":"Gold","id":"071-PL-ASM2VKAS","amount":1000,"reference":"PLAN9026643195","description":"Gold Plan","currency":null,"subscription_count":0},"errors":[],"test":true}'; 
+    }
+
+    public function testSuccessfulUpdatePlan()
+    { 
+        $this->mock_request($this->successful_update_plan_response());
+
+        $plan_id ='071-PL-ASM2VKAS';
+        $response = $this->gateway->updatePlan($plan_id, array('name' => 'The Gold Plan', 'description'=>'The Gold Plan Description'));
+        
+        $this->assert_success($response);
+        $this->asserttrue($response->test());
+    }
+
+    public function successful_update_plan_response()
+    {
+       return '{"successful":true,"response":{"name":"The Gold Plan","id":"071-PL-ASM2VKAS","amount":1000,"reference":"PLAN9026643195","description":"The Gold Plan Description","currency":null,"subscription_count":0},"errors":[],"test":true}'; 
+    }
 }

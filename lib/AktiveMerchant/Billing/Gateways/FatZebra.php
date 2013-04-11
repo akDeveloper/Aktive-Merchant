@@ -177,7 +177,7 @@ class FatZebra extends Gateway implements Interfaces\Recurring
 
         $this->add_customer_data($options);
         $this->add_address($options);
-        $this->add_creditcard($creditcard, true);
+        $this->add_recurring_creditcard($creditcard, true);
         $this->add_invoice($options->order_id);
 
         return $this->commit('customers');
@@ -215,9 +215,48 @@ class FatZebra extends Gateway implements Interfaces\Recurring
 
     }
 
+    public function getPlan($plan_id)
+    {
+        $plan_id = urlencode(trim($plan_id));
+        
+        return $this->commit("plans/{$plan_id}", RequestInterface::METHOD_GET);
+    }
+
     public function getPlans()
     {
         return $this->commit('plans', RequestInterface::METHOD_GET);
+    }
+
+    /**
+     * Update attributes of a plan.
+     *
+     * Valid attributes are name and or description.
+     *
+     * <code>
+     * $attrs = array(
+     *      'name' => 'New Name',
+     *      'description' => 'New description'
+     * );
+     * </code>
+     * @param string $plan_id The plan id of a plant to update. 
+     * @param array  $attrs   An array holding the attributes to update
+     * @return Response
+     */
+    public function updatePlan($plan_id, array $attrs=array())
+    {
+        $this->post = array();
+        $attrs = new Options($attrs);
+        $plan_id = urlencode(trim($plan_id));
+
+        if ($attrs->name) {
+            $this->post['name'] = $attrs->name;
+        }
+
+        if ($attrs->description) {
+            $this->post['description'] = $attrs->description;
+        }
+        
+        return $this->commit("plans/{$plan_id}", RequestInterface::METHOD_PUT);
     }
 
     /* -(  Private methods  ) ---------------------------------------------- */
@@ -304,7 +343,7 @@ class FatZebra extends Gateway implements Interfaces\Recurring
      *
      * @param CreditCard $creditcard
      */
-    private function add_creditcard(CreditCard $creditcard, $nested = false)
+    private function add_creditcard(CreditCard $creditcard)
     {
         
         $post['card_holder'] = $creditcard->name();
@@ -314,12 +353,19 @@ class FatZebra extends Gateway implements Interfaces\Recurring
             . $this->cc_format($creditcard->year,'four_digits');
         $post['cvv'] = $creditcard->verification_value;
         
-        if ($nested) {
-            $this->post['card'] = $post;
-        } else {
-            $this->post = array_merge($this->post, $post);
-        }
+        $this->post = array_merge($this->post, $post);
+    }
 
+    private function add_recurring_creditcard(CreditCard $creditcard)
+    {
+        $post['card_holder'] = $creditcard->name();
+        $post['card_number'] = $creditcard->number;
+        $post['expiry_date'] = $this->cc_format($creditcard->month, 'two_digits')
+            . "/" 
+            . $this->cc_format($creditcard->year,'four_digits');
+        $post['cvv'] = $creditcard->verification_value;
+
+        $this->post['card'] = $post;
     }
 
     /**
@@ -342,9 +388,12 @@ class FatZebra extends Gateway implements Interfaces\Recurring
                 || (isset($response->id) 
                 && $response->id !== null)
             ) {
-                $response->success = true;
                 $response->authorization_id = isset($response->id) ? $response->id : $response->token;
+            } else {
+                $response->authorization_id = null;
             }
+            
+            $response->success = true;
         } else {
             $response->success = false;
             $response->authorization_id = null;
@@ -371,14 +420,15 @@ class FatZebra extends Gateway implements Interfaces\Recurring
         $url .= $action;
         
         $this->getAdapter()->setOption(CURLOPT_USERPWD, "{$this->options->username}:{$this->options->token}");
-
+        
+        $config = array(
+            'ssl_verify_peer' => false,
+            'ssl_verify_host' => 0
+        );
+        
         $body = empty($this->post) ? null : json_encode($this->post);
 
-        if ($method == RequestInterface::METHOD_POST){
-            $data = $this->ssl_post($url, $body);
-        } else {
-            $data = $this->ssl_get($url, $body);
-        }
+        $data = $this->ssl_request($method, $url, $body, $config);
 
         $response = $this->parse($data);
         
