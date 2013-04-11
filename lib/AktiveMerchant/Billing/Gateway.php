@@ -272,7 +272,7 @@ abstract class Gateway
      *
 	 * @return string Response from server
      */
-    private function ssl_request($method, $endpoint, $data, $options = array())
+    protected function ssl_request($method, $endpoint, $data, $options = array())
     { 
         $request = $this->request ?: new Request(
             $endpoint, 
