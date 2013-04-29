@@ -1,7 +1,10 @@
+* __1.0.7__ (2013-04-29)
+  * Added Fat Zebra Gateway
+  * Fix minor bugs
 * __1.0.6__ (2013-02-16)
   * Implement Hsbc Global Iris gateway ( @tomglue )
   * Implement Moneris payment gateway
-  * Add capture, credit and void to PaypalExpress gateway
+  * Add capture, credit, void and recurring to PaypalExpress gateway
   * Introduce Options class for easy handling options
   * Introduce Address class for mapping address fields for gateway
   * Introduce AdapterInterface for setting custom options to a request.
