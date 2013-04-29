@@ -10,6 +10,7 @@ The aim is to develop a PHP application to includes payment gateways under commo
 * [CardStream](http://www.cardstream.com)
 * [Centinel 3D Secure](http://www.cardinalcommerce.com)
 * [Eway](http://www.eway.com.au/)
+* [Fat Zebra](https://www.fatzebra.com.au)
 * [Hsbc Secure e-Payment](http://www.hsbc.co.uk/1/2/business/cards-payments/secure-epayments)
 * [PayPal Payflow Pro](https://www.paypal.com/cgi-bin/webscr?cmd=_payflow-pro-overview-outside)
 * [PayPal Payflow Pro Uk](https://www.paypal.com/uk/cgi-bin/webscr?cmd=_wp-pro-overview-outside)
