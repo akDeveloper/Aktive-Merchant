@@ -10,11 +10,11 @@ use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
 
 /**
- * Description of Example
+ * Description of Eway payment gateway
  *
  * @category Gateways
  * @package  Aktive-Merchant
- * @author   Your name <your@email.com>
+ * @author   Andreas Kollaros
  * @license  MIT License http://www.opensource.org/licenses/mit-license.php
  * @link     https://github.com/akDeveloper/Aktive-Merchant
  */

@@ -220,11 +220,13 @@ class Request implements RequestInterface
         $this->config['timeout'] = $this->options['request_timeout'] 
             ?: $this->config['timeout'];
 
-        $this->config['ssl_verify_peer'] = $this->options['ssl_verify_peer'] 
-            ?: $this->config['ssl_verify_peer'];
+        $this->config['ssl_verify_peer'] = $this->options['ssl_verify_peer'] !== null 
+            ? $this->options['ssl_verify_peer']
+            : $this->config['ssl_verify_peer'];
 
-        $this->config['ssl_verify_host'] = $this->options['ssl_verify_host'] 
-            ?: $this->config['ssl_verify_host'];
+        $this->config['ssl_verify_host'] = $this->options['ssl_verify_host'] !== null
+            ? $this->options['ssl_verify_host']
+            : $this->config['ssl_verify_host'];
 
         $this->config['user_agent'] = $this->options['user_agent'] 
             ?: $this->default_agent();

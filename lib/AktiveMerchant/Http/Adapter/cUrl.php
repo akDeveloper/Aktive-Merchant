@@ -70,6 +70,10 @@ class cUrl implements AdapterInterface
             curl_setopt($this->ch, CURLOPT_POSTFIELDS, $request->getBody());
         } elseif ($request->getMethod() == Request::METHOD_GET)  {
             curl_setopt($this->ch, CURLOPT_HTTPGET, 1);
+        } elseif ($request->getMethod() == Request::METHOD_PUT) {
+            curl_setopt($this->ch, CURLOPT_POST, 1);
+            curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+            curl_setopt($this->ch, CURLOPT_POSTFIELDS, $request->getBody());           
         }
 
         $response = curl_exec($this->ch);
@@ -85,8 +89,15 @@ class cUrl implements AdapterInterface
         $curl_info = curl_getinfo($this->ch);
 
         curl_close($this->ch);
+        
+        if ($curl_info['http_code'] == '301') {
+            $request->setUrl($curl_info['redirect_url']);
+            return $this->sendRequest($request);
+        }        
 
-        if ($curl_info['http_code'] != 200) {
+        if (   $curl_info['http_code'] < 200 
+            || $curl_info['http_code'] >= 500
+        ) {
             $ex = new Exception(
                 "HTTP Status #" 
                 . $curl_info['http_code']."\n"
