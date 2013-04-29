@@ -300,7 +300,7 @@ class FatZebraTest extends AktiveMerchant\TestCase
         $this->assertTrue($response->test());
     }
 
-    public function successful_getplans_response()
+    private function successful_getplans_response()
     {
        return '{"successful":true,"response":[{"name":"testplan1","id":"071-PL-RVV6LKKW","amount":100,"reference":"1d4c5f50-ff98-40fa-94d4-7719faeac267","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-7WLMNQGT","amount":100,"reference":"1ca42037-0353-4ae4-a883-baa1b4435dd8","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-IWR3Z76L","amount":100,"reference":"00b4178b-10fa-475c-9a56-0fd434fcfc14","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-U6AU1T6I","amount":100,"reference":"675d16e3-3b14-4c92-8bfe-eb5cdd4d9e71","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-2OSIGRCQ","amount":100,"reference":"ac437c0f-b382-484f-a576-ad7cc8ffb053","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-D25LUVRZ","amount":100,"reference":"a65e603a-fff1-4834-a920-d2f11579a96f","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-AJDN57EQ","amount":100,"reference":"edd6a5cf-101d-48d0-92de-e422e0187356","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-CA3FA8F8","amount":100,"reference":"4abbef96-b490-445a-b8d2-098794a676fe","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-IIBGYM6I","amount":100,"reference":"ec67ccd7-b53b-4c8a-9a94-06e5577ecd74","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-ZJ8UUMFN","amount":100,"reference":"e5c12a09-06f4-4003-aad2-5ad99ae60e50","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-WRJIBDV1","amount":100,"reference":"e59aa972-5cab-44f8-9e37-9dcd8ae47580","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-FTQ3H0PH","amount":100,"reference":"49e1137d-b2b7-4af8-b0fc-9a53f3302e54","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"Gold","id":"071-PL-ASM2VKAS","amount":1000,"reference":"PLAN9026643195","description":"Gold Plan","currency":null,"subscription_count":0}],"errors":[],"test":true,"records":13,"total_records":13,"page":1,"total_pages":1}'; 
     }
@@ -317,7 +317,7 @@ class FatZebraTest extends AktiveMerchant\TestCase
         $this->assertEquals($plan_id, $response->params()->id);
     }
 
-    public function successful_get_single_plan_response()
+    private function successful_get_single_plan_response()
     {
        return '{"successful":true,"response":{"name":"Gold","id":"071-PL-ASM2VKAS","amount":1000,"reference":"PLAN9026643195","description":"Gold Plan","currency":null,"subscription_count":0},"errors":[],"test":true}'; 
     }
@@ -330,11 +330,245 @@ class FatZebraTest extends AktiveMerchant\TestCase
         $response = $this->gateway->updatePlan($plan_id, array('name' => 'The Gold Plan', 'description'=>'The Gold Plan Description'));
         
         $this->assert_success($response);
-        $this->asserttrue($response->test());
+        $this->assertTrue($response->test());
     }
 
-    public function successful_update_plan_response()
+    private function successful_update_plan_response()
     {
        return '{"successful":true,"response":{"name":"The Gold Plan","id":"071-PL-ASM2VKAS","amount":1000,"reference":"PLAN9026643195","description":"The Gold Plan Description","currency":null,"subscription_count":0},"errors":[],"test":true}'; 
+    }
+
+    public function testSuccessfulCreateCustomer()
+    { 
+
+        $options = array(
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'customer_id' => "USER_" . $this->gateway->generateUniqueId(),
+            'email' => 'jonh.doe@example.com',
+            'address' => array(
+                'address1' => '1234 Street',
+                'zip' => '98004',
+                'state' => 'WA'
+            )
+        );
+        
+        $this->mock_request($this->successful_create_customer_response($options['customer_id']));
+        
+        $response = $this->gateway->createCustomer($this->creditcard,$options);
+        
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+
+        $request_body = $this->request->getBody();
+        $this->assertEquals(
+            $this->successful_create_customer_request($options['customer_id']),
+            $request_body
+        );
+    }
+
+    private function successful_create_customer_response($user_id)
+    {
+       return '{"successful":true,"response":{"id":"071-C-WG7M3QQ3","email":"jonh.doe@example.com","reference":"'.$user_id.'","first_name":"John","last_name":"Doe","created_at":"2013-04-12T09:18:52+10:00","address":{"address":"1234 Street","city":null,"state":"WA","postcode":"98004","country":null},"card_token":"z2jb2q9t"},"errors":[],"test":true}';
+    }
+
+    private function successful_create_customer_request($user_id)
+    {
+       return '{"customer_ip":null,"first_name":"John","last_name":"Doe","email":"jonh.doe@example.com","address":{"address":"1234 Street","postcode":"98004","state":"WA"},"card":{"card_holder":"John Doe","card_number":"5123456789012346","expiry_date":"01\/2015","cvv":"000"},"reference":"'.$user_id.'"}';
+    }
+
+    public function testFailCreateCustomer()
+    { 
+
+        $options = array(
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'customer_id' => "USER_1014090581",
+            'email' => 'jonh.doe@example.com',
+            'address' => array(
+                'address1' => '1234 Street',
+                'zip' => '98004',
+                'state' => 'WA'
+            )
+        );
+        
+        $this->mock_request($this->fail_create_customer_response());
+        
+        $response = $this->gateway->createCustomer($this->creditcard,$options);
+        
+        $this->assert_failure($response);
+        $this->assertTrue($response->test());
+
+    
+        $this->assertNull($response->params()->id);
+
+        $this->assertEquals('Reference has already been taken',$response->message());
+
+    }
+
+    private function fail_create_customer_response()
+    {
+       return '{"successful":false,"response":{"id":null,"email":"jonh.doe@example.com","reference":"USER_1014090581","first_name":"John","last_name":"Doe","created_at":null,"address":{"address":"1234 Street","city":null,"state":"WA","postcode":"98004","country":null}},"errors":["Reference has already been taken"],"test":true}';
+    }
+
+    public function testSuccessfulUpdateCustomer()
+    { 
+
+        $customer_id = "071-C-WG7M3QQ3"; // The id returned when you call createCustomer action
+        $options = array(
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'address' => array(
+                'address1' => '1234 Street',
+                'zip' => '98004',
+                'city' => 'City',
+                'state' => 'WA'
+            )
+        );
+
+        $creditcard = new CreditCard(
+            array(
+                "first_name" => "John",
+                "last_name" => "Doe",
+                "number" => "4111111111111111",
+                "month" => "05",
+                "year" => "2013",
+                "verification_value" => "123"
+            )
+        );
+        
+        $this->mock_request($this->successful_update_customer_response());
+        
+        $response = $this->gateway->updateCustomer($customer_id, $creditcard, $options);
+        
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+
+        $this->assertEquals($options['address']['city'], $response->params()->address->city);
+
+    }
+
+    private function successful_update_customer_response()
+    {
+       return '{"successful":true,"response":{"id":"071-C-WG7M3QQ3","email":"jonh.doe@example.com","reference":"USER_1014090581","first_name":"John","last_name":"Doe","created_at":"2013-04-12T09:18:52+10:00","address":{"address":"1234 Street","city":"City","state":"WA","postcode":"98004","country":null},"card_token":"gltsr7fw"},"errors":[],"test":true}';
+    }
+
+    public function testFailUpdateCustomer()
+    { 
+
+        $customer_id = "075-C-WG7M3";
+        $options = array(
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'address' => array(
+                'address1' => '1234 Street',
+                'zip' => '98004',
+                'city' => 'City',
+                'state' => 'WA'
+            )
+        );
+        
+        $this->mock_request($this->successful_fail_customer_response());
+        
+        $response = $this->gateway->updateCustomer($customer_id, null, $options);
+        
+        $this->assert_failure($response);
+        $this->assertTrue($response->test());
+        
+        $this->assertEquals('Record not found',$response->message());
+
+    }
+
+    private function successful_fail_customer_response()
+    {
+       return '{"successful":false,"response":null,"errors":["Record not found"],"test":true}';
+    }
+    
+    public function testSuccessSubscription()
+    {
+        $options = array(
+            'first_name' => 'Johny',
+            'last_name' => 'Doeing',
+            'customer_id' => "USER_" . $this->gateway->generateUniqueId(),
+            'email' => 'jonh.doing@example.com',
+            'start_date' => new \DateTime('tomorrow'),
+            'period' => 'Monthly',
+            'address' => array(
+                'address1' => '1234 Street',
+                'zip' => '98004',
+                'state' => 'WA'
+            )
+        );
+
+        $creditcard = new CreditCard(
+            array(
+                "first_name" => "Johny",
+                "last_name" => "Doeing",
+                "number" => "4111111111111111",
+                "month" => "05",
+                "year" => "2013",
+                "verification_value" => "123"
+            )
+        );
+
+        $plan = "071-PL-ASM2VKAS";
+
+        $this->mock_request($this->successful_subscription_response());
+        
+        $response = $this->gateway->recurring($plan, $creditcard, $options);
+        
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+
+        $this->assertTrue($response->params()->is_active);
+        $this->assertEquals("Scheduled",$response->params()->last_status);
+
+    }
+
+
+    private function successful_subscription_response()
+    {
+        return '{"successful":true,"response":{"id":"071-S-QK9ZHLEX","customer":"071-C-VN0XU40J","plan":"071-PL-ASM2VKAS","frequency":"Monthly","start_date":"2013-04-30","end_date":null,"next_billing_date":"2013-04-30","reference":"USER_2584725755","last_status":"Scheduled","is_active":true},"errors":[],"test":true}';
+    }
+    
+    public function testSuccessfulGetSubscription()
+    { 
+        $this->mock_request($this->successful_get_subscription_response());
+
+        $reference = 'USER_2584725755';
+        $response = $this->gateway->getSubscription($reference);
+        
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+
+        $this->assertEquals('Monthly', $response->params()->frequency);
+        $this->assertEquals('USER_2584725755', $response->params()->reference);
+    }
+
+
+    private function successful_get_subscription_response()
+    {
+        return '{"successful":true,"response":{"id":"071-S-QK9ZHLEX","customer":"071-C-VN0XU40J","plan":"071-PL-ASM2VKAS","frequency":"Monthly","start_date":"2013-04-30","end_date":null,"next_billing_date":"2013-04-30","reference":"USER_2584725755","last_status":"Scheduled","is_active":true},"errors":[],"test":true}';
+    }
+
+    public function testSuccessfulCancelRecurring()
+    { 
+        $this->mock_request($this->successful_cancel_recurring_response());
+
+        $subscription_id = '071-S-QK9ZHLEX';
+        $response = $this->gateway->cancelRecurring($subscription_id);
+        
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+
+        $this->assertFalse($response->params()->is_active);
+        $this->assertEquals("Paused",$response->params()->last_status);
+
+    }
+
+
+    private function successful_cancel_recurring_response()
+    {
+        return '{"successful":true,"response":{"id":"071-S-QK9ZHLEX","customer":"071-C-VN0XU40J","plan":"071-PL-ASM2VKAS","frequency":"Monthly","start_date":"2013-04-30","end_date":null,"next_billing_date":"2013-04-30","reference":"USER_2584725755","last_status":"Paused","is_active":false},"errors":[],"test":true}';
     }
 }

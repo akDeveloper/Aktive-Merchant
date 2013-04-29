@@ -21,7 +21,7 @@ use AktiveMerchant\Http\RequestInterface;
  * @license  MIT License http://www.opensource.org/licenses/mit-license.php
  * @link     https://github.com/akDeveloper/Aktive-Merchant
  */
-class FatZebra extends Gateway implements Interfaces\Recurring 
+class FatZebra extends Gateway 
 {
     const TEST_URL = 'https://gateway.sandbox.fatzebra.com.au/v1.0/';
     const LIVE_URL = 'https://gateway.fatzebra.com.au/v1.0/';
@@ -158,7 +158,7 @@ class FatZebra extends Gateway implements Interfaces\Recurring
      * @access public
      * @return void
      */
-    public function store(CreditCard $creditcard)
+    public function store(CreditCard $creditcard, $options=array())
     {
         $this->post = array();
         
@@ -168,35 +168,51 @@ class FatZebra extends Gateway implements Interfaces\Recurring
     }
 
     /**
-     * {@inheritdoc}
+     * Creates a recurring billing subscription for a customer.
+     *
+     * Available options for period are: "Daily", "Weekly", "Fortnightly", "Monthly", "Quarterly", "Bi-Annually", "Annually"
+     * start_date can be a DateTime object a timestamp or a string the can be 
+     * parsed via strtime function.
      */
-    public function recurring($money, CreditCard $creditcard, $options=array())
+    public function recurring($plan, CreditCard $creditcard, $options=array())
     {
-        Options::required('first_name, last_name, email, order_id', $options);
+        $this->post = array();
+
+        Options::required('first_name, last_name, email, customer_id, start_date, period', $options);
+
+        //$response = $this->createCustomer($creditcard, $options);
+
         $options = new Options($options);
 
-        $this->add_customer_data($options);
-        $this->add_address($options);
-        $this->add_recurring_creditcard($creditcard, true);
-        $this->add_invoice($options->order_id);
+        $this->post['customer'] = '071-C-VN0XU40J'; //$response->params()->customer;
+        $start_date = $options->start_date instanceof \DateTime ? $options->start_date : new \DateTime(strtotime($options->start_date));
+        $this->post['start_date'] = $start_date->format('Y-m-d');
+        $this->post['plan'] = $plan;
+        $this->post['frequency'] = $options->period;
+        $this->post['is_active'] = true;
+        $this->post['reference'] = $options->customer_id;
 
-        return $this->commit('customers');
+        return $this->commit('subscriptions');
+
+
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function updateRecurring($subscription_id, CreditCard $creditcard)
-    {
-    
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function cancelRecurring($subscription_id)
     {
-    
+        $this->post = array();
+
+        $this->post['is_active'] = false;
+
+        return $this->commit("subscriptions/{$subscription_id}", RequestInterface::METHOD_PUT);
+
+    }
+
+
+    public function getSubscription($reference)
+    {
+        $reference = urlencode(trim($reference));
+
+        return $this->commit("subscriptions/{$reference}", RequestInterface::METHOD_GET); 
     }
     
     public function createPlan($money, $options)
@@ -259,6 +275,52 @@ class FatZebra extends Gateway implements Interfaces\Recurring
         return $this->commit("plans/{$plan_id}", RequestInterface::METHOD_PUT);
     }
 
+    public function createCustomer(CreditCard $creditcard, $options)
+    {
+        $this->post = array();
+
+        Options::required('first_name, last_name, email, customer_id', $options);
+        $options = new Options($options);
+
+        $this->add_customer_data($options);
+        $this->add_address($options);
+        $this->add_recurring_creditcard($creditcard, true);
+        $this->post['reference'] = $options->customer_id;
+
+        return $this->commit('customers');       
+    }
+
+    /**
+     * Updates customer information. 
+     * 
+     * @param string     $customer_id The id returned from gateway when the 
+     *                                customer record creted to the gateway.
+     * @param CreditCard $creditcard 
+     * @param array      $options 
+     * @access public
+     * @return void
+     */
+    public function updateCustomer($customer_id, CreditCard $creditcard = null, $options=array())
+    {
+        $this->post = array();
+
+        $options = new Options($options);
+
+        $this->add_customer_data($options);
+        $this->add_address($options);
+        $address = $this->post['address'];
+        unset($this->post['address']);
+        $this->post = array_merge($this->post, $address);
+        
+        if (null !== $creditcard) {
+            $this->add_recurring_creditcard($creditcard);
+        }
+
+        $customer_id = urlencode(trim($customer_id));
+        
+        return $this->commit("customers/{$customer_id}", RequestInterface::METHOD_PUT);
+    }
+
     /* -(  Private methods  ) ---------------------------------------------- */
 
     /**
@@ -291,6 +353,11 @@ class FatZebra extends Gateway implements Interfaces\Recurring
     private function add_address($options)
     {
         $billing_address = $options->billing_address ?: $options->address;
+
+        if (null == $billing_address) {
+            return;
+        }
+        
         $address = new Address($billing_address);
 
         $address->map('city', 'city')
@@ -379,6 +446,9 @@ class FatZebra extends Gateway implements Interfaces\Recurring
         $data = json_decode($body);
 
         $response = is_array($data->response) ? new \stdClass : $data->response;
+        if (null == $response) {
+            $response = $data;
+        }
         $response->errors = $data->errors;
         $response->test = isset($data->test) ? $data->test : $respose->test;
 
@@ -421,14 +491,10 @@ class FatZebra extends Gateway implements Interfaces\Recurring
         
         $this->getAdapter()->setOption(CURLOPT_USERPWD, "{$this->options->username}:{$this->options->token}");
         
-        $config = array(
-            'ssl_verify_peer' => false,
-            'ssl_verify_host' => 0
-        );
         
         $body = empty($this->post) ? null : json_encode($this->post);
 
-        $data = $this->ssl_request($method, $url, $body, $config);
+        $data = $this->ssl_request($method, $url, $body);
 
         $response = $this->parse($data);
         
