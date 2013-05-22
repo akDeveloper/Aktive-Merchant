@@ -306,9 +306,9 @@ class Realex extends Gateway implements
         $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="auth"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
-        if(isset($options['three_d_secure']))
+        if(isset($options['three_d_secure']) && isset($this->options['3dsaccount']))
             $options['account'] = $this->options['3dsaccount'];
-        else
+        elseif(!isset($options['three_d_secure']) && isset($this->options['stdaccount']))
             $options['account'] = $this->options['stdaccount'];
 
         $this->add_merchant_details($options);
@@ -574,6 +574,7 @@ class Realex extends Gateway implements
     private function add_merchant_details($options)
     {
         $this->xml->addChild('merchantid', $this->options['login']);
+        
         if (isset($this->options['account'])) {
             $this->xml->addChild('account', $this->options['account']);
         } elseif (isset($options['account'])) {
