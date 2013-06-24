@@ -1,2 +1,5 @@
 /log/*
 /test/login.php
+vendor
+bin/*
+composer.lock

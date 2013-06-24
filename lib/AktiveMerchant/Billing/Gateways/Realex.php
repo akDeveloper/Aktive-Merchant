@@ -292,7 +292,6 @@ class Realex extends Gateway implements
     {
         $url = ($endpoint == 'recurring') ? self::RECURRING_URL : self::URL;
         $response = $this->parse($this->ssl_post($url, $this->xml->asXML()));
-
         return new Response(((string) $response->result == '00'), $this->message_from($response), $this->params_from($response), $this->options_from($response));
     }
 
@@ -307,6 +306,11 @@ class Realex extends Gateway implements
         $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="auth"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
+        if(isset($options['three_d_secure']) && isset($this->options['3dsaccount']))
+            $options['account'] = $this->options['3dsaccount'];
+        elseif(!isset($options['three_d_secure']) && isset($this->options['stdaccount']))
+            $options['account'] = $this->options['stdaccount'];
+
         $this->add_merchant_details($options);
 
         $this->xml->addChild('orderid', $options['order_id']);
@@ -318,6 +322,9 @@ class Realex extends Gateway implements
         // do we settle now or just authorise
         $autosettle = $this->xml->addChild('autosettle');
         $autosettle->addAttribute('flag', $this->auto_settle_flag($action));
+
+        if(isset($options['three_d_secure']))
+            $this->add_three_d_secure($options['three_d_secure']);
 
         $currency = (isset($options['currency'])) ? $options['currency'] : self::$default_currency;
 
@@ -346,8 +353,9 @@ class Realex extends Gateway implements
 
         $digest = array(
             $this->timestamp,
-            $options['login'],
-            $options['order_id']
+            $this->options['login'],
+            $options['order_id'],
+            ".."
         );
 
         $this->add_signed_digest($digest, $options);
@@ -373,7 +381,7 @@ class Realex extends Gateway implements
 
         $digest = array(
             $this->timestamp,
-            $options['login'],
+            $this->options['login'],
             $options['order_id'],
             $this->amount($money),
             $currency
@@ -394,7 +402,7 @@ class Realex extends Gateway implements
 
         $digest = array(
             $this->timestamp,
-            $options['login'],
+            $this->options['login'],
             $options['order_id']
         );
 
@@ -415,7 +423,7 @@ class Realex extends Gateway implements
 
         $digest = array(
             $this->timestamp,
-            $options['login'],
+            $this->options['login'],
             $options['user']['id'],
             $options['payment_method']
         );
@@ -438,7 +446,7 @@ class Realex extends Gateway implements
 
         $digest = array(
             $this->timestamp,
-            $options['login'],
+            $this->options['login'],
             $options['order_id'],
             '',
             '',
@@ -475,7 +483,7 @@ class Realex extends Gateway implements
 
         $digest = array(
             $this->timestamp,
-            $options['login'],
+            $this->options['login'],
             $options['order_id'],
             '',
             '',
@@ -506,7 +514,7 @@ class Realex extends Gateway implements
 
         $digest = array(
             $this->timestamp,
-            $options['login'],
+            $this->options['login'],
             $options['order_id'],
             $this->amount($money),
             $currency,
@@ -566,8 +574,11 @@ class Realex extends Gateway implements
     private function add_merchant_details($options)
     {
         $this->xml->addChild('merchantid', $this->options['login']);
-        if (isset($this->options['account']) || isset($options['account'])) {
+        
+        if (isset($this->options['account'])) {
             $this->xml->addChild('account', $this->options['account']);
+        } elseif (isset($options['account'])) {
+            $this->xml->addChild('account', $options['account']);
         }
     }
 
@@ -575,7 +586,15 @@ class Realex extends Gateway implements
     {
         $this->xml->addChild('orderid', $options['order_id']);
         $this->xml->addChild('pasref', $options['pasref']);
-        $this->xml->addChild('authcode', $authorization);
+        $this->xml->addChild('authcode', $options['authcode']);
+    }
+
+    private function add_three_d_secure($options)
+    {
+        $mpi = $this->xml->addChild('mpi');
+        $mpi->addChild('eci', $options['eci']);
+        $mpi->addChild('xid', $options['xid']);
+        $mpi->addChild('cavv', $options['cavv']);
     }
 
     private function add_comments($options)
