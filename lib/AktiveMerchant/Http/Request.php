@@ -81,8 +81,6 @@ class Request implements RequestInterface
         $this->setMethod($method);
 
         $this->options = new Options($options);
-    
-        $this->setup_options();
     }
 
     public function getAdapter()
@@ -206,45 +204,84 @@ class Request implements RequestInterface
      */
     public function getResponseHeaders()
     {
-        return $this->getAdapter()->getResponseHeaders();
+        return $this->response_headers;
     }
 
-    protected function setup_options()
+    private function curl()
     {
-        $connect_timeout = $this->options['timeout'] 
-            ?: $this->options['connect_timeout'];
+        $server = parse_url($this->url);
 
-        $this->config['connect_timeout'] = $connect_timeout 
-            ?: $this->config['connect_timeout'];
+        if (!isset($server['port'])) {
+            $server['port'] = ($server['scheme'] == 'https') ? 443 : 80;
+        }
 
-        $this->config['timeout'] = $this->options['request_timeout'] 
-            ?: $this->config['timeout'];
+        if (!isset($server['path'])) {
+            $server['path'] = '/';
+        }
 
-        $this->config['ssl_verify_peer'] = $this->options['ssl_verify_peer'] !== null 
-            ? $this->options['ssl_verify_peer']
-            : $this->config['ssl_verify_peer'];
+        if (isset($server['user']) && isset($server['pass'])) {
+            $this->headers[] = 'Authorization: Basic ' 
+                . base64_encode($server['user'] . ':' . $server['pass']);
+        }
 
-        $this->config['ssl_verify_host'] = $this->options['ssl_verify_host'] !== null
-            ? $this->options['ssl_verify_host']
-            : $this->config['ssl_verify_host'];
+        $transaction_url = $server['scheme'] 
+            . '://' . $server['host'] 
+            . $server['path'] 
+            . (isset($server['query']) ? '?' . $server['query'] : '');
 
-        $this->config['user_agent'] = $this->options['user_agent'] 
-            ?: $this->default_agent();
+        if (function_exists('curl_init')) {
+            $curl = curl_init($transaction_url);
 
-        if ($this->options['headers']) {
-            $this->setHeaders($this->options['headers']->getArrayCopy());
-        } 
-    }
+            curl_setopt($curl, CURLOPT_PORT, $server['port']);
+            curl_setopt($curl, CURLOPT_HEADER, 1);
+            curl_setopt($curl, CURLINFO_HEADER_OUT, 1);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $this->headers);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // $this->allow_unsafe_ssl);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0); // $this->allow_unsafe_ssl);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $this->connect_timeout);
+            curl_setopt($curl, CURLOPT_TIMEOUT, $this->request_timeout);
+            curl_setopt($curl, CURLOPT_USERAGENT, $this->user_agent);
 
-    private function default_agent()
-    {
-        $os = \php_uname('s');
-        $machine = \php_uname('m');
+            if ($this->method == self::METHOD_POST) {
+                curl_setopt($curl, CURLOPT_POST, 1);
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $this->body);
+            } elseif ($this->method == self::METHOD_GET)  {
+                curl_setopt($curl, CURLOPT_HTTPGET, 1);
+            }
 
-        return "Aktive-Merchant "
-            . \AktiveMerchant\Billing\Base::VERSION
-            ." ($os $machine) "
-            ."PHP/".\phpversion()." "
-            ."ZendEngine/".\zend_version();
+            $response = curl_exec($curl);
+
+            // Check for outright failure
+            if ($response === false) {
+                $ex = new Exception(curl_error($curl), curl_errno($curl));
+                curl_close($curl);
+                throw $ex;
+            }
+
+            // Now check for an HTTP error
+            $curl_info = curl_getinfo($curl);
+            
+            curl_close($curl);
+            
+            if ($curl_info['http_code'] != 200) {
+                $ex = new Exception(
+                    "HTTP Status #" 
+                    . $curl_info['http_code']."\n"
+                    . "CurlInfo:\n"
+                    . print_r($curl_info, true)
+                );
+                throw $ex;
+            }
+            
+            $this->response_headers = substr($response, 0, $curl_info['header_size']);
+            $this->response_body    = substr($response, -$curl_info['size_download']);
+
+            // OK, the response was OK at the HTTP level at least!
+            return true;
+        } else {
+            throw new Exception('curl is not installed!');
+        }
+   
     }
 }
