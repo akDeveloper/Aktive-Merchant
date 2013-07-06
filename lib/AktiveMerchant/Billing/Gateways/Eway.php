@@ -8,7 +8,8 @@ use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
-use AktiveMetchant\Common\Options;
+use AktiveMerchant\Common\Options;
+
 
 /**
  * Description of Eway payment gateway
@@ -154,13 +155,13 @@ class Eway extends Gateway implements
         $this->required_options("order_id", $options);
 
         $this->post = array(
-            "AuthTrxnNumber" => $options["order_id"],
+            "AuthTrxnNumber" => $authorization,
             "TotalAmount" => $this->amount($money)
         );
 
-        $cc = new CreditCard(array()); //The endpoint supposedly doesn't need this, but it complains
+        $cc = new CreditCard(new Options(array()));
         $this->add_creditcard($cc);
-        $this->add_invoice($options);
+        #$this->add_invoice($options);
         $this->add_optional_data();
         return $this->commit("xmlauthcomplete", $money);
     }
@@ -466,4 +467,5 @@ class Eway extends Gateway implements
 
 
 }
+
 
