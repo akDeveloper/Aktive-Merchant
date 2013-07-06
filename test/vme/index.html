@@ -1,0 +1,34 @@
+<html>
+    <head>
+         <script type="text/javascript">
+
+            function myCallbackFunctionForVmeEvents(VmeEventType, eventData){
+
+                var MerchantTrans = eventData.merchTrans;
+                if (VmeEventType == "purchase.success"){
+                    alert ( msg );
+                    mywindow = window.open ("checkyourorder.php?merchTrans="
+                            + MerchantTrans,"Check your Order ID","width=400,height=300");
+                    mywindow.moveTo(300,300);
+                }
+            }
+
+        </script>   
+    </head>
+    <body>
+        <v:init apikey = "R9EZD0LVZQ9BMU7XCTJ0"></v:init>
+        <div id="v-root"></div>
+        <script type="text/javascript" src=" http://sandbox-static.v.me/js/1/v-widgets.js"></script>
+        <v:buy
+          apikey = "R9EZD0LVZQ9BMU7XCTJ0"
+          token = "94a127c238eac1676c54f829af34162c86be03d393ee52058e7ef8fb58fbf747"
+          amount = "1"
+          currency = "USD"
+          product-id = "Testproduct1"
+          merch-trans = "1234567"
+          collect-shipping = "true"
+          callback="myCallbackFunctionForVmeEvents"
+          process = "validate">
+        </v:buy>
+    </body>
+</html>
