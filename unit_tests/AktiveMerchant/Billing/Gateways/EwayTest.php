@@ -111,4 +111,34 @@ class EwayTest extends AktiveMerchant\TestCase
     {
         return "<ewayResponse><ewayTrxnStatus>True</ewayTrxnStatus><ewayTrxnNumber>10170</ewayTrxnNumber><ewayTrxnReference/><ewayTrxnOption1/><ewayTrxnOption2/><ewayTrxnOption3/><ewayAuthCode>123456</ewayAuthCode><ewayReturnAmount>10000</ewayReturnAmount><ewayTrxnError>00,Transaction Approved(Test CVN Gateway)</ewayTrxnError></ewayResponse>";
     }
+
+    public function testSuccessfulCapture()
+    {
+        $this->mock_request($this->successful_capture_response());
+        
+        $response = $this->gateway->capture(
+            $this->amount, 
+            $this->options["order_id"],
+            $this->options
+        );
+
+        $this->assert_success($response);
+
+        $request_body = $this->request->getBody();
+        $this->assertEquals(
+            $this->capture_request($this->options['order_id']),
+            $request_body
+        );
+    }
+
+    private function capture_request($order_id)
+    {
+        return "<?xml version=\"1.0\"?>\n<ewaygateway><ewayAuthTrxnNumber>{$order_id}</ewayAuthTrxnNumber><ewayTotalAmount>10000</ewayTotalAmount><ewayCardNumber/><ewayCardExpiryMonth></ewayCardExpiryMonth><ewayCardExpiryYear></ewayCardExpiryYear><ewayCustomerFirstName/><ewayCustomerLastName/><ewayCardHoldersName> </ewayCardHoldersName><ewayTrxnNumber/><ewayOption1/><ewayOption2/><ewayOption3/><ewayCustomerID>87654321</ewayCustomerID></ewaygateway>
+";
+    }
+
+    private function successful_capture_response()
+    {
+        return "<ewayResponse><ewayTrxnError>00,Transaction Approved</ewayTrxnError><ewayTrxnStatus>True</ewayTrxnStatus><ewayTrxnNumber>9876543210</ewayTrxnNumber><ewayTrxnOption1>optional 1</ewayTrxnOption1><ewayTrxnOption2>optional 2</ewayTrxnOption2><ewayTrxnOption3>optional 3</ewayTrxnOption3><ewayReturnAmount>10</ewayReturnAmount><ewayAuthCode>012345</ewayAuthCode><ewayTrxnReference>12345678</ewayTrxnReference></ewayResponse>";
+    }
 }
