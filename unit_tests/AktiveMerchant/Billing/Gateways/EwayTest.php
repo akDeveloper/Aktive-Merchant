@@ -127,14 +127,13 @@ class EwayTest extends AktiveMerchant\TestCase
         $request_body = $this->request->getBody();
         $this->assertEquals(
             $this->capture_request($this->options['order_id']),
-            $request_body
+            trim($request_body)
         );
     }
 
     private function capture_request($order_id)
     {
-        return "<?xml version=\"1.0\"?>\n<ewaygateway><ewayAuthTrxnNumber>{$order_id}</ewayAuthTrxnNumber><ewayTotalAmount>10000</ewayTotalAmount><ewayCardNumber/><ewayCardExpiryMonth></ewayCardExpiryMonth><ewayCardExpiryYear></ewayCardExpiryYear><ewayCustomerFirstName/><ewayCustomerLastName/><ewayCardHoldersName> </ewayCardHoldersName><ewayTrxnNumber/><ewayOption1/><ewayOption2/><ewayOption3/><ewayCustomerID>87654321</ewayCustomerID></ewaygateway>
-";
+        return "<?xml version=\"1.0\"?>\n<ewaygateway><ewayAuthTrxnNumber>{$order_id}</ewayAuthTrxnNumber><ewayTotalAmount>10000</ewayTotalAmount><ewayCardNumber/><ewayCardExpiryMonth/><ewayCardExpiryYear/><ewayCustomerFirstName/><ewayCustomerLastName/><ewayCardHoldersName> </ewayCardHoldersName><ewayTrxnNumber/><ewayOption1/><ewayOption2/><ewayOption3/><ewayCustomerID>87654321</ewayCustomerID></ewaygateway>";
     }
 
     private function successful_capture_response()
