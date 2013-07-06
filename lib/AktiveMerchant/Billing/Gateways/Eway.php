@@ -8,6 +8,7 @@ use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
+use AktiveMetchant\Common\Options;
 
 /**
  * Description of Eway payment gateway
@@ -22,10 +23,10 @@ class Eway extends Gateway implements
     Interfaces\Charge,
     Interfaces\Credit
 {
-    const TEST_URL = 'https://www.eway.com.au/gateway/xmltest/testpage.asp';
+    const TEST_URL = 'https://www.eway.com.au/gateway/xmltest/%s.asp';
     const LIVE_URL = "https://www.eway.com.au/gateway/%s.asp";
 
-    const TEST_CVN_URL = 'https://www.eway.com.au/gateway_cvn/xmltest/testpage.asp';
+    const TEST_CVN_URL = 'https://www.eway.com.au/gateway_cvn/xmltest/%s.asp';
     const LIVE_CVN_URL = "https://www.eway.com.au/gateway_cvn/%s.asp";
 
     /**
@@ -123,7 +124,7 @@ class Eway extends Gateway implements
      */
     public function authorize($money, CreditCard $creditcard, $options=array())
     {
-        $this->required_options('address', $options);
+        $this->required_options('address,order_id', $options);
 
         $this->post = array();
 
@@ -136,6 +137,32 @@ class Eway extends Gateway implements
         $this->post['TotalAmount'] = $this->amount($money);
         
         return $this->commit('xmlauth', $money, $options);
+    }
+
+    /**
+     * Captures the given amount which was previously authorized
+     * 
+     * Doesn't use authorization here for consistency with authorize (uses order_id instead)
+     *
+     * @param number     $money
+     * @param string $authorization ignored
+     * @param array      $options
+     *
+     * @return Response
+     */
+    public function capture($money, $authorization, $options = array()){
+        $this->required_options("order_id", $options);
+
+        $this->post = array(
+            "AuthTrxnNumber" => $options["order_id"],
+            "TotalAmount" => $this->amount($money)
+        );
+
+        $cc = new CreditCard(array()); //The endpoint supposedly doesn't need this, but it complains
+        $this->add_creditcard($cc);
+        $this->add_invoice($options);
+        $this->add_optional_data();
+        return $this->commit("xmlauthcomplete", $money);
     }
 
     /**
@@ -163,7 +190,6 @@ class Eway extends Gateway implements
         return $this->commit('xmlpayment', $money, $options);
     }
 
-    public function capture($money, $authorization, $options = array()){}
 
     /**
      *
@@ -234,6 +260,7 @@ class Eway extends Gateway implements
         $billing_address = isset($options['billing_address'])
             ? $options['billing_address']
             : $options['address'];
+
         $this->post['CustomerAddress'] = join(', ', $billing_address);
 
         $this->post['CustomerPostcode'] = $billing_address['zip'];
@@ -247,7 +274,7 @@ class Eway extends Gateway implements
     private function add_invoice($options)
     {
         $this->post['CustomerInvoiceRef'] = $options['order_id'];
-        $this->post['CustomerInvoiceDescription'] = $options['description'];
+        $this->post['CustomerInvoiceDescription'] = @$options['description'];
     }
 
     /**
@@ -399,17 +426,35 @@ class Eway extends Gateway implements
         return $xml->asXML(); 
     }
 
+
+    /**
+     * This takes a live endpoint and writes it to a working test endpoint
+     */
+    private function test_gateway_alias($live_endpoint) {
+        $lookup = array(
+            "xmlauth" => "authtestpage",
+            "xmlauthcomplete" => "authcompletetestpage",
+            "xmlauthvoid" => "authvoidetestpage"
+        );
+
+        if(isset($lookup[$live_endpoint])) {
+            return $lookup[$live_endpoint];
+        } else {
+            return "testpage";
+        }
+    }
+
     private function get_gateway_url($action, $cvn, $test)
     {
         if ($cvn) {
             if ($test) {
-                $url = self::TEST_CVN_URL;
+                $url = sprintf(self::TEST_CVN_URL, $this->test_gateway_alias($action));
             } else {
                 $url = sprintf(self::LIVE_CVN_URL, $action);
             }
         } else {
             if ($test) {
-                $url = self::TEST_URL;
+                $url = sprintf(self::TEST_URL, $this->test_gateway_alias($action));
             } else {
                 $url = sprintf(self::LIVE_URL, $action);
             } 
@@ -421,3 +466,4 @@ class Eway extends Gateway implements
 
 
 }
+
