@@ -31,8 +31,6 @@ namespace AktiveMerchant\Billing;
  * mode in your {Gateway}, there are six different valid card numbers: 1, 2, 3, 'success', 'fail',
  * and 'error'.
  *
- * For details, see {CreditCardMethods::ClassMethods#valid_number?}
- *
  * Example Usage
  * <code>
  *   $cc = new CreditCard( array(

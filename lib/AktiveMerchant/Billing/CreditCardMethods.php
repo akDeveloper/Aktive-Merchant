@@ -5,7 +5,7 @@
 namespace AktiveMerchant\Billing;
 
 /**
- * Convenience methods that can be included into a custom Credit Card object.
+ * TODO: Merge with CreditCard class.
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
