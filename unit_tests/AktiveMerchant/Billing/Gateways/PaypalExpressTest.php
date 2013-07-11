@@ -156,8 +156,6 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
         );
         
         $this->assert_success($response);
-
-        print_r($response);
     }
 
     private function successful_authorize_request()
