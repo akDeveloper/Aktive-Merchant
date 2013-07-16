@@ -3,3 +3,4 @@
 vendor
 bin/*
 composer.lock
+unit_tests/fixtures.ini

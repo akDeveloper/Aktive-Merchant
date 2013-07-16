@@ -171,8 +171,19 @@ class FatZebra extends Gateway
      * Creates a recurring billing subscription for a customer.
      *
      * Available options for period are: "Daily", "Weekly", "Fortnightly", "Monthly", "Quarterly", "Bi-Annually", "Annually"
+     * 
      * start_date can be a DateTime object a timestamp or a string the can be 
      * parsed via strtime function.
+     *
+     * customer_id can be a string with id returned when you created a customer (XXX-C-XXXXXXXX).
+     * if customer_id ommited then a new customer will be cteated.
+     * 
+     * @param string     $plan The plan id returned when you created a plan (XXX-PL-XXXXXXXX).
+     * @param CreditCard $creditcard 
+     * @param array      $options 
+     *
+     * @access public
+     * @return void
      */
     public function recurring($plan, CreditCard $creditcard, $options=array())
     {
@@ -180,11 +191,16 @@ class FatZebra extends Gateway
 
         Options::required('first_name, last_name, email, customer_id, start_date, period', $options);
 
-        //$response = $this->createCustomer($creditcard, $options);
-
         $options = new Options($options);
+        
+        if (null === $options->customer_id) {
+            $response = $this->createCustomer($creditcard, $options);
+            $customer_id = $response->params()->id;
+        } else {
+            $customer_id = $options->customer_id;
+        }
 
-        $this->post['customer'] = '071-C-VN0XU40J'; //$response->params()->customer;
+        $this->post['customer'] = $customer_id;
         $start_date = $options->start_date instanceof \DateTime ? $options->start_date : new \DateTime(strtotime($options->start_date));
         $this->post['start_date'] = $start_date->format('Y-m-d');
         $this->post['plan'] = $plan;
@@ -193,8 +209,6 @@ class FatZebra extends Gateway
         $this->post['reference'] = $options->customer_id;
 
         return $this->commit('subscriptions');
-
-
     }
 
     public function cancelRecurring($subscription_id)
@@ -204,7 +218,6 @@ class FatZebra extends Gateway
         $this->post['is_active'] = false;
 
         return $this->commit("subscriptions/{$subscription_id}", RequestInterface::METHOD_PUT);
-
     }
 
 
@@ -368,6 +381,7 @@ class FatZebra extends Gateway
 
         $this->post['address'] = $address->getMappedFields();
     }
+
     /**
      * Customer data like e-mail, ip, web browser used for transaction etc
      *
@@ -387,7 +401,6 @@ class FatZebra extends Gateway
             $this->post['email'] = $options->email;
         }
     }
-
 
     /**
      * Adds invoice info if exists.

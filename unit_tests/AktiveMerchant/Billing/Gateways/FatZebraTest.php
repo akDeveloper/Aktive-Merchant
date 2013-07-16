@@ -355,7 +355,7 @@ class FatZebraTest extends AktiveMerchant\TestCase
         
         $this->mock_request($this->successful_create_customer_response($options['customer_id']));
         
-        $response = $this->gateway->createCustomer($this->creditcard,$options);
+        $response = $this->gateway->createCustomer($this->creditcard, $options);
         
         $this->assert_success($response);
         $this->assertTrue($response->test());
@@ -365,6 +365,8 @@ class FatZebraTest extends AktiveMerchant\TestCase
             $this->successful_create_customer_request($options['customer_id']),
             $request_body
         );
+
+        $this->assertEquals('071-C-WG7M3QQ3', $response->params()->id);
     }
 
     private function successful_create_customer_response($user_id)
@@ -489,7 +491,7 @@ class FatZebraTest extends AktiveMerchant\TestCase
         $options = array(
             'first_name' => 'Johny',
             'last_name' => 'Doeing',
-            'customer_id' => "USER_" . $this->gateway->generateUniqueId(),
+            'customer_id' => "071-C-VN0XU40J",
             'email' => 'jonh.doing@example.com',
             'start_date' => new \DateTime('tomorrow'),
             'period' => 'Monthly',
@@ -521,7 +523,7 @@ class FatZebraTest extends AktiveMerchant\TestCase
         $this->assertTrue($response->test());
 
         $this->assertTrue($response->params()->is_active);
-        $this->assertEquals("Scheduled",$response->params()->last_status);
+        $this->assertEquals("Scheduled", $response->params()->last_status);
 
     }
 

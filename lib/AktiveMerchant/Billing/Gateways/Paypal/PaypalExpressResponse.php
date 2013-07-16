@@ -54,7 +54,7 @@ class PaypalExpressResponse extends Response
         return array(
             'name' => $this->params['SHIPTONAME'],
             'address1' => $this->params['SHIPTOSTREET'],
-            'address2' => isset($this->params['SHIPTOSTREET2']) ? $this->params['SHIPTOSTREET2'] : null,
+            'address2' => $this->params['SHIPTOSTREET2'],
             'city' => $this->params['SHIPTOCITY'],
             'state' => $this->params['SHIPTOSTATE'],
             'zip' => $this->params['SHIPTOZIP'],

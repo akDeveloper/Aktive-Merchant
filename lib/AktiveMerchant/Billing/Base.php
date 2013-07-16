@@ -4,6 +4,8 @@
 
 namespace AktiveMerchant\Billing;
 
+use AktiveMerchant\Common\Inflect;
+
 /**
  *
  * @package Aktive-Merchant
@@ -69,19 +71,11 @@ class Base
      */
     public static function gateway($name=null, $options = array())
     {
-        $gateway = "\\AktiveMerchant\\Billing\\Gateways\\" . self::camelize($name);
+        $gateway = "\\AktiveMerchant\\Billing\\Gateways\\" . Inflect::camelize($name);
 
         if (class_exists($gateway))
             return new $gateway($options);
 
         throw new Exception("Unable to load class: {$gateway}.");
     }
-
-    private static function camelize($string)
-    {
-        return str_replace(' ', '', ucwords(str_replace('_', ' ', $string)));
-    }
-        
-        
-
 }
