@@ -13,6 +13,7 @@ use AktiveMerchant\Http\RequestInterface;
 use AktiveMerchant\Http\AdapterInterface;
 use AktiveMerchant\Http\Adapter\cUrl;
 use AktiveMerchant\Common\Options;
+use AktiveMerchant\Common\Inflect;
 
 /**
  * Gateway abstract class
@@ -123,7 +124,8 @@ abstract class Gateway
     public function factory_name()
     {
         $class = str_replace('ActiveMerchant\\Billing\\Gateways\\', '', get_class($this));
-        return $this->underscore($class);
+        
+        return Inflect::underscore($class);
     }
 
     public function display_name()
@@ -396,11 +398,4 @@ abstract class Gateway
 
         return false;
     }
-
-    private function underscore($string)
-    {
-        return strtolower(preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $string));
-    }
-            
-
 }
