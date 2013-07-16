@@ -1,3 +1,9 @@
+* __1.0.8__ (2013-07-16)
+  * Hide user login info from fixtures.ini. Added fixtures.ini dist which should be copied as fixtures.ini
+  * Fix FatZebra recurring bug
+  * Add Inflect class
+  * Improve Eway gateway ( @wakeless-net )
+  * Fix bugs in Realex gateway and add 3d secure integration ( @tomglue )
 * __1.0.7__ (2013-04-29)
   * Added Fat Zebra Gateway
   * Fix minor bugs
