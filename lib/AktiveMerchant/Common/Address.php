@@ -10,8 +10,8 @@ namespace AktiveMerchant\Common;
  * 
  * <code>
  *      $user_address = array(
- *          'city_name' => 'Athens',
- *          'country_name' => 'Greece',
+ *          'city' => 'Athens',
+ *          'country' => 'Greece',
  *      );
  *      
  *      $address = new Address($user_address); // create new instance
@@ -39,7 +39,7 @@ class Address
 {
 
     /**
-     * An array or Options class withe user definded fields of an address.
+     * An array or Options class with user definded fields of an address.
      * 
      * @var array|Options
      */
