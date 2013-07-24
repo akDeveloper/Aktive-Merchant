@@ -9,10 +9,10 @@ use AktiveMerchant\Http\AdapterInterface;
 
 /**
  * cUrl adapter
- * 
+ *
  * @uses    AdapterInterface
  * @package Aktive-Merchant
- * @author  Andreas Kollaros <php@andreaskollaros.com> 
+ * @author  Andreas Kollaros <php@andreaskollaros.com>
  * @license MIT {@link http://opensource.org/licenses/mit-license.php}
  */
 class cUrl implements AdapterInterface
@@ -21,7 +21,7 @@ class cUrl implements AdapterInterface
 
     /**
      * The url endpoint to execute the request.
-     * 
+     *
      * @var    mixed
      * @access protected
      */
@@ -30,21 +30,21 @@ class cUrl implements AdapterInterface
     protected $port;
 
     /**
-     * Information about the last transfer retrieved from curl_getinfo 
+     * Information about the last transfer retrieved from curl_getinfo
      * function.
-     * 
+     *
      * @var    array
      * @access protected
      */
     protected $info = array();
 
     protected $response_body;
-    
+
     protected $response_headers;
 
     /**
      * Extra options for cUrl configuration.
-     * 
+     *
      * @var    array
      * @access protected
      */
@@ -64,7 +64,7 @@ class cUrl implements AdapterInterface
     public function sendRequest(Request $request)
     {
         $this->apply_options($request);
-        
+
         if ($request->getMethod() == Request::METHOD_POST) {
             curl_setopt($this->ch, CURLOPT_POST, 1);
             curl_setopt($this->ch, CURLOPT_POSTFIELDS, $request->getBody());
@@ -73,7 +73,7 @@ class cUrl implements AdapterInterface
         } elseif ($request->getMethod() == Request::METHOD_PUT) {
             curl_setopt($this->ch, CURLOPT_POST, 1);
             curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'PUT');
-            curl_setopt($this->ch, CURLOPT_POSTFIELDS, $request->getBody());           
+            curl_setopt($this->ch, CURLOPT_POSTFIELDS, $request->getBody());
         }
 
         $response = curl_exec($this->ch);
@@ -84,22 +84,22 @@ class cUrl implements AdapterInterface
             curl_close($this->ch);
             throw $ex;
         }
-        
+
         // Now check for an HTTP error
         $curl_info = curl_getinfo($this->ch);
 
         curl_close($this->ch);
-        
+
         if ($curl_info['http_code'] == '301') {
             $request->setUrl($curl_info['redirect_url']);
             return $this->sendRequest($request);
-        }        
+        }
 
-        if (   $curl_info['http_code'] < 200 
+        if (   $curl_info['http_code'] < 200
             || $curl_info['http_code'] >= 500
         ) {
             $ex = new Exception(
-                "HTTP Status #" 
+                "HTTP Status #"
                 . $curl_info['http_code']."\n"
                 . "CurlInfo:\n"
                 . print_r($curl_info, true)
@@ -122,7 +122,7 @@ class cUrl implements AdapterInterface
      */
     public function getResponseBody()
     {
-        return $this->response_body; 
+        return $this->response_body;
     }
 
     /**
@@ -146,14 +146,14 @@ class cUrl implements AdapterInterface
      */
     public function getOption($option)
     {
-        return isset($this->options[$option]) 
+        return isset($this->options[$option])
             ? $this->options[$option]
             : null;
     }
 
     /**
      * Gets Information about the last transfer.
-     * 
+     *
      * @access public
      * @return array
      */
@@ -162,7 +162,7 @@ class cUrl implements AdapterInterface
         return $this->info;
     }
 
-    protected function init_handler() 
+    protected function init_handler()
     {
         $this->ch = curl_init();
     }
@@ -173,8 +173,9 @@ class cUrl implements AdapterInterface
 
         if (!isset($server['port'])) {
             $server['port'] = ($server['scheme'] == 'https') ? 443 : 80;
-            $this->port = $server['port'];
         }
+
+        $this->port = $server['port'];
 
         if (!isset($server['path'])) {
             $server['path'] = '/';
@@ -187,18 +188,23 @@ class cUrl implements AdapterInterface
             );
         }
 
-        $this->url = $server['scheme'] 
-            . '://' . $server['host'] 
-            . $server['path'] 
-            . (isset($server['query']) ? '?' . $server['query'] : ''); 
+        $port = !in_array($this->port, array(443, 80)) && !empty($this->port)
+            ? ":{$this->port}"
+            : null;
+
+        $this->url = $server['scheme']
+            . '://' . $server['host']
+            . $port
+            . $server['path']
+            . (isset($server['query']) ? '?' . $server['query'] : '');
     }
 
     protected function apply_options(Request $request)
     {
         $this->init_handler();
-        
+
         $this->init_url($request);
-        
+
         $default = array(
             CURLOPT_PORT            => $this->port,
             CURLOPT_HEADER          => true,
@@ -221,7 +227,7 @@ class cUrl implements AdapterInterface
     protected function map_config($config)
     {
         $map = array();
-        
+
         foreach ($config as $o=>$c) {
             $key = $this->map_config[$o];
             $map[$key] = $c;

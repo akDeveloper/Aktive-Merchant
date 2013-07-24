@@ -12,6 +12,10 @@ class GatewaySupportTest extends PHPUnit_Framework_TestCase
     {
         $s = new GatewaySupport();
 
+        ob_start();
         $s->features();
+        $output = ob_get_clean();
+
+        $this->assertTrue($output!=null);
     }
 }
