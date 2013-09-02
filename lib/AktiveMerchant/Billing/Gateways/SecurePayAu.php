@@ -136,6 +136,7 @@ class SecurePayAu extends Gateway implements
 
     function addCCInfo($xml, $credit_card) {
       $ccInfo = $xml->addChild("CreditCardInfo");
+      $ccInfo->addChild("cardHolderName", @$credit_card->first_name." ".@$credit_card->last_name);
       $ccInfo->addChild("cardNumber", @$credit_card->number);
       $ccInfo->addChild("expiryDate", $this->expdate($credit_card));
 
