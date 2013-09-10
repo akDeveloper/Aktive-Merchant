@@ -100,6 +100,7 @@ class PaypalExpress extends PaypalCommon
             'AMT'               => $this->amount($money),
             'AUTHORIZATIONID'   => $authorization,
             'COMPLETETYPE'      => $options['complete_type'],
+            "CURRENCYCODE"      => $this->options["currency"]
         );
 
         $this->post = array_merge(
