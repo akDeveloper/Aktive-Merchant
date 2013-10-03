@@ -34,31 +34,23 @@ use AktiveMerchant\Common\Options;
  * @author  Andreas Kollaros
  * @license MIT {@link http://opensource.org/licenses/mit-license.php}
  */
-class Moneris extends Gateway 
+class Moneris extends Gateway
 {
-    const US_TEST_URL = 'https://esplusqa.moneris.com/gateway_us/servlet/MpgRequest';
-    const US_LIVE_URL = 'https://esplus.moneris.com/gateway_us/servlet/MpgRequest';
-
-    const CA_TEST_URL = 'https://esqa.moneris.com/gateway2/servlet/MpgRequest';
-    const CA_LIVE_URL = 'https://www3.moneris.com/gateway2/servlet/MpgRequest';
-
-    #Urls
-    private $TEST_URL;
-    private $LIVE_URL;
-    private $API_VERSION;
+    const TEST_URL = 'https://esqa.moneris.com/gateway2/servlet/MpgRequest';
+    const LIVE_URL = 'https://www3.moneris.com/gateway2/servlet/MpgRequest';
 
     #Actions
-    private $authorize;
-    private $cavv_authorize;
-    private $purchase;
-    private $cavv_purchase;
-    private $capture;
-    private $void;
-    private $credit;
+    protected $authorize;
+    protected $cavv_authorize;
+    protected $purchase;
+    protected $cavv_purchase;
+    protected $capture;
+    protected $void;
+    protected $credit;
 
 
     # The countries the gateway supports merchants from as 2 digit ISO country codes
-    public static $supported_countries = array('US','CA');
+    public static $supported_countries = array('CA');
 
     # The card types supported by the payment gateway
     public static $supported_cardtypes = array( 'visa',  'master','american_express', 'discover');
@@ -69,7 +61,7 @@ class Moneris extends Gateway
     # The display name of the gateway
     public static $display_name = 'Moneris Payment Gateway (eSelect Plus)';
 
-    public static $default_currency;
+    public static $default_currency = 'CAD';
 
     private $options;
     private $post;
@@ -83,19 +75,18 @@ class Moneris extends Gateway
         'NO' => 'discover'
     );
 
-    const US_API_VERSION = 'US PHP Api v.1.1.2';
-    const CA_API_VERSION = 'MpgApi Version 2.03(php)';
+    const API_VERSION = 'MpgApi Version 2.03(php)';
     const FRAUD_REVIEW = 1;
 
     /**
-     * $options array includes login parameters of merchant, optional currency 
+     * $options array includes login parameters of merchant, optional currency
      * and region (US or CA).
      *
-     * @param array $options 
+     * @param array $options
      */
     public function __construct(array $options = array())
     {
-        Options::required('store_id, api_token, region', $options);
+        Options::required('store_id, api_token', $options);
 
         $this->options = new Options($options);
 
@@ -103,35 +94,14 @@ class Moneris extends Gateway
             self::$default_currency = $options['currency'];
         }
 
-        if ($options['region'] == 'US') {
-            $this->TEST_URL = self::US_TEST_URL;
-            $this->LIVE_URL = self::US_LIVE_URL;
-            $this->API_VERSION = self::US_API_VERSION;
+        $this->authorize      = 'preauth';
+        $this->cavv_authorize = 'cavv_preauth';
+        $this->purchase       = 'purchase';
+        $this->cavv_purchase  = 'cavv_purchase';
+        $this->capture        = 'completion';
+        $this->void           = 'purchasecorrection';
+        $this->credit         = 'refund';
 
-            $this->authorize      = 'us_preauth';
-            $this->cavv_authorize = 'us_cavv_preauth';
-            $this->purchase       = 'us_purchase';
-            $this->cavv_purchase  = 'us_cavv_purchase';
-            $this->capture        = 'us_completion';
-            $this->void           = 'us_purchasecorrection';
-            $this->credit         = 'us_refund';
-
-            static::$default_currency = 'USD';
-        } elseif($options['region'] == 'CA')  {
-            $this->TEST_URL = self::CA_TEST_URL;
-            $this->LIVE_URL = self::CA_LIVE_URL;
-            $this->API_VERSION = self::CA_API_VERSION;
-
-            $this->authorize      = 'preauth';
-            $this->cavv_authorize = 'cavv_preauth';
-            $this->purchase       = 'purchase';
-            $this->cavv_purchase  = 'cavv_purchase';
-            $this->capture        = 'completion';
-            $this->void           = 'purchasecorrection';
-            $this->credit         = 'refund';
-
-            static::$default_currency = 'CAD';
-        }
     }
 
     /**
@@ -199,7 +169,7 @@ class Moneris extends Gateway
     public function capture($money, $authorization, $options = array())
     {
         Options::required('order_id', $options);
-     
+
         $this->add_invoice($options);
         $this->post .= "<comp_amount>{$this->amount($money)}</comp_amount>";
         $this->post .= "<txn_number>$authorization</txn_number>";
@@ -217,10 +187,10 @@ class Moneris extends Gateway
     public function void($authorization, $options = array())
     {
         Options::required('order_id', $options);
-        
+
         $this->add_invoice($options);
         $this->post .= "<txn_number>$authorization</txn_number>";
-        
+
         return $this->commit($this->void, null);
     }
 
@@ -349,7 +319,7 @@ class Moneris extends Gateway
 
     private function add_creditcard(CreditCard $creditcard)
     {
-        $exp_date = $this->cc_format($creditcard->year, 'two_digits') 
+        $exp_date = $this->cc_format($creditcard->year, 'two_digits')
             . $this->cc_format($creditcard->month, 'two_digits');
 
         $this->post .= "<pan>{$creditcard->number}</pan><expdate>{$exp_date}</expdate><cvd_info><cvd_indicator>1</cvd_indicator><cvd_value>{$creditcard->verification_value}</cvd_value></cvd_info>";
@@ -377,8 +347,8 @@ class Moneris extends Gateway
         $response['message']        = (string) $xml->receipt->Message;
         $response['trans_amount']   = (string) $xml->receipt->TransAmount;
         $cardtype                   = (string) $xml->receipt->CardType;
-        $response['card_type']      = isset($this->credit_card_types[$cardtype]) 
-            ? $this->credit_card_types[$cardtype] 
+        $response['card_type']      = isset($this->credit_card_types[$cardtype])
+            ? $this->credit_card_types[$cardtype]
             : null;
         $response['transaction_id'] = (string) $xml->receipt->TransID;
         $response['timed_out']      = (string) $xml->receipt->TimedOut;
@@ -386,7 +356,7 @@ class Moneris extends Gateway
         $response['ticket']         = (string) $xml->receipt->Ticket;
         $response['avs_result_code']= (string) $xml->receipt->AvsResultCode;
         $response['cvd_result_code']= (string) $xml->receipt->CvdResultCode;
-        
+
         if ($response['avs_result_code'] == 'null') {
             $response['avs_result_code'] = null;
         }
@@ -404,13 +374,13 @@ class Moneris extends Gateway
      */
     private function commit($action, $money, $parameters=array())
     {
-        $url = $this->isTest() ? $this->TEST_URL : $this->LIVE_URL;
+        $url = $this->isTest() ? static::TEST_URL : static::LIVE_URL;
 
         $data = $this->ssl_post(
-            $url, 
+            $url,
             $this->post_data($action, $parameters),
             array(
-                'user_agent' =>  $this->API_VERSION,
+                'user_agent' =>  static::API_VERSION,
                 'timeout'=> 60
             )
         );
@@ -491,12 +461,12 @@ class Moneris extends Gateway
      * @param string $action
      * @param array  $parameters
      */
-    private function post_data($action, $parameters = array()) 
+    private function post_data($action, $parameters = array())
     {
         $xml = '<?xml version="1.0"?><request>';
         $xml .= "<store_id>{$this->options['store_id']}</store_id><api_token>{$this->options['api_token']}</api_token>";
         $xml .= "<$action>$this->post<crypt_type>{$this->crypt_type}</crypt_type></$action></request>";
-        
+
         return $xml;
     }
 
