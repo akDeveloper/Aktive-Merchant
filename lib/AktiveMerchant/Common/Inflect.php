@@ -2,9 +2,9 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-namespace ActiveMerchant\Common;
+namespace AktiveMerchant\Common;
 
-class Inflect()
+class Inflect
 {
     public static function camelize($string)
     {

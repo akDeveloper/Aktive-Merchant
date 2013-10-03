@@ -34,9 +34,9 @@ class PaypalExpress extends PaypalCommon
 
     public function __construct($options = array())
     {
-        $this->required_options('login, password, signature', $options);
+        Options::required('login, password, signature', $options);
 
-        $this->options = $options;
+        $this->options = new Options($options);
 
         if (isset($options['version']))
             $this->version = $options['version'];
@@ -99,6 +99,7 @@ class PaypalExpress extends PaypalCommon
             'AMT'               => $this->amount($money),
             'AUTHORIZATIONID'   => $authorization,
             'COMPLETETYPE'      => $options['complete_type'],
+            "CURRENCYCODE"      => $this->options['currency'] ?: self::$default_currency
         );
 
         $this->post = array_merge(
@@ -474,8 +475,8 @@ class PaypalExpress extends PaypalCommon
             'PAYMENTREQUEST_0_CURRENCYCODE'  => self::$default_currency
         );
 
-        if (   $this->post['METHOD'] == 'SetExpressCheckout' 
-        ) {
+        if (in_array($this->post['METHOD'], array('SetExpressCheckout', 'DoExpressCheckoutPayment'))) 
+        {
             $params['PAYMENTREQUEST_0_PAYMENTACTION'] = $action;
         }
 

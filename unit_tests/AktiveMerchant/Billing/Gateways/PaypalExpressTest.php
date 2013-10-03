@@ -160,7 +160,7 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
 
     private function successful_authorize_request()
     {
-        return "METHOD=DoExpressCheckoutPayment&PAYMENTREQUEST_0_AMT=10.00&TOKEN=EC-81B81448TC460182J&PAYERID=3L2BZTVKN8N7G&USER=x&PWD=y&VERSION=94.0&SIGNATURE=z&PAYMENTREQUEST_0_CURRENCYCODE=EUR";
+        return "METHOD=DoExpressCheckoutPayment&PAYMENTREQUEST_0_AMT=10.00&TOKEN=EC-81B81448TC460182J&PAYERID=3L2BZTVKN8N7G&USER=x&PWD=y&VERSION=94.0&SIGNATURE=z&PAYMENTREQUEST_0_CURRENCYCODE=EUR&PAYMENTREQUEST_0_PAYMENTACTION=Authorization";
     }
 
     private function successful_authorize_response()
@@ -235,7 +235,7 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
 
     private function successful_capture_request()
     {
-        return "METHOD=DoCapture&AMT=46.00&AUTHORIZATIONID=2HR32227AR146560V&COMPLETETYPE=Complete&USER=x&PWD=y&VERSION=94.0&SIGNATURE=z&PAYMENTREQUEST_0_CURRENCYCODE=EUR";
+        return "METHOD=DoCapture&AMT=46.00&AUTHORIZATIONID=2HR32227AR146560V&COMPLETETYPE=Complete&CURRENCYCODE=EUR&USER=x&PWD=y&VERSION=94.0&SIGNATURE=z&PAYMENTREQUEST_0_CURRENCYCODE=EUR";
     }
 
     private function successful_capture_response()
