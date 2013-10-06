@@ -11,7 +11,7 @@ class Inflect
         return str_replace(' ', '', ucwords(str_replace('_', ' ', $string)));
     }
 
-    public function underscore($string)
+    public static function underscore($string)
     {
         return strtolower(preg_replace('/(?<=\\w)([A-Z])/', '_\\1', $string));
     }
