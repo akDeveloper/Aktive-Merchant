@@ -12,7 +12,7 @@ use AktiveMerchant\Common\Options;
 use AktiveMerchant\Common\Inflect;
 
 /**
- * Description of Example
+ * Description of Exact gateway
  *
  * @category Gateways
  * @package  Aktive-Merchant
@@ -54,7 +54,7 @@ class Exact extends Gateway implements Interfaces\Charge
     /**
      * {@inheritdoc}
      */
-    public static $supported_countries = array();
+    public static $supported_countries = array('CA', 'US');
 
     /**
      * {@inheritdoc}
@@ -63,20 +63,19 @@ class Exact extends Gateway implements Interfaces\Charge
         'visa',
         'master',
         'american_express',
-        'switch',
-        'solo',
-        'maestro'
+        'jcb',
+        'discover'
     );
 
     /**
      * {@inheritdoc}
      */
-    public static $homepage_url = 'http://www.example.net';
+    public static $homepage_url = 'http://www.e-xact.com';
 
     /**
      * {@inheritdoc}
      */
-    public static $display_name = 'New Gateway';
+    public static $display_name = 'E-xact';
 
     /**
      * {@inheritdoc}
@@ -100,8 +99,10 @@ class Exact extends Gateway implements Interfaces\Charge
     /**
      * creates gateway instance from given options.
      *
-     * @param array $options an array contains login parameters of merchant
-     *                       and optional currency.
+     * @param array $options An array contains:
+     *                       login
+     *                       password
+     *                       currency (optional)
      *
      * @return Gateway The gateway instance.
      */
