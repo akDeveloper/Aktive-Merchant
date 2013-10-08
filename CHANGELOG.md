@@ -1,3 +1,7 @@
+* __1.0.9__ (2013-10-08)
+  * Added Exact payment gateway
+  * Added Mercury payment gateway
+  * Fix Paypal express authorization ( @wakeless-net )
 * __1.0.8__ (2013-07-16)
   * Hide user login info from fixtures.ini. Added fixtures.ini dist which should be copied as fixtures.ini
   * Fix FatZebra recurring bug
