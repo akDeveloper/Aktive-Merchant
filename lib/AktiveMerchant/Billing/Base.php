@@ -18,7 +18,7 @@ class Base
     /**
      * @var string
      */
-    const VERSION = "1.1.0-alpha";
+    const VERSION = "1.0.10-dev";
 
     /**
      * @var string
@@ -29,7 +29,7 @@ class Base
      * @var string
      */
     public static $integration_mode;
-    
+
     /**
      * @var string live | test
      */
@@ -55,7 +55,7 @@ class Base
 
     /**
      * Factory method for gateways.
-     * 
+     *
      * Return the matching gateway for the provider
      * $name must be the name of the gateway class in underscore format
      * for AuthorizeNet gateway will be authorize_net
@@ -63,7 +63,7 @@ class Base
      * <code>
      *      AktiveMerchant\Billing\Base::gateway('authorize_net');
      * </code>
-     * 
+     *
      * @param  string $name    the underscored name of the gateway.
      * @param  array  $options the options for gateway construct.
      *
