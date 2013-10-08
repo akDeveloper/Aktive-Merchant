@@ -32,7 +32,7 @@ class FatZebraTest extends AktiveMerchant\TestCase
         Base::mode('test');
 
         $login_info = $this->getFixtures()->offsetGet('fat_zebra');
-        
+
         $login_info['region'] = 'CA';
         $this->gateway = new FatZebra($login_info);
 
@@ -56,27 +56,27 @@ class FatZebraTest extends AktiveMerchant\TestCase
     public function testSuccessfulPurchase()
     {
         $this->mock_request($this->successful_purchase_response($this->options['order_id']));
-        
+
         $response = $this->gateway->purchase(
             $this->amount,
             $this->creditcard,
             $this->options
         );
-        
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
-        
+
         $request_body = $this->request->getBody();
         $this->assertEquals(
             $this->successful_purchase_request($this->options['order_id']),
             $request_body
         );
-        
+
         $params = $response->params();
-        
+
         $this->assertEquals('1000', $params->amount);
     }
-    
+
     private function successful_purchase_request($order_id)
     {
         return '{"reference":"'.$order_id.'","amount":"1000","card_holder":"John Doe","card_number":"5123456789012346","card_expiry":"01\/2015","cvv":"000","customer_ip":"10.0.0.1"}';
@@ -97,10 +97,10 @@ class FatZebraTest extends AktiveMerchant\TestCase
             $this->creditcard,
             $this->options
         );
-        
+
         $this->assert_failure($response);
         $this->assertTrue($response->test());
- 
+
         $request_body = $this->request->getBody();
         $this->assertEquals(
             $this->fail_purchase_request($this->options['order_id']),
@@ -108,10 +108,10 @@ class FatZebraTest extends AktiveMerchant\TestCase
         );
 
         $this->assertEquals('Expiry date is invalid (expired)', $response->message());
-         
-        
+
+
     }
-    
+
     private function fail_purchase_request($order_id)
     {
         return '{"reference":"'.$order_id.'","amount":"1000","card_holder":"John Doe","card_number":"5123456789012346","card_expiry":"01\/2000","cvv":"000","customer_ip":"10.0.0.1"}';
@@ -125,13 +125,13 @@ class FatZebraTest extends AktiveMerchant\TestCase
     public function testSuccessfulStore()
     {
         $this->mock_request($this->successful_store_response());
-        
+
         $response = $this->gateway->store($this->creditcard);
-        
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
         $this->assertTrue($response->authorization() !== null);
-        
+
         $request_body = $this->request->getBody();
         $this->assertEquals(
             $this->successful_store_request(),
@@ -159,7 +159,7 @@ class FatZebraTest extends AktiveMerchant\TestCase
             't76bbrsj',
             $this->options
         );
-        
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
@@ -170,10 +170,10 @@ class FatZebraTest extends AktiveMerchant\TestCase
         );
 
         $params = $response->params();
-        
+
         $this->assertEquals('1000', $params->amount);
     }
-    
+
     private function successful_purchase_token_request($order_id)
     {
         return '{"reference":"'.$order_id.'","amount":"1000","card_token":"t76bbrsj","customer_ip":"10.0.0.1"}';
@@ -195,7 +195,7 @@ class FatZebraTest extends AktiveMerchant\TestCase
             $token,
             $this->options
         );
-        
+
         $this->assert_failure($response);
         $this->assertTrue($response->test());
 
@@ -204,11 +204,11 @@ class FatZebraTest extends AktiveMerchant\TestCase
             $this->fail_purchase_token_request($this->options['order_id'], $token),
             $request_body
         );
-        
+
         $this->assertNull($response->params()->amount);
         $this->assertEquals("Card $token could not be found",$response->message());
     }
-    
+
     private function fail_purchase_token_request($order_id, $token)
     {
         return '{"reference":"'.$order_id.'","amount":"1000","card_token":"'.$token.'","customer_ip":"10.0.0.1"}';
@@ -233,21 +233,21 @@ class FatZebraTest extends AktiveMerchant\TestCase
             $id,
             $this->options
         );
-        
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
         $request_body = $this->request->getBody();
         $this->assertEquals(
-            $this->successful_credit_request($id),
+            $this->successful_credit_request($id, $this->options['order_id']),
             $request_body
         );
         $this->assertEquals(-($this->amount * 100), $response->params()->amount);
     }
-    
-    private function successful_credit_request($id)
+
+    private function successful_credit_request($id, $order_id)
     {
-        return '{"transaction_id":"'.$id.'","reference":{},"amount":"1000"}';
+        return '{"transaction_id":"'.$id.'","reference":"'.$order_id.'","amount":"1000"}';
     }
 
     private function successful_credit_response()
@@ -256,7 +256,7 @@ class FatZebraTest extends AktiveMerchant\TestCase
     }
 
     public function testSuccessfulCreatePlan()
-    { 
+    {
         $plan = array(
             'order_id' => 'PLAN' . $this->gateway->generateUniqueId(),
             'amount' => '12',
@@ -265,19 +265,19 @@ class FatZebraTest extends AktiveMerchant\TestCase
         );
 
         $this->mock_request($this->successful_createplan_response($plan['order_id']));
-        
+
         $response = $this->gateway->createPlan($plan['amount'], $plan);
-        
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
-        
+
         $request_body = $this->request->getBody();
         $this->assertEquals(
             $this->successful_createplan_request($plan['order_id']),
             $request_body
         );
-        
+
     }
 
     private function successful_createplan_request($order_id)
@@ -291,27 +291,27 @@ class FatZebraTest extends AktiveMerchant\TestCase
     }
 
     public function testSuccessfulGetPlans()
-    { 
+    {
         $this->mock_request($this->successful_getplans_response());
-        
+
         $response = $this->gateway->getPlans();
-        
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
     }
 
     private function successful_getplans_response()
     {
-       return '{"successful":true,"response":[{"name":"testplan1","id":"071-PL-RVV6LKKW","amount":100,"reference":"1d4c5f50-ff98-40fa-94d4-7719faeac267","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-7WLMNQGT","amount":100,"reference":"1ca42037-0353-4ae4-a883-baa1b4435dd8","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-IWR3Z76L","amount":100,"reference":"00b4178b-10fa-475c-9a56-0fd434fcfc14","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-U6AU1T6I","amount":100,"reference":"675d16e3-3b14-4c92-8bfe-eb5cdd4d9e71","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-2OSIGRCQ","amount":100,"reference":"ac437c0f-b382-484f-a576-ad7cc8ffb053","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-D25LUVRZ","amount":100,"reference":"a65e603a-fff1-4834-a920-d2f11579a96f","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-AJDN57EQ","amount":100,"reference":"edd6a5cf-101d-48d0-92de-e422e0187356","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-CA3FA8F8","amount":100,"reference":"4abbef96-b490-445a-b8d2-098794a676fe","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-IIBGYM6I","amount":100,"reference":"ec67ccd7-b53b-4c8a-9a94-06e5577ecd74","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-ZJ8UUMFN","amount":100,"reference":"e5c12a09-06f4-4003-aad2-5ad99ae60e50","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-WRJIBDV1","amount":100,"reference":"e59aa972-5cab-44f8-9e37-9dcd8ae47580","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-FTQ3H0PH","amount":100,"reference":"49e1137d-b2b7-4af8-b0fc-9a53f3302e54","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"Gold","id":"071-PL-ASM2VKAS","amount":1000,"reference":"PLAN9026643195","description":"Gold Plan","currency":null,"subscription_count":0}],"errors":[],"test":true,"records":13,"total_records":13,"page":1,"total_pages":1}'; 
+       return '{"successful":true,"response":[{"name":"testplan1","id":"071-PL-RVV6LKKW","amount":100,"reference":"1d4c5f50-ff98-40fa-94d4-7719faeac267","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-7WLMNQGT","amount":100,"reference":"1ca42037-0353-4ae4-a883-baa1b4435dd8","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-IWR3Z76L","amount":100,"reference":"00b4178b-10fa-475c-9a56-0fd434fcfc14","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-U6AU1T6I","amount":100,"reference":"675d16e3-3b14-4c92-8bfe-eb5cdd4d9e71","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-2OSIGRCQ","amount":100,"reference":"ac437c0f-b382-484f-a576-ad7cc8ffb053","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-D25LUVRZ","amount":100,"reference":"a65e603a-fff1-4834-a920-d2f11579a96f","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-AJDN57EQ","amount":100,"reference":"edd6a5cf-101d-48d0-92de-e422e0187356","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-CA3FA8F8","amount":100,"reference":"4abbef96-b490-445a-b8d2-098794a676fe","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-IIBGYM6I","amount":100,"reference":"ec67ccd7-b53b-4c8a-9a94-06e5577ecd74","description":"This is a test plan","currency":null,"subscription_count":0},{"name":"testplan1","id":"071-PL-ZJ8UUMFN","amount":100,"reference":"e5c12a09-06f4-4003-aad2-5ad99ae60e50","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-WRJIBDV1","amount":100,"reference":"e59aa972-5cab-44f8-9e37-9dcd8ae47580","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"testplan1","id":"071-PL-FTQ3H0PH","amount":100,"reference":"49e1137d-b2b7-4af8-b0fc-9a53f3302e54","description":"This is a test plan","currency":null,"subscription_count":1},{"name":"Gold","id":"071-PL-ASM2VKAS","amount":1000,"reference":"PLAN9026643195","description":"Gold Plan","currency":null,"subscription_count":0}],"errors":[],"test":true,"records":13,"total_records":13,"page":1,"total_pages":1}';
     }
-    
+
     public function testSuccessfulGetSinglePlan()
-    { 
+    {
         $this->mock_request($this->successful_get_single_plan_response());
 
         $plan_id ='071-PL-ASM2VKAS';
         $response = $this->gateway->getPlan($plan_id);
-        
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
         $this->assertEquals($plan_id, $response->params()->id);
@@ -319,27 +319,27 @@ class FatZebraTest extends AktiveMerchant\TestCase
 
     private function successful_get_single_plan_response()
     {
-       return '{"successful":true,"response":{"name":"Gold","id":"071-PL-ASM2VKAS","amount":1000,"reference":"PLAN9026643195","description":"Gold Plan","currency":null,"subscription_count":0},"errors":[],"test":true}'; 
+       return '{"successful":true,"response":{"name":"Gold","id":"071-PL-ASM2VKAS","amount":1000,"reference":"PLAN9026643195","description":"Gold Plan","currency":null,"subscription_count":0},"errors":[],"test":true}';
     }
 
     public function testSuccessfulUpdatePlan()
-    { 
+    {
         $this->mock_request($this->successful_update_plan_response());
 
         $plan_id ='071-PL-ASM2VKAS';
         $response = $this->gateway->updatePlan($plan_id, array('name' => 'The Gold Plan', 'description'=>'The Gold Plan Description'));
-        
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
     }
 
     private function successful_update_plan_response()
     {
-       return '{"successful":true,"response":{"name":"The Gold Plan","id":"071-PL-ASM2VKAS","amount":1000,"reference":"PLAN9026643195","description":"The Gold Plan Description","currency":null,"subscription_count":0},"errors":[],"test":true}'; 
+       return '{"successful":true,"response":{"name":"The Gold Plan","id":"071-PL-ASM2VKAS","amount":1000,"reference":"PLAN9026643195","description":"The Gold Plan Description","currency":null,"subscription_count":0},"errors":[],"test":true}';
     }
 
     public function testSuccessfulCreateCustomer()
-    { 
+    {
 
         $options = array(
             'first_name' => 'John',
@@ -352,11 +352,11 @@ class FatZebraTest extends AktiveMerchant\TestCase
                 'state' => 'WA'
             )
         );
-        
+
         $this->mock_request($this->successful_create_customer_response($options['customer_id']));
-        
+
         $response = $this->gateway->createCustomer($this->creditcard, $options);
-        
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
@@ -380,7 +380,7 @@ class FatZebraTest extends AktiveMerchant\TestCase
     }
 
     public function testFailCreateCustomer()
-    { 
+    {
 
         $options = array(
             'first_name' => 'John',
@@ -393,15 +393,15 @@ class FatZebraTest extends AktiveMerchant\TestCase
                 'state' => 'WA'
             )
         );
-        
+
         $this->mock_request($this->fail_create_customer_response());
-        
+
         $response = $this->gateway->createCustomer($this->creditcard,$options);
-        
+
         $this->assert_failure($response);
         $this->assertTrue($response->test());
 
-    
+
         $this->assertNull($response->params()->id);
 
         $this->assertEquals('Reference has already been taken',$response->message());
@@ -414,7 +414,7 @@ class FatZebraTest extends AktiveMerchant\TestCase
     }
 
     public function testSuccessfulUpdateCustomer()
-    { 
+    {
 
         $customer_id = "071-C-WG7M3QQ3"; // The id returned when you call createCustomer action
         $options = array(
@@ -438,11 +438,11 @@ class FatZebraTest extends AktiveMerchant\TestCase
                 "verification_value" => "123"
             )
         );
-        
+
         $this->mock_request($this->successful_update_customer_response());
-        
+
         $response = $this->gateway->updateCustomer($customer_id, $creditcard, $options);
-        
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
@@ -456,7 +456,7 @@ class FatZebraTest extends AktiveMerchant\TestCase
     }
 
     public function testFailUpdateCustomer()
-    { 
+    {
 
         $customer_id = "075-C-WG7M3";
         $options = array(
@@ -469,14 +469,14 @@ class FatZebraTest extends AktiveMerchant\TestCase
                 'state' => 'WA'
             )
         );
-        
+
         $this->mock_request($this->successful_fail_customer_response());
-        
+
         $response = $this->gateway->updateCustomer($customer_id, null, $options);
-        
+
         $this->assert_failure($response);
         $this->assertTrue($response->test());
-        
+
         $this->assertEquals('Record not found',$response->message());
 
     }
@@ -485,7 +485,7 @@ class FatZebraTest extends AktiveMerchant\TestCase
     {
        return '{"successful":false,"response":null,"errors":["Record not found"],"test":true}';
     }
-    
+
     public function testSuccessSubscription()
     {
         $options = array(
@@ -516,9 +516,9 @@ class FatZebraTest extends AktiveMerchant\TestCase
         $plan = "071-PL-ASM2VKAS";
 
         $this->mock_request($this->successful_subscription_response());
-        
+
         $response = $this->gateway->recurring($plan, $creditcard, $options);
-        
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
@@ -532,14 +532,14 @@ class FatZebraTest extends AktiveMerchant\TestCase
     {
         return '{"successful":true,"response":{"id":"071-S-QK9ZHLEX","customer":"071-C-VN0XU40J","plan":"071-PL-ASM2VKAS","frequency":"Monthly","start_date":"2013-04-30","end_date":null,"next_billing_date":"2013-04-30","reference":"USER_2584725755","last_status":"Scheduled","is_active":true},"errors":[],"test":true}';
     }
-    
+
     public function testSuccessfulGetSubscription()
-    { 
+    {
         $this->mock_request($this->successful_get_subscription_response());
 
         $reference = 'USER_2584725755';
         $response = $this->gateway->getSubscription($reference);
-        
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
@@ -554,12 +554,12 @@ class FatZebraTest extends AktiveMerchant\TestCase
     }
 
     public function testSuccessfulCancelRecurring()
-    { 
+    {
         $this->mock_request($this->successful_cancel_recurring_response());
 
         $subscription_id = '071-S-QK9ZHLEX';
         $response = $this->gateway->cancelRecurring($subscription_id);
-        
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
