@@ -2,6 +2,8 @@
 
 namespace AktiveMerchant\Support;
 
+use AktiveMerchant\Common\Inflect;
+
 class GatewaySupport
 {
 
@@ -11,7 +13,7 @@ class GatewaySupport
     public function __construct()
     {
         $dir_path = realpath(__DIR__ . '/../Billing/Gateways');
-        
+
         if ($handle = opendir($dir_path)) {
             while (false !== ($file = readdir($handle))) {
                 if (is_dir($dir_path . "/" . $file) || $file === "." || $file === "..")
@@ -20,6 +22,49 @@ class GatewaySupport
             }
         }
         sort($this->supported_gateways);
+    }
+
+    /**
+     * Gets an array with Gateways.
+     *
+     * @access public
+     * @return array
+     */
+    public function getGateways()
+    {
+        $gateways = array();
+        foreach ($this->supported_gateways as $gateway) {
+            $class = 'AktiveMerchant\\Billing\\Gateways\\' . $gateway;
+            $gateways[Inflect::underscore($gateway)] = $class::$display_name;
+        }
+
+        return $gateways;
+    }
+
+    /**
+     * Gets an array with supported actions for given gateway.
+     *
+     * @param string|Gateway $gateway
+     * @access public
+     * @return array
+     */
+    public function getSupportedActions($gateway)
+    {
+        if (!is_string($gateway)) {
+            $gateway = get_class($gateway);
+        }
+        $gateway = Inflect::camelize($gateway);
+
+        $class = new \ReflectionClass('AktiveMerchant\\Billing\\Gateways\\' . $gateway);
+        $actions = array();
+
+        foreach ($this->actions as $action) {
+            if ($class->hasMethod($action)) {
+                $actions[] = $action;
+            }
+        }
+
+        return $actions;
     }
 
     public function supported_gateways()
@@ -33,10 +78,10 @@ class GatewaySupport
             $gateway = "AktiveMerchant\\Billing\\Gateways\\".$a;
             return strlen($gateway::$display_name);
         }, $this->supported_gateways);
-        
+
         $max = max($max) + 1;
         $max_column = 15;
-        
+
         $print = "";
         $print .=  "\033[1;36mName" . str_repeat(' ', $max - 4);
         foreach ($this->actions as $action) {
@@ -44,7 +89,7 @@ class GatewaySupport
         }
         $print .= "\033[0m". PHP_EOL;
 
-        
+
         foreach ($this->supported_gateways as $gateway) {
             $ref = new \ReflectionClass('AktiveMerchant\\Billing\\Gateways\\' . $gateway);
             $display_name = $ref->getStaticPropertyValue('display_name');
@@ -59,7 +104,7 @@ class GatewaySupport
             }
             $print .=  PHP_EOL;
         }
-        
+
         echo $print;
     }
 
@@ -77,7 +122,7 @@ class GatewaySupport
                 $class::$homepage_url . " " .
                 "[" . join(', ', $class::$supported_countries). "]" . PHP_EOL;
         }
-        
+
         return $to_string;
     }
 
