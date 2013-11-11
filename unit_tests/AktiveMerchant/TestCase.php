@@ -4,6 +4,8 @@
 
 namespace AktiveMerchant;
 
+use AktiveMerchant\Billing\CreditCard;
+
 class TestCase extends \PHPUnit_Framework_TestCase
 {
 
@@ -51,5 +53,34 @@ class TestCase extends \PHPUnit_Framework_TestCase
                 $this->gateway
             ); 
         }
+    }
+
+    function credit_card($number = '4242424242424242', $options = array()) {
+      $defaults = array_merge(array(
+        "number" => $number,
+        "month" => 9,
+        "year" => date("Y") + 1,
+        "first_name" => 'Longbob',
+        "last_name" => 'Longsen',
+        "verification_value" => '123',
+        "brand" => 'visa'
+      ), $options);
+
+      return new CreditCard($defaults);
+    }
+
+    function address($options = array()) {
+        return array_merge(array(
+            "name" => 'Jim Smith',
+            "address1" => '1234 My Street',
+            "address2" => 'Apt 1',
+            "company" => 'Widgets Inc',
+            "city" => 'Ottawa',
+            "state" => 'ON',
+            "zip" => 'K1C2N6',
+            "country" => 'CA',
+            "phone" => '(555)555-5555',
+            "fax" => '(555)555-6666'
+        ), $options);
     }
 }
