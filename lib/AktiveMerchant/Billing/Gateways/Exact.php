@@ -384,12 +384,12 @@ class Exact extends Gateway implements Interfaces\Charge
 
     private function authorization_from($response)
     {
-        if (   isset($response['authorization_num'])
-            && isset($response['transaction_tag'])
+        if (   isset($response['Authorization_Num'])
+            && isset($response['Transaction_Tag'])
         ) {
-            return "{$response['authorization_num']};{$response['transaction_tag']}";
+            return "{$response['Authorization_Num']};{$response['Transaction_Tag']}";
         } else  {
-            return '';
+            return null;
         }
     }
 
