@@ -15,11 +15,7 @@ use AktiveMerchant\Billing\Gateways\Worldpay\XmlNormalizer;
  *
  * @package Aktive-Merchant
  */
-class Worldpay extends Gateway implements 
-    Interfaces\Charge//,
-    //Interfaces\Credit, 
-    //Interfaces\Recurring, 
-    //Interfaces\Store
+class Worldpay extends Gateway
 {
     const TEST_URL = 'https://secure-test.worldpay.com/jsp/merchant/xml/paymentService.jsp';
     const LIVE_URL = 'https://secure.worldpay.com/jsp/merchant/xml/paymentService.jsp';
@@ -63,24 +59,19 @@ class Worldpay extends Gateway implements
         $this->options = $options;
     }
 
-    public function authorize($money, CreditCard $creditCard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options=array())
     {
         $this->required_options('order_id', $options);
-        $this->build_authorization_request($money, $creditCard, $options);
-        return $this->commit();
-    }
-
-    public function purchase($money, CreditCard $creditcard, $options = array())
-    {
-
+        $this->build_authorization_request($money, $creditcard, $options);
+        return $this->commit('AUTHORISED');
     }
 
     public function capture($money, $authorization, $options = array())
     {
-        
+        // TODO
     }
 
-    public function build_authorization_request($money, $creditCard, $options)
+    public function build_authorization_request($money, $creditcard, $options, $testingXmlGeneration = false)
     {
         $this->xml = new \Thapp\XmlBuilder\XmlBuilder('paymentService', new XmlNormalizer);
         $this->xml->setAttributeMapp(array('paymentService' => array('merchantCode', 'version')));
@@ -89,19 +80,25 @@ class Worldpay extends Gateway implements
             'merchantCode' => $this->options['login'],
             'version' => '1.4',
             'order' => $this->add_order($money, $options),
-            'paymentDetails' => $this->add_payment_method($money, $creditCard, $options)
+            'paymentDetails' => $this->add_payment_method($money, $creditcard, $options)
         ));
 
-        return $this->xml->createXML(true);
+        // Dirty hack for testing XML generation
+        if ($testingXmlGeneration) {
+            return $this->xml->createXML(true);
+        }
     }
 
     private function add_order($money, $options)
     {
+        $attrs = array('orderCode' => $options['order_id']);
+
+        if (isset($options['inst_id'])) {
+            $attrs['installationId'] = $options['inst_id'];
+        }
+
         return array(
-            '@attributes' => array(
-                'orderCode' => $options['order_id'],
-                'installationId' => $options['inst_id']
-            ),
+            '@attributes' => $attrs,
             array(
                 'description' => 'Purchase',
                 'amount' => $this->add_amount($money, $options)
@@ -109,21 +106,24 @@ class Worldpay extends Gateway implements
         );
     }
 
-    private function add_payment_method($money, $creditCard, $options)
+    private function add_payment_method($money, $creditcard, $options)
     {
-        $cardCode = self::$card_codes[$creditCard->type];
+        $cardCode = self::$card_codes[$creditcard->type];
 
         return array(
             $cardCode => array(
-                'cardNumber' => $creditCard->number,
+                'cardNumber' => $creditcard->number,
                 'expiryDate' => array(
                     'date' => array(
                         '@attributes' => array(
-                            'month' => $creditCard->month,
-                            'year' => $creditCard->year
+                            'month' => $this->cc_format($creditcard->month, 'two_digits'),
+                            'year' => $this->cc_format($creditcard->year, 'four_digits')
                         )
                     )
-                )
+                ),
+                'cardHolderName' => $creditcard->name(),
+                'cvc' => $creditcard->verification_value,
+                'cardAddress' => $this->add_address($options)
             )
         );
     }
@@ -139,5 +139,114 @@ class Worldpay extends Gateway implements
                 'exponent' => 2
             )
         );
+    }
+
+    private function add_address($options)
+    {
+        $address = isset($options['billing_address']) ? $options['billing_address'] : $options['address'];
+
+        $out = array();
+
+        if (isset($address['name'])) {
+            if (preg_match('/^\s*([^\s]+)\s+(.+)$/', $address['name'], $matches)) {
+                $out['firstName'] = $matches[1];
+                $out['lastName'] = $matches[2];
+            }
+        }
+
+        if (isset($address['address1'])) {
+            if (preg_match('/^\s*(\d+)\s+(.+)$/', $address['address1'], $matches)) {
+                $out['street'] = $matches[2];
+                $houseNumber = $matches[1];
+            } else {
+                $out['street'] = $address['address1'];
+            }
+        }
+
+        if (isset($address['address2'])) {
+            $out['houseName'] = $address['address2'];
+        }
+
+        if (isset($houseNumber)) {
+            $out['houseNumber'] = $houseNumber;
+        }
+
+        $out['postalCode'] = isset($address['zip']) ? $address['zip'] : '0000';
+
+        if (isset($address['city'])) {
+            $out['city'] = $address['city'];
+        }
+
+        $out['state'] = isset($address['state']) ? $address['state'] : 'N/A';
+
+        $out['countryCode'] = $address['country'];
+
+        if (isset($address['phone'])) {
+            $out['telephoneNumber'] = $address['phone'];
+        }
+
+        return array('address' => $out);
+    }
+
+    private function commit($successCriteria)
+    {
+        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
+        $response = $this->parse($this->ssl_post($url, $this->xml->createXML(true)));
+        $success = $this->success_from($response, $successCriteria);
+        return new Response(
+            $success, 
+            $this->message_from($success, $response, $successCriteria), 
+            $this->params_from($response), 
+            $this->authorization_from($response)
+        );
+    }
+
+    private function parse($response_xml)
+    {
+        $xml = simplexml_load_string($response_xml);
+        return $xml;
+    }
+
+    private function success_from($response, $successCriteria)
+    {
+        return (string) $response->reply->orderStatus->payment->lastEvent == $successCriteria;
+    }
+
+    private function message_from($success, $response, $successCriteria)
+    {
+        if ($success) {
+            return "SUCCESS";
+        }
+
+        return trim((string) $response->reply->orderStauts->iso8583ReturnCodeDescription)
+            ?: trim((string) $response->reply->orderStatus->error)
+            ?: $this->required_status_message($response, $successCriteria);
+    }
+
+    private function required_status_message($response, $successCriteria)
+    {
+        if ($response->reply->lastEvent != $successCriteria) {
+            return "A transaction status of $successCriteria is required.";
+        }
+    }
+
+    private function params_from($response)
+    {
+        $params = array();
+
+        foreach ($response as $key => $value) {
+            $params[$key] = $value;
+        }
+
+        return $params;
+    }
+
+    private function authorization_from($response)
+    {
+        foreach ($response as $key => $value) {
+            if (preg_match('/_order_code$/', $key)) {
+                return $value;
+            }
+        }
     }
 }
