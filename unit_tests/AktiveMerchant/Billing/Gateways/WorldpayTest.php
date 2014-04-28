@@ -69,6 +69,7 @@ class WorldpayTest extends AktiveMerchant\TestCase
         $this->mock_request($this->successful_authorize_response());
         $resp = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
         $this->assertTrue($resp->success());
+        $this->assertEquals($resp->authorization(), 'R50704213207145707');
     }
 
     public function testFailedAuthorization()
@@ -79,19 +80,12 @@ class WorldpayTest extends AktiveMerchant\TestCase
         $this->assertEquals($resp->message(), 'Invalid payment details : Card number : 4111********1111');
     }
 
-    // public function testCapture()
-    // {
-    //     $this->mock_request($this->successful_capture_response());
-    //     $resp = $this->gateway->capture($this->amount, 'auth_id', $this->options);
-    //     $this->assertTrue($resp->success());
-    // }
-
-    // public function testVoid()
-    // {
-    //     $this->mock_request($this->successful_void_response());
-    //     $resp = $this->gateway->void('auth_id', $this->options);
-    //     $this->assertTrue($resp->success());
-    // }
+    public function testCapture()
+    {
+        $this->mock_request($this->successful_capture_response());
+        $resp = $this->gateway->capture($this->amount, 'R50704213207145707', $this->options);
+        $this->assertTrue($resp->success());
+    }
     
     private function successful_authorize_response()
     {
@@ -134,11 +128,16 @@ class WorldpayTest extends AktiveMerchant\TestCase
 
     private function successful_capture_response()
     {
-        return '';
-    }
-
-    private function successful_void_response()
-    {
-        return '';
+        return '<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE paymentService PUBLIC "-//Bibit//DTD Bibit PaymentService v1//EN" "http://dtd.bibit.com/paymentService_v1.dtd">
+<paymentService version="1.4" merchantCode="SPREEDLY">
+<reply>
+  <ok>
+    <captureReceived orderCode="33955f6bb4524813b51836de76228983">
+      <amount value="100" currencyCode="GBP" exponent="2" debitCreditIndicator="credit"/>
+    </captureReceived>
+  </ok>
+</reply>
+</paymentService>';
     }
 }
