@@ -47,7 +47,7 @@ class Worldpay extends Gateway
      */
     public function __construct($options)
     {
-        $this->required_options('login, password', $options);
+        $this->required_options('login, password, inst_id', $options);
 
         $this->timestamp = strftime("%Y%m%d%H%M%S");
 
@@ -120,10 +120,7 @@ class Worldpay extends Gateway
     private function add_order($money, $creditcard, $options)
     {
         $attrs = array('orderCode' => $options['order_id']);
-
-        if (isset($options['inst_id'])) {
-            $attrs['installationId'] = $options['inst_id'];
-        }
+        $attrs['installationId'] = $this->options['inst_id'];
 
         return array(
             '@attributes' => $attrs,

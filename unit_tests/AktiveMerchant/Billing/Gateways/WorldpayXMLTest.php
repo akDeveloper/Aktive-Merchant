@@ -12,7 +12,8 @@ class WorldPayXMLTest extends PHPUnit_Framework_TestCase
     {
         $this->gateway = new Worldpay(array(
             'login' => 'login',
-            'password' => 'password'
+            'password' => 'password',
+            'inst_id' => '0000'
         ));
 
         $this->creditCard = new CreditCard(
@@ -31,7 +32,6 @@ class WorldPayXMLTest extends PHPUnit_Framework_TestCase
     {
         $options = array(
             'order_id' => '1234',
-            'inst_id' => '00000',
             'address' => array(
                 'address1' => '1234 Street',
                 'zip' => '98004',
@@ -42,7 +42,7 @@ class WorldPayXMLTest extends PHPUnit_Framework_TestCase
 
         $xml = $this->gateway->build_authorization_request(100, $this->creditCard, $options, true);
 
-        echo $xml;
+        // echo $xml;
 
         $this->assertNotNull($xml);
     }
