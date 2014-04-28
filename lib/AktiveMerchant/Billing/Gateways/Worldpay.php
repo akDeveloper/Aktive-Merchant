@@ -3,10 +3,8 @@
 
 namespace AktiveMerchant\Billing\Gateways;
 
-use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
-use AktiveMerchant\Billing\Exception;
 use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Billing\Gateways\Worldpay\XmlNormalizer;
 
@@ -68,28 +66,58 @@ class Worldpay extends Gateway
 
     public function capture($money, $authorization, $options = array())
     {
-        // TODO
+        $this->build_capture_request($money, $authorization, $options);
+        return $this->commit('ok');
     }
 
     public function build_authorization_request($money, $creditcard, $options, $testingXmlGeneration = false)
     {
-        $this->xml = new \Thapp\XmlBuilder\XmlBuilder('paymentService', new XmlNormalizer);
-        $this->xml->setAttributeMapp(array('paymentService' => array('merchantCode', 'version')));
-
+        $this->xml = $this->createXmlBuilder();
+        
         $this->xml->load(array(
             'merchantCode' => $this->options['login'],
             'version' => '1.4',
-            'order' => $this->add_order($money, $options),
-            'paymentDetails' => $this->add_payment_method($money, $creditcard, $options)
+            'submit' => array(
+                'order' => $this->add_order($money, $creditcard, $options)
+            )
         ));
 
-        // Dirty hack for testing XML generation
         if ($testingXmlGeneration) {
             return $this->xml->createXML(true);
         }
     }
 
-    private function add_order($money, $options)
+    public function build_capture_request($money, $authorization, $options, $testingXmlGeneration = false)
+    {
+        $this->xml = $this->createXmlBuilder();
+
+        $this->xml->load(array(
+            'merchantCode' => $this->options['login'],
+            'version' => '1.4',
+            'modify' => $this->add_capture_modification($money, $authorization, $options)
+        ));
+
+        if ($testingXmlGeneration) {
+            return $this->xml->createXML(true);
+        }
+    }
+
+    private function createXmlBuilder()
+    {
+        $xml = new \Thapp\XmlBuilder\XmlBuilder('paymentService', new XmlNormalizer);
+        $xml->setDocType(
+            'paymentService', 
+            '-//WorldPay//DTD WorldPay PaymentService v1//EN', 
+            'http://dtd.worldpay.com/paymentService_v1.dtd'
+        );
+
+        $xml->setRenderTypeAttributes(false);
+        $xml->setAttributeMapp(array('paymentService' => array('merchantCode', 'version')));
+        
+        return $xml;
+    }
+
+    private function add_order($money, $creditcard, $options)
     {
         $attrs = array('orderCode' => $options['order_id']);
 
@@ -101,7 +129,31 @@ class Worldpay extends Gateway
             '@attributes' => $attrs,
             array(
                 'description' => 'Purchase',
-                'amount' => $this->add_amount($money, $options)
+                'amount' => $this->add_amount($money, $options),
+                'paymentDetails' => $this->add_payment_method($money, $creditcard, $options)
+            )
+        );
+    }
+
+    private function add_capture_modification($money, $authorization, $options)
+    {
+        $now = new \DateTime(null, new \DateTimeZone('UTC'));
+
+        return array(
+            'orderModification' => array(
+                '@attributes' => array('orderCode' => $authorization),
+                array(
+                    'capture' => array(
+                        'date' => array(
+                            '@attributes' => array(
+                                'dayOfMonth' => $now->format('d'),
+                                'month' => $now->format('m'),
+                                'year' => $now->format('Y')
+                            )
+                        ),
+                        'amount' => $this->add_amount($money, $options)
+                    )
+                )
             )
         );
     }
@@ -191,13 +243,18 @@ class Worldpay extends Gateway
     private function commit($successCriteria)
     {
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
-        $response = $this->parse($this->ssl_post($url, $this->xml->createXML(true)));
+
+        $options = array('headers' => array(
+            "Authorization: {$this->encoded_credentials()}"
+        ));
+
+        $response = $this->parse($this->ssl_post($url, $this->xml->createXML(true), $options));
         $success = $this->success_from($response, $successCriteria);
         return new Response(
             $success, 
             $this->message_from($success, $response, $successCriteria), 
             $this->params_from($response), 
-            $this->authorization_from($response)
+            $this->options_from($response)
         );
     }
 
@@ -209,7 +266,15 @@ class Worldpay extends Gateway
 
     private function success_from($response, $successCriteria)
     {
-        return (string) $response->reply->orderStatus->payment->lastEvent == $successCriteria;
+        if ($successCriteria == 'ok') {
+            return property_exists($response->reply, 'ok');
+        }
+            
+        if (property_exists($response->reply, 'orderStatus')) {
+            return (string) $response->reply->orderStatus->payment->lastEvent == $successCriteria;
+        }
+
+        return false;
     }
 
     private function message_from($success, $response, $successCriteria)
@@ -219,7 +284,7 @@ class Worldpay extends Gateway
         }
 
         return trim((string) $response->reply->orderStauts->iso8583ReturnCodeDescription)
-            ?: trim((string) $response->reply->orderStatus->error)
+            ?: trim((string) $response->reply->error)
             ?: $this->required_status_message($response, $successCriteria);
     }
 
@@ -241,12 +306,25 @@ class Worldpay extends Gateway
         return $params;
     }
 
-    private function authorization_from($response)
+    private function options_from($response)
     {
-        foreach ($response as $key => $value) {
-            if (preg_match('/_order_code$/', $key)) {
-                return $value;
+        $options = array();
+
+        if ($response->reply->orderStatus) {
+            foreach ($response->reply->orderStatus->attributes() as $key => $value) {
+                if (preg_match('/orderCode$/', $key)) {
+                    $options['authorization'] = (string) $value;
+                }
             }
         }
+
+        return $options;
+    }
+
+    private function encoded_credentials()
+    {
+        $credentials = $this->options['login'] . ':' . $this->options['password'];
+        $encoded = base64_encode($credentials);
+        return "Basic $encoded";
     }
 }
