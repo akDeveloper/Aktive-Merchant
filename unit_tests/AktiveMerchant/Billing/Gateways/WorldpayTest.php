@@ -117,11 +117,9 @@ class WorldpayTest extends AktiveMerchant\TestCase
 <!DOCTYPE paymentService PUBLIC "-//Bibit//DTD Bibit PaymentService v1//EN" "http://dtd.bibit.com/paymentService_v1.dtd">
 <paymentService version="1.4" merchantCode="XXXXXXXXXXXXXXX">
 <reply>
-  <orderStatus orderCode="R12538568107150952">
     <error code="7">
       <![CDATA[Invalid payment details : Card number : 4111********1111]]>
     </error>
-  </orderStatus>
 </reply>
 </paymentService>';
     }

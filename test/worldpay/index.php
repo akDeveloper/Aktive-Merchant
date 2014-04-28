@@ -11,7 +11,8 @@ Base::mode('test'); # Remove this on production mode
 #Alternative way to get a gateway instanse.
 $gateway = Base::gateway('worldpay', array(
     'login' => WORLDPAY_LOGIN,
-    'password' => WORLDPAY_PASS
+    'password' => WORLDPAY_PASS,
+    'inst_id' => WORLDPAY_INSTALLATION_ID
 ));
 
 $cc = new CreditCard( array(
@@ -26,7 +27,6 @@ $cc = new CreditCard( array(
 
 $options = array(
     'order_id' => 'REF' . $gateway->generateUniqueId(),
-    'inst_id' => WORLDPAY_INSTALLATION_ID,
     'description' => 'Worldpay Test Transaction',
     'address' => array(
         'address1' => '1234 Street',
