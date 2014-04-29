@@ -257,18 +257,19 @@ class Worldpay extends Gateway
 
     private function parse($response_xml)
     {
-        $xml = simplexml_load_string($response_xml);
-        return $xml;
+        $xml = new \Thapp\XmlBuilder\XmlBuilder();
+        $dom = $xml->loadXml($response_xml, true, false);
+        return $xml->toArray($dom);
     }
 
     private function success_from($response, $successCriteria)
     {
         if ($successCriteria == 'ok') {
-            return property_exists($response->reply, 'ok');
+            return isset($response['paymentService']['reply']['ok']);
         }
             
-        if (property_exists($response->reply, 'orderStatus')) {
-            return (string) $response->reply->orderStatus->payment->lastEvent == $successCriteria;
+        if (isset($response['paymentService']['reply']['orderStatus'])) {
+            return $response['paymentService']['reply']['orderStatus']['payment']['lastEvent'] == $successCriteria;
         }
 
         return false;
@@ -280,37 +281,26 @@ class Worldpay extends Gateway
             return "SUCCESS";
         }
 
-        return trim((string) $response->reply->orderStauts->iso8583ReturnCodeDescription)
-            ?: trim((string) $response->reply->error)
-            ?: $this->required_status_message($response, $successCriteria);
-    }
-
-    private function required_status_message($response, $successCriteria)
-    {
-        if ($response->reply->lastEvent != $successCriteria) {
-            return "A transaction status of $successCriteria is required.";
+        if (isset($response['paymentService']['reply']['error'])) {
+            return $response['paymentService']['reply']['error']['nodevalue'];
         }
+
+        return "A transaction status of $successCriteria is required.";
     }
 
     private function params_from($response)
     {
-        $params = array();
-
-        foreach ($response as $key => $value) {
-            $params[$key] = $value;
-        }
-
-        return $params;
+        return $response['paymentService']['reply'];
     }
 
     private function options_from($response)
     {
-        $options = array();
+        $options = array('test' => $this->isTest());
 
-        if ($response->reply->orderStatus) {
-            foreach ($response->reply->orderStatus->attributes() as $key => $value) {
+        if (isset($response['paymentService']['reply']['orderStatus'])) {
+            foreach ($response['paymentService']['reply']['orderStatus']['@attributes'] as $key => $value) {
                 if (preg_match('/orderCode$/', $key)) {
-                    $options['authorization'] = (string) $value;
+                    $options['authorization'] = $value;
                 }
             }
         }
