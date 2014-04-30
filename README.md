@@ -22,6 +22,7 @@ The aim is to develop a PHP application to includes payment gateways under commo
 * [PayPal Website Payments Pro](https://merchant.paypal.com/cgi-bin/marketingweb?cmd=_render-content&content_ID=merchant/wp_pro)
 * [Piraeus Paycenter](http://www.piraeusbank.gr)
 * [Realex](http://www.realexpayments.com)
+* [WorldPay](http://www.worldpay.com)
 
 ## Requirements
 
