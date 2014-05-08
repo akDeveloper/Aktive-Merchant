@@ -51,4 +51,12 @@ define('channel_type','' );
 
 define('PSIGATE_LOGIN', '');
 define('PSIGATE_PASS', '');
+
+/**
+ * WORLDPAY
+ */
+define('WORLDPAY_LOGIN','');
+define('WORLDPAY_PASS','');
+define('WORLDPAY_INSTALLATION_ID','');
+
 ?>
