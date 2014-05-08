@@ -1,3 +1,5 @@
+* __1.0.10__ (2014-05-08)
+  * Added WorldPay payment gateway ( @tomglue )
 * __1.0.9__ (2013-10-08)
   * Added Exact payment gateway
   * Added Mercury payment gateway
