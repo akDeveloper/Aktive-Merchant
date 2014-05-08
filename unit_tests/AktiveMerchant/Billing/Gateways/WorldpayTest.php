@@ -2,7 +2,7 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-use AktiveMerchant\Billing\Gateways\WorldPay;
+use AktiveMerchant\Billing\Gateways\Worldpay;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
@@ -28,7 +28,7 @@ class WorldpayTest extends AktiveMerchant\TestCase
         Base::mode('test');
 
         $login_info = $this->getFixtures()->offsetGet('worldpay');
-        
+
         $this->gateway = new Worldpay($login_info);
 
         $this->amount = 100.00;
@@ -86,10 +86,10 @@ class WorldpayTest extends AktiveMerchant\TestCase
         $resp = $this->gateway->capture($this->amount, 'R50704213207145707', $this->options);
         $this->assertTrue($resp->success());
     }
-    
+
     private function successful_authorize_response()
     {
-        return '<?xml version="1.0" encoding="UTF-8"?> 
+        return '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE paymentService PUBLIC "-//Bibit//DTD Bibit PaymentService v1//EN" "http://dtd.bibit.com/paymentService_v1.dtd">
 <paymentService version="1.4" merchantCode="XXXXXXXXXXXXXXX">
 <reply>
