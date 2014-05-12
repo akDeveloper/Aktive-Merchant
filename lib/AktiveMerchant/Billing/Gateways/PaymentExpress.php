@@ -1,0 +1,363 @@
+<?php
+
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\Billing\Interfaces as Interfaces;
+use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Common\Options;
+use SimpleXMLElement;
+
+use AktiveMerchant\Billing\Gateways\PaymentExpress\Response;
+
+    # In NZ DPS supports ANZ, Westpac, National Bank, ASB and $BNZ->
+    # In Australia DPS supports ANZ, NAB, Westpac, CBA, St George and Bank of South $Australia->
+    # The Maybank in Malaysia is supported and the Citibank for $Singapore->
+class PaymentExpress extends Gateway implements 
+    Interfaces\Charge {
+      static public $default_currency = 'NZD';
+      # PS supports all major credit cards; Visa, Mastercard, Amex, Diners, BankCard & $JCB->
+      # Various white label cards can be accepted as well; Farmers, AirNZCard and Elders $etc->
+      # Please note that not all acquirers and Eftpos networks can support some of these card $types->
+      # VISA, Mastercard, Diners Club and Farmers cards are supported
+      #
+      # However, regular accounts with DPS only support VISA and Mastercard
+      public static $supported_cardtypes = array( 'visa', 'master', 'american_express', 'diners_club', 'jcb' );
+
+      public static $supported_countries = array("AU", "CA", "DE", "ES", "FR", "GB", "HK", "IE", "MY", "NL", "NZ", "SG", "US", "ZA");
+
+      public static $homepage_url = 'http://www.paymentexpress.com/';
+      public static $display_name = 'PaymentExpress';
+
+      public static $live_url =  'https://sec.paymentexpress.com/pxpost.aspx';
+      public static $test_url = 'https://sec.paymentexpress.com/pxpost.aspx';
+
+      const APPROVED = '1';
+
+      public static $TRANSACTIONS = array(
+        'credit'         => 'Refund',
+        'authorization'  => 'Auth',
+        'capture'        => 'Complete',
+        'validate'       => 'Validate'
+      );
+
+      # We require the DPS gateway username and password when the object is $created->
+      #
+      # The PaymentExpress gateway also supports a 'use_custom_payment_token' boolean $option->
+      # If set to true the gateway will use BillingId for the Token $type->  If set to false,
+      # then the token will be sent as the DPS specified "DpsBillingId"->  This is per the documentation at
+      # http''//$www->$paymentexpress->com/technical_resources/ecommerce_nonhosted/$pxpost->html#Tokenbilling
+       function __construct($options = array()) {
+        $this->required_options(array('login', 'password'), $options);
+        $this->options = $options;
+      }
+
+      # Funds are transferred $immediately->
+      #
+      # `payment_source` can be a usual ActiveMerchant credit_card object, or can also
+      # be a string of the `DpsBillingId` or `BillingId` which can be gotten through the
+      # store $method->  If you are using a `BillingId` instead of `DpsBillingId` you must
+      # also set the instance method `#use_billing_id_for_token` to true, see the `#store`
+      # method for an example of how to do $this->
+       function purchase($money, CreditCard $payment_source, $options = array()) {
+        $request = $this->build_purchase_or_authorization_request($money, $payment_source, $options);
+        return $this->commit('purchase', $request);
+      }
+
+      # NOTE'' Perhaps in options we allow a transaction note to be inserted
+      # Verifies that funds are available for the requested card and amount and reserves the specified $amount->
+      # See'' http''//$www->$paymentexpress->com/technical_resources/ecommerce_nonhosted/$pxpost->html#Authcomplete
+      #
+      # `payment_source` can be a usual ActiveMerchant credit_card object or a token, see #purchased method
+       function authorize($money, CreditCard $payment_source, $options = array()) {
+        $request = $this->build_purchase_or_authorization_request($money, $payment_source, $options);
+        return $this->commit('authorization', $request);
+      }
+
+      # Transfer pre-authorized funds immediately
+      # See'' http''//$www->$paymentexpress->com/technical_resources/ecommerce_nonhosted/$pxpost->html#Authcomplete
+       function capture($money, $identification, $options = array()) {
+        $request = $this->build_capture_or_credit_request($money, $identification, $options);
+        return $this->commit('capture', $request);
+      }
+
+      # Refund funds to the card holder
+       function refund($money, $identification, $options = array()) {
+        $this->required_options(array("description"), $options);
+
+        $request = $this->build_capture_or_credit_request($money, $identification, $options);
+        return $this->commit('credit', $request);
+      }
+
+      # Token Based Billing
+      #
+      # Instead of storing the credit card details locally, you can store them inside the
+      # Payment Express system and instead bill future transactions against a $token->
+      #
+      # This token can either be specified by your code or autogenerated by the PaymentExpress
+      # $system->  The default is to let PaymentExpress generate the token for you and so use
+      # the `DpsBillingId`->  If you do not pass in any option of the `billing_id`, then the store
+      # method will ask PaymentExpress to create a token for $you->  Additionally, if you are
+      # using the default `DpsBillingId`, you do not have to do anything extra in the
+      # initialization of your gateway $object->
+      #
+      # To specify and use your own token, you need to do two $things->
+      #
+      # Firstly, pass in a `'billing_id'` as an option in the hash of this store $method->  No
+      # validation is done on this BillingId by PaymentExpress so you must ensure that it is $unique->
+      #
+      #     $gateway->store(credit_card, {'billing_id' => 'YourUniqueBillingId'});
+      #
+      # Secondly, you will need to pass in the option `{'use_custom_payment_token' => true}` when
+      # initializing your gateway instance, like so''
+      #
+      #     gateway = ActiveMerchant'''Billing''''PaymentExpressGateway'->new(
+      #       'login'    => 'USERNAME',
+      #       'password' => 'PASSWORD',
+      #       'use_custom_payment_token' => true
+      #     );
+      #
+      # see'' http''//$www->$paymentexpress->com/technical_resources/ecommerce_nonhosted/$pxpost->html#Tokenbilling
+      #
+      # Note, once stored, PaymentExpress does not support unstoring a stored $card->
+       function store($credit_card, $options = array()) {
+        $request = $this->build_token_request($credit_card, $options);
+        return $this->commit('validate', $request);
+      }
+
+      private
+
+       function use_custom_payment_token() {
+        return $this->options['use_custom_payment_token'];
+      }
+
+       function build_purchase_or_authorization_request($money, $payment_source, $options) {
+        $result = $this->new_transaction();
+
+        if(is_string($payment_source)) {
+          $this->add_billing_token($result, $payment_source);
+        } else {
+          $this->add_credit_card($result, $payment_source);
+        }
+
+        $this->add_amount($result, $money, $options);
+        $this->add_invoice($result, $options);
+        $this->add_address_verification_data($result, $options);
+        $this->add_optional_elements($result, $options);
+        return $result;
+      }
+
+      function build_capture_or_credit_request($money, $identification, $options) {
+        $result = $this->new_transaction();
+
+        $this->add_amount($result, $money, $options);
+        $this->add_invoice($result, $options);
+        $this->add_reference($result, $identification);
+        $this->add_optional_elements($result, $options);
+        return $result;
+      }
+
+       function build_token_request($credit_card, $options) {
+        $result = $this->new_transaction();
+        $this->add_credit_card($result, $credit_card);
+        $this->add_amount($result, 100, $options); #need to make an auth request for $1
+        $this->add_token_request($result, $options);
+        $this->add_optional_elements($result, $options);
+        return $result;
+      }
+
+       function add_credentials($xml) {
+        $xml->addChild("PostUsername", $this->options['login']);
+        $xml->addChild("PostPassword", $this->options['password']);
+      }
+
+       function add_reference($xml, $identification) {
+        $xml->addChild("DpsTxnRef", $identification);
+      }
+
+       function add_credit_card($xml, $credit_card) {
+        $xml->addChild("CardHolderName", $credit_card->name());
+        $xml->addChild("CardNumber", $credit_card->number);
+        $xml->addChild("DateExpiry", $this->format_date($credit_card->month, $credit_card->year));
+
+        if($credit_card->verification_value) {
+          $xml->addChild("Cvc2", $credit_card->verification_value);
+          $xml->addChild("Cvc2Presence", "1");
+        }
+
+        if($this->requires_start_date_or_issue_number($credit_card)) {
+          if($credit_card->start_month || $credit_card->start_year)
+            $xml->addChild("DateStart", $this->format_date($credit_card->start_month, $credit_card->start_year));
+
+          if($credit_card->issue_number) 
+            $xml->addChild("IssueNumber", $credit_card->issue_number);
+        }
+      }
+
+       function add_billing_token($xml, $token) {
+        if($this->should_use_custom_payment_token) {
+          $xml->addChild("BillingId", $token);
+        } else {
+          $xml->addChild("DpsBillingId", $token);
+        }
+      }
+
+       function add_token_request($xml, $options) {
+        if(@$options["billing_id"]) {
+          $xml->addChild("BillingId", $options['billing_id']);
+        }
+        $xml->addChild("EnableAddBillCard", 1);
+      }
+
+       function add_amount($xml, $money, $options) {
+        $xml->addChild("Amount", $this->amount($money));
+        $xml->addChild("InputCurrency", @$options['currency'] ?: $this->currency($money));
+      }
+
+       function add_transaction_type($xml, $action) {
+        $xml->addChild("TxnType", @self::$TRANSACTIONS[$action]);
+      }
+
+       function add_invoice($xml, $options) {
+        if(@$options["order_id"]) 
+          $xml->addChild("TxnId", substr($options['order_id'], 0, 16));
+        if(@$options["description"])
+          $xml->addChild("MerchantReference", substr($options['description'], 0, 50));
+      }
+
+       function add_address_verification_data($xml, $options) {
+        $address = @$options['billing_address'] ?: @$options['address'];
+        if(!$address) return;
+
+        $xml->addChild("EnableAvsData", 1);
+        $xml->addChild("AvsAction", 1);
+
+        $xml->addChild("AvsStreetAddress", $address['address1']);
+        $xml->addChild("AvsPostCode", $address['zip']);
+      }
+
+      # The options hash may contain optional data which will be passed
+      # through the the specialized optional fields at PaymentExpress
+      # as follows''
+      #
+      #     {
+      #       'client_type' => 'web', # Possible values are'' 'web', 'ivr', 'moto', 'unatt}ed', 'internet', or 'recurring'
+      #       'txn_data1' => "String up to 255 characters",
+      #       'txn_data2' => "String up to 255 characters",
+      #       'txn_data3' => "String up to 255 characters"
+      #     }
+      #
+      # +'client_type'+, while not documented for PxPost, will be sent as
+      # the +ClientType+ XML element as described in the documentation for
+      # the PaymentExpress WebService'' http''//$www->$paymentexpress->com/Technical_Resources/Ecommerce_NonHosted/WebService#clientType
+      # (PaymentExpress have confirmed that this value works the same in PxPost)->
+      # The value sent for +'client_type'+ will be normalized and sent
+      # as one of the explicit values allowed by PxPost''
+      #
+      #     'web'        => "Web"
+      #     'ivr'        => "IVR"
+      #     'moto'       => "MOTO"
+      #     'unatt}ed' => "Unattended"
+      #     'internet'   => "Internet"
+      #     'recurring'  => "Recurring"
+      #
+      # If you set the +'client_type'+ to any value not listed above,
+      # the ClientType element WILL NOT BE INCLUDED at all in the
+      # POST $data->
+      #
+      # +'txn_data1'+, +'txn_data2'+, and +'txn_data3'+ will be sent as
+      # +TxnData1+, +TxnData2+, and +TxnData3+, respectively, and are
+      # free form fields of the merchant's choosing, as documented here''
+      # http''//$www->$paymentexpress->com/technical_resources/ecommerce_nonhosted/$pxpost->html#txndata
+      #
+      # These optional elements are added to all transaction types''
+      # +purchase+, +authorize+, +capture+, +refund+, +store+
+       function add_optional_elements($xml, $options) {
+        if($client_type = $this->normalized_client_type(@$options['client_type'])) {
+          $xml->addChild("ClientType", client_type());
+        }
+
+        if(@$options["txn_data1"])
+          $xml->addChild("TxnData1", substr($options["txn_data1"], 0, 255));
+        if(@$options["txn_data2"])
+          $xml->addChild("TxnData2", substr($options['txn_data2'], 0, 255));
+        if(@$options["txn_data3"])
+          $xml->addChild("TxnData3", substr($options['txn_data3'], 0, 255));
+      }
+
+      function new_transaction() {
+        return new SimpleXMLElement("<Txn></Txn>");
+      }
+
+      # Take in the request and post it to DPS
+       function commit($action, $request) {
+        $this->add_credentials($request);
+        $this->add_transaction_type($request, $action);
+
+
+
+        $post = $this->ssl_post(self::$live_url, $request->asXML()) ;
+        # Parse the XML $response
+        $response = $this->parse($post);
+
+        # Return a $response
+        return new Response(
+          @$response['success'] == self::APPROVED,
+          @$response['card_holder_help_text'],
+          $response,
+          array(
+            'test' => @$response['test_mode'] == '1',
+            'authorization' => @$response['dps_txn_ref']
+          )
+        );
+      }
+
+      # $response XML documentation'' http''//$www->$paymentexpress->com/technical_resources/ecommerce_nonhosted/$pxpost->html#XMLTxnOutput
+
+      function parse($body) {
+        $xml = simplexml_load_string(trim($body));
+        if(!$xml) {
+            $errors = array();
+            foreach(libxml_get_errors() as $error) {
+                $errors[] = $error->message;
+                throw new Exception(implode("\n\r", $errors));
+            }
+        }
+
+        $response = new Options;
+        foreach($xml->children() as $v) {
+            $this->parseElement($response, $v);
+        }
+        return $response;
+      }
+
+      function parseElement(&$response, $element) {
+        if($element->children()) {
+            foreach($element->children() as $child) {
+                $this->parseElement($response, $child);
+            }
+        } else {
+            $response[$this->underscore($element->getName())] = (string)$element;
+        }
+      }
+
+      function format_date($month, $year) {
+        return $this->cc_format($month, 'two_digits').$this->cc_format($year, 'two_digits');
+      }
+
+     function normalized_client_type($client_type_from_options) {
+        switch(strtolower($client_type_from_options)) {
+          case 'web':        return "Web";
+          case 'ivr':        return "IVR";
+          case 'moto':       return "MOTO";
+          case 'unattended': return "Unattended";
+          case 'internet':   return "Internet";
+          case 'recurring':  return "Recurring";
+        }
+        return null;
+      }
+
+  function currency() {
+    return self::$default_currency;
+  }
+}
