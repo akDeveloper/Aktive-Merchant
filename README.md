@@ -24,6 +24,7 @@ The aim is to develop a PHP application to includes payment gateways under commo
 * [Barclay's ePDQ Gateway](http://www.barclaycard.co.uk)
 * [Piraeus Paycenter](http://www.piraeusbank.gr)
 * [Realex](http://www.realexpayments.com)
+* [WorldPay](http://www.worldpay.com)
 
 ## Requirements
 
