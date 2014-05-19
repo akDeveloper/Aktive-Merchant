@@ -107,12 +107,12 @@ class Example extends Gateway implements
     public function authorize($money, CreditCard $creditcard, $options=array())
     {
 
-        $this
-        $this->post_required_fields('AUTH');
+        $this->post = array();
+        $this->post = $this->post_required_fields('Auth');
 
-        $this->add_invoice($options);
-        $this->add_creditcard($creditcard);
-        $this->add_customer_data($options);
+        $this->add_invoice($this->post, $money, $options);
+        $this->add_creditcard($this->post, $creditcard);
+        $this->add_customer_data($this->post, $options);
 
         //return $this->commit('authonly', $money);
     }
@@ -180,7 +180,7 @@ class Example extends Gateway implements
 
     private function post_required_fields ($transaction_type)
     {
-        $post = array (
+        $this->post = array (
             'TransType' => $transaction_type,
             'Amount' => null,
             'PNRef' => null,
@@ -195,7 +195,8 @@ class Example extends Gateway implements
             'MAgData' => null,
             'ExtData' => null
         );
-
+        
+        return $this->post;
     }
 
     /**
@@ -234,10 +235,10 @@ class Example extends Gateway implements
      *
      * @param array $options
      */
-    private function add_invoice($options)
+    private function add_invoice($post, $money, $options)
     {
-        $this->post['INVNUM'] = isset($options['order_id']) ? $options['order_id'] : null;
-        $this->post['NOTE'] = isset($options['note']) ? $options['note'] : null;
+        $this->post['Amount'] = $this->amount($money);
+        $this->post['InvNum'] = $options->order_id;
     }
 
     /**
@@ -245,9 +246,18 @@ class Example extends Gateway implements
      *
      * @param CreditCard $creditcard
      */
-    private function add_creditcard(CreditCard $creditcard)
+    private function add_creditcard(&$post, CreditCard $creditcard)
     {
+ 
 
+        $card = array(
+            'NameOnCard' => $creditcard->name,
+            'ExpDate' =>  $this->cc_format($creditcard->month, 'two_digits').$this->cc_format($creditcard->month, 'two_digits' ) 
+            'CardNum' => $creditcard->number,
+            'CVNum' =>  $creditcard->verification_value
+                
+        );
+        $this->post = array_merge($post, $card);
     }
 
     /**
