@@ -98,7 +98,7 @@ class BridgePay extends Gateway implements
      */
     public function __construct($options = array())
     {
-        $this->required_options('UserName, password', $options);
+        $this->required_options('username, password', $options);
 
         if (isset($options['currency']))
             self::$default_currency = $options['currency'];
@@ -121,7 +121,7 @@ class BridgePay extends Gateway implements
         $this->add_customer_data($this->post, $options);
 
 
-        return $this->commit();
+       return $this->commit();
     }
 
     /**
@@ -133,12 +133,12 @@ class BridgePay extends Gateway implements
         $options = new Options($options);
         $this->post_required_fields('Sale');
 
-        $this->post['ExtData']['Force'] = 'T';
+        $this->post['ExtData'] = '<Force>T</Force>';
         $this->add_invoice($this->post, $money, $options);
         $this->add_creditcard($this->post, $creditcard);
         $this->add_customer_data($this->post, $options);
 
-        //return $this->commit('sale', $money);
+        return $this->commit();
     }
 
     /**
@@ -154,6 +154,8 @@ class BridgePay extends Gateway implements
         $this->add_reference($this->post, $authorization);
         $this->add_customer_data($this->post, $options);
 
+        return $this->commit();
+
     }
 
     /**
@@ -167,7 +169,7 @@ class BridgePay extends Gateway implements
         $this->post_required_fields('Void');
         $this->add_reference($this->post, $authorization);
 
-        //return $this->commit('void', null);
+        return $this->commit();
 
     }
 
@@ -181,6 +183,7 @@ class BridgePay extends Gateway implements
         $this->add_invoice($this->post, $money, $options);
         $this->add_reference($this->post, $authorization);
 
+        return $this->commit();
     }
 
 
@@ -312,25 +315,12 @@ class BridgePay extends Gateway implements
     }
 
 
-    private function builderXml($post)
-    {
-        $xml = new XmlBuilder('TRANSACTION', new XmlNormalizer());
-        // $data['@attributes'] = $this->XML_ATTRIBUTES;
-        $xml->load($post);
-        $xml->setRenderTypeAttributes(false);
-        $request = $xml->createXML(true);
-        echo $request;
-        // return $request;
-    }
-
-
     private function commit()
     {
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
         $data = $this->ssl_post($url, $this->post_data());
-        var_dump($data);
-        return $data;
+
         $response = $this->parse($data);
 
         $test_mode = $this->isTest();
@@ -340,11 +330,18 @@ class BridgePay extends Gateway implements
             $this->message_from($response),
             $response,
             array(
-                'authorization' => 'OK9757|837495',
+                'authorization' => $this->authorization_from($response),
                 'test' => $test_mode
 
             )
         );
+    }
+
+    private function authorization_from($response)
+    {
+        $result = $response['AuthCode'].'|'.$response['PNRef'];
+
+        return $result;
     }
 
     /**
@@ -352,14 +349,17 @@ class BridgePay extends Gateway implements
      *
      * @param array $response
      *
-     * @return string
+     * @return boolean
      */
     private function success_from($response)
     {
-        if ($response['respmsg'] == $this->APPROVED)
+        if ($response['RespMSG']== $this->APPROVED) {
+
             return true;
-        else
+        } else {
+
             return false;
+        }
     }
 
     /**
@@ -371,7 +371,7 @@ class BridgePay extends Gateway implements
      */
     private function message_from($response)
     {
-        return $response['respmsg'];
+        return $response['RespMSG'];
     }
 
     /**
@@ -411,13 +411,12 @@ class BridgePay extends Gateway implements
     private function post_data()
     {
         $post =  array(
-            'UserName' => $this->options['UserName'],
+            'UserName' => $this->options['username'],
             'Password' => $this->options['password']
         );
 
         $result = $this->urlize(array_merge($post, $this->post));
 
-        var_dump($result);
         return $result;
 
     }
@@ -429,9 +428,13 @@ class BridgePay extends Gateway implements
      */
     private function parse($body)
     {
-        parse_str($body, $response_array);
+       $xmlbuilder = new XmlBuilder();
 
-        return $response_array;
+       $xml = $xmlbuilder->loadXML($body, true);
+
+       $request = $xmlbuilder->toArray($xml);
+
+       return $request['Response'];
     }
 
 }
