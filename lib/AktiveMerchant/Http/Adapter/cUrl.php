@@ -182,10 +182,8 @@ class cUrl implements AdapterInterface
         }
 
         if (isset($server['user']) && isset($server['pass'])) {
-            $this->request->setHeader(
-                'Authorization: Basic '.base64_encode($server['user']),
-                $server['pass']
-            );
+            $credentials = $server['user'] . ':' . $server['pass'];
+            $request->addHeader('Authorization', 'Basic ' . base64_encode($credentials));
         }
 
         $port = !in_array($this->port, array(443, 80)) && !empty($this->port)

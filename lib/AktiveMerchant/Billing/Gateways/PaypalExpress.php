@@ -56,7 +56,6 @@ class PaypalExpress extends PaypalCommon
         if (!is_numeric($money)) {
             throw new \InvalidArgumentException('money amount must be a number.');
         }
-        
         return ($this->money_format() == 'cents') 
             ? number_format($cents, 0, '', '') 
             : number_format($money, 2);
