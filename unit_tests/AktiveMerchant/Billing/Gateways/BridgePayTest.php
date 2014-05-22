@@ -81,6 +81,7 @@ class BridgePaytTest extends AktiveMerchant\TestCase
             'OK2755|860592',
             $response->authorization()
         );
+        $request_body = $this->request->getBody();
 
         //$this->assertTrue(!is_null($response->authorization()));
 
@@ -117,12 +118,12 @@ class BridgePaytTest extends AktiveMerchant\TestCase
 
     }
 
-    public function testSuccessfulRefund()
+    public function testSuccessfulCredit()
     {
-        $this->mock_request($this->successful_refund_response());
+        $this->mock_request($this->successful_credit_response());
 
         $authorization = 'OK2755|860923';
-        $response = $this->gateway->refund(
+        $response = $this->gateway->credit(
             $this->amount,
             $authorization,
             $this->options
@@ -206,7 +207,7 @@ class BridgePaytTest extends AktiveMerchant\TestCase
 
     }
 
-    private function successful_refund_response()
+    private function successful_credit_response()
     {
         return '<?xml version="1.0" encoding="utf-8"?>
 <Response xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://TPISoft.com/SmartPayments/">
