@@ -7,6 +7,7 @@ The aim is to develop a PHP application to includes payment gateways under commo
 ## Supported Gateways
 
 * [Authorize.net](http://www.authorize.net)
+* [Bridge Pay](http://www.bridgepaynetwork.com/)
 * [CardStream](http://www.cardstream.com)
 * [Centinel 3D Secure](http://www.cardinalcommerce.com)
 * [Eway](http://www.eway.com.au/)
