@@ -14,9 +14,7 @@ use AktiveMerchant\Billing\CreditCard;
  * @license http://www.opensource.org/licenses/mit-license.php MIT License
  *
  */
-require_once 'config.php';
-
-class RealexTest extends AktiveMerchant\TestCase
+class RealexTest extends \AktiveMerchant\TestCase
 {
     public $gateway;
     public $amount;
@@ -28,7 +26,7 @@ class RealexTest extends AktiveMerchant\TestCase
         Base::mode('test');
 
         $login_info = $this->getFixtures()->offsetGet('realex');
-        
+
         $this->gateway = new Realex($login_info);
 
         $this->amount = 100;
@@ -52,7 +50,7 @@ class RealexTest extends AktiveMerchant\TestCase
                 'state' => 'WA',
                 'country' => 'USA'
             )
-        );   
+        );
     }
 
     public function testSuccessfulPurchase()
@@ -62,7 +60,7 @@ class RealexTest extends AktiveMerchant\TestCase
         $response = $this->gateway->purchase(
             $this->amount, $this->creditcard, $this->options
         );
-        
+
         $this->assertInstanceOf('AktiveMerchant\\Billing\\Response', $response);
         $this->assert_success($response);
     }
@@ -104,11 +102,11 @@ XML;
         $response = $this->gateway->purchase(
             $this->amount, $this->creditcard, $this->options
         );
-        
+
         $this->assertInstanceOf('AktiveMerchant\\Billing\\Response', $response);
         $this->assert_failure($response);
     }
-    
+
     private function unsuccessful_purchase_response()
     {
         return <<<XML

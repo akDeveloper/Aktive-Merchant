@@ -6,8 +6,6 @@ use AktiveMerchant\Billing\Gateways\MonerisUs;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
-require_once 'config.php';
-
 /**
  * Unit tests for Moneris gateway.
  *
@@ -17,7 +15,7 @@ require_once 'config.php';
  * @license http://www.opensource.org/licenses/mit-license.php
  *
  */
-class MonerisUsTest extends AktiveMerchant\TestCase
+class MonerisUsTest extends \AktiveMerchant\TestCase
 {
     public $gateway;
     public $amount;

@@ -2,15 +2,13 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-require_once 'config.php';
-
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\Gateways\BridgePay;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Common\Options;
 use AktiveMerchant\Billing\Gateways\Eway;
 
-class BridgePaytTest extends AktiveMerchant\TestCase
+class BridgePaytTest extends \AktiveMerchant\TestCase
 {
 
     public $gateway;

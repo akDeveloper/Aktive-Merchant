@@ -2,13 +2,11 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-require_once'config.php';
-
 use AktiveMerchant\Billing\Gateways\Payflow;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
-class PayflowTest extends AktiveMerchant\TestCase
+class PayflowTest extends \AktiveMerchant\TestCase
 {
 
     public $gateway;
@@ -21,7 +19,7 @@ class PayflowTest extends AktiveMerchant\TestCase
         Base::mode('test');
 
         $login_info = $this->getFixtures()->offsetGet('payflow');
-        
+
         $this->gateway = new Payflow($login_info);
 
         $this->amount = 100.00;

@@ -14,9 +14,8 @@ use AktiveMerchant\Billing\CreditCard;
  * @license http://www.opensource.org/licenses/mit-license.php MIT License
  *
  */
-require_once'config.php';
 
-class WorldpayTest extends AktiveMerchant\TestCase
+class WorldpayTest extends \AktiveMerchant\TestCase
 {
     public $gateway;
     public $amount;

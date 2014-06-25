@@ -6,8 +6,6 @@ use AktiveMerchant\Billing\Gateways\FatZebra;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
-require_once 'config.php';
-
 /**
  * Unit tests for Fat Zebra gateway.
  *
@@ -17,7 +15,7 @@ require_once 'config.php';
  * @license http://www.opensource.org/licenses/mit-license.php
  *
  */
-class FatZebraTest extends AktiveMerchant\TestCase
+class FatZebraTest extends \AktiveMerchant\TestCase
 {
     public $gateway;
     public $amount;

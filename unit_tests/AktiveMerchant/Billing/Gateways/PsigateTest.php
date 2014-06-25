@@ -14,7 +14,6 @@ use AktiveMerchant\Billing\Exception;
  * @license http://www.opensource.org/licenses/mit-license.php
  *
  */
-require_once 'config.php';
 
 class TestPsigate extends Psigate {
   protected static $URL = "https://dev.psigate.com:7989/Messenger/XMLMessenger";
@@ -39,7 +38,7 @@ class BadResponse extends TestPsigate {
 }
 
 
-class PsigateTest extends AktiveMerchant\TestCase
+class PsigateTest extends \AktiveMerchant\TestCase
 {
     public $gateway;
     public $amount;

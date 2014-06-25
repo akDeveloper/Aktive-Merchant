@@ -6,8 +6,6 @@ use AktiveMerchant\Billing\Gateways\ePDQ;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
-require_once 'config.php';
-
 /**
  * Unit tests for ePDQ gateway.
  *
@@ -17,7 +15,7 @@ require_once 'config.php';
  * @license http://www.opensource.org/licenses/mit-license.php
  *
  */
-class ePDQTest extends AktiveMerchant\TestCase
+class ePDQTest extends \AktiveMerchant\TestCase
 {
     public $gateway;
     public $amount;
@@ -32,7 +30,7 @@ class ePDQTest extends AktiveMerchant\TestCase
         Base::mode('test');
 
         $login_info = $this->getFixtures()->offsetGet('epdq');
-        
+
         $this->gateway = new ePDQ($login_info);
 
         $this->amount = 100;
@@ -62,14 +60,14 @@ class ePDQTest extends AktiveMerchant\TestCase
         $this->mock_request($this->successful_purchase_response());
 
         $response = $this->gateway->purchase(
-            $this->amount, 
-            $this->creditcard, 
+            $this->amount,
+            $this->creditcard,
             $this->options
         );
 
         $this->assert_success($response);
         $this->assertEquals(
-            'This transaction has been approved.', 
+            'This transaction has been approved.',
             $response->message()
         );
     }

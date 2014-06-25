@@ -6,8 +6,6 @@ use AktiveMerchant\Billing\Gateways\Eway;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
-require_once 'config.php';
-
 /**
  * Unit tests for  Eway gateway.
  *
@@ -17,7 +15,7 @@ require_once 'config.php';
  * @license http://www.opensource.org/licenses/mit-license.php
  *
  */
-class EwayTest extends AktiveMerchant\TestCase
+class EwayTest extends \AktiveMerchant\TestCase
 {
     /**
      * Setup
@@ -27,7 +25,7 @@ class EwayTest extends AktiveMerchant\TestCase
         Base::mode('test');
 
         $login_info = $this->getFixtures()->offsetGet('eway');
-        
+
         $this->gateway = new Eway($login_info);
 
         $this->amount = 100;
@@ -56,10 +54,10 @@ class EwayTest extends AktiveMerchant\TestCase
     public function testSuccessfulPurchase()
     {
         $this->mock_request($this->successful_purchase_response());
-        
+
         $response = $this->gateway->purchase(
-            $this->amount, 
-            $this->creditcard, 
+            $this->amount,
+            $this->creditcard,
             $this->options
         );
 
@@ -72,7 +70,7 @@ class EwayTest extends AktiveMerchant\TestCase
         );
 
     }
-    
+
     private function purchase_request($order_id)
     {
         return "<?xml version=\"1.0\"?>\n<ewaygateway><ewayCustomerInvoiceRef>{$order_id}</ewayCustomerInvoiceRef><ewayCustomerInvoiceDescription>Eway Test Transaction</ewayCustomerInvoiceDescription><ewayCardNumber>4444333322221111</ewayCardNumber><ewayCardExpiryMonth>01</ewayCardExpiryMonth><ewayCardExpiryYear>15</ewayCardExpiryYear><ewayCustomerFirstName>John</ewayCustomerFirstName><ewayCustomerLastName>Doe</ewayCustomerLastName><ewayCardHoldersName>John Doe</ewayCardHoldersName><ewayCVN>000</ewayCVN><ewayCustomerAddress>1234 Street, 98004, WA</ewayCustomerAddress><ewayCustomerPostcode>98004</ewayCustomerPostcode><ewayCustomerEmail>test@example.com</ewayCustomerEmail><ewayTrxnNumber/><ewayOption1/><ewayOption2/><ewayOption3/><ewayTotalAmount>10000</ewayTotalAmount><ewayCustomerID>87654321</ewayCustomerID></ewaygateway>\n";
@@ -86,10 +84,10 @@ class EwayTest extends AktiveMerchant\TestCase
     public function testSuccessfulAuthorize()
     {
         $this->mock_request($this->successful_authorize_response());
-        
+
         $response = $this->gateway->authorize(
-            $this->amount, 
-            $this->creditcard, 
+            $this->amount,
+            $this->creditcard,
             $this->options
         );
 
@@ -115,9 +113,9 @@ class EwayTest extends AktiveMerchant\TestCase
     public function testSuccessfulCapture()
     {
         $this->mock_request($this->successful_capture_response());
-        
+
         $response = $this->gateway->capture(
-            $this->amount, 
+            $this->amount,
             $this->options["order_id"],
             $this->options
         );

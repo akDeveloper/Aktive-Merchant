@@ -1,5 +1,7 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+
 /**
  * CreditCardTest class.
  *
@@ -8,8 +10,6 @@
  * @license http://www.opensource.org/licenses/mit-license.php MIT License
  *
  */
-require_once '../autoload.php';
-
 class CreditCardTest extends PHPUnit_Framework_TestCase
 {
 
