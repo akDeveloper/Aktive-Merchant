@@ -12,6 +12,7 @@ The aim is to develop a PHP application to includes payment gateways under commo
 * [Centinel 3D Secure](http://www.cardinalcommerce.com)
 * [Eway](http://www.eway.com.au/)
 * [Fat Zebra](https://www.fatzebra.com.au)
+* [Iridium](http://www.iridiumcorp.co.uk)
 * [E-xact](http://www.e-xact.com)
 * [Hsbc Secure e-Payment](http://www.hsbc.co.uk/1/2/business/cards-payments/secure-epayments)
 * [Mercury](http://www.mercurypay.com)

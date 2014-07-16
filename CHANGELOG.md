@@ -1,3 +1,5 @@
+* __1.0.12__ (2014-07-16)
+  * Added Iridium payment gateway ( @dimitrisGiannakakis )
 * __1.0.11__ (2014-05-22)
   * Added Bridge Pay payment gateway ( @dimitrisGiannakakis )
 * __1.0.10__ (2014-05-08)
