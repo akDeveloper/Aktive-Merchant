@@ -13,8 +13,6 @@ namespace AktiveMerchant\Common;
  *
  */
 
-require_once '../autoload.php';
-
 class OptionsTest extends \PHPUnit_Framework_TestCase
 {
     public $options = array();
@@ -59,9 +57,9 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
     public function testAccessRecursiveArray()
     {
         $options = new Options($this->options);
-        
+
         $this->assertInstanceOf(
-            'AktiveMerchant\\Common\\Options', 
+            'AktiveMerchant\\Common\\Options',
             $options->billing_address
         );
 
@@ -71,7 +69,7 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
     }
 
     public function testRequired()
-    { 
+    {
         $options = new Options($this->options);
 
         $exists = Options::required('login, password', $options);
@@ -86,7 +84,7 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
     {
         $options = new Options($this->options);
 
-        $exists = Options::required('pass', $options);       
+        $exists = Options::required('pass', $options);
     }
 
     /**
@@ -96,6 +94,6 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
     {
         $options = new Options($this->options);
 
-        $exists = Options::required('pass', $options->billing_address);       
+        $exists = Options::required('pass', $options->billing_address);
     }
 }

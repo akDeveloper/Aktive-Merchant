@@ -2,8 +2,6 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-require_once '../autoload.php';
-
 use AktiveMerchant\Http\Request;
 use AktiveMerchant\Http\RequestInterface;
 use AktiveMerchant\Http\Adapter\cUrl;
@@ -13,7 +11,7 @@ class RequestTest extends PHPUnit_Framework_TestCase
 
     protected $ini;
 
-    public function setUp() 
+    public function setUp()
     {
         $this->ini = parse_ini_file("fixtures.ini", true);
     }

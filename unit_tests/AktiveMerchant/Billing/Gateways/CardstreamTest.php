@@ -14,9 +14,8 @@ use AktiveMerchant\Billing\CreditCard;
  * @license http://www.opensource.org/licenses/mit-license.php MIT License
  *
  */
-require_once 'config.php';
 
-class CardstreamTest extends AktiveMerchant\TestCase
+class CardstreamTest extends \AktiveMerchant\TestCase
 {
 
     public $gateway;
@@ -24,11 +23,11 @@ class CardstreamTest extends AktiveMerchant\TestCase
     public $options;
     public $creditcard;
 
-    
+
     public function setUp()
     {
         Base::mode('test');
-        
+
         $login_info = $this->getFixtures()->offsetGet('cardstream');
 
         $this->gateway = new Cardstream($login_info);
@@ -58,9 +57,9 @@ class CardstreamTest extends AktiveMerchant\TestCase
     }
 
     public function testInitialization() {
-        
+
         $this->assertNotNull($this->gateway);
-        
+
         $this->assertNotNull($this->creditcard);
 
         $this->assertImplementation(
@@ -79,7 +78,7 @@ class CardstreamTest extends AktiveMerchant\TestCase
         $this->assert_success($response);
         $this->assertEquals('08010706065208191057', $response->authorization());
     }
-    
+
     public function testFailedPurchase()
     {
         $this->mock_request($this->failed_purchase_response());
@@ -128,12 +127,12 @@ class CardstreamTest extends AktiveMerchant\TestCase
     public function testSupportedCardTypes()
     {
         $supported_cards = array(
-            'visa', 
-            'master', 
-            'american_express', 
+            'visa',
+            'master',
+            'american_express',
             'switch',
-            'solo', 
-            'maestro' 
+            'solo',
+            'maestro'
         );
         $this->assertEquals($supported_cards, Cardstream::$supported_cardtypes);
     }

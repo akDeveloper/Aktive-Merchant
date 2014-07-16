@@ -13,9 +13,8 @@ use AktiveMerchant\Billing\Base;
  * @license http://www.opensource.org/licenses/mit-license.php MIT License
  *
  */
-require_once 'config.php';
 
-class PaypalExpressTest extends AktiveMerchant\TestCase
+class PaypalExpressTest extends \AktiveMerchant\TestCase
 {
 
     public $gateway;
@@ -27,7 +26,7 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
         Base::mode('test');
 
         $options = $this->getFixtures()->offsetGet('paypal_express');
-        
+
         $options['currency'] = 'EUR';
 
         $this->gateway = new PaypalExpress($options);
@@ -48,14 +47,14 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
         );
     }
 
-    // Tests 
+    // Tests
 
-    public function testInitialization() 
+    public function testInitialization()
     {
         $this->assertNotNull($this->gateway);
 
         $this->assertInstanceOf(
-            '\\AktiveMerchant\\Billing\\Gateway', 
+            '\\AktiveMerchant\\Billing\\Gateway',
             $this->gateway
         );
     }
@@ -67,9 +66,9 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
             'cancel_return_url' => 'http://example.com',
         );
         $options = array_merge($this->options, $options);
-        
+
         $this->mock_request($this->successful_setup_authorize_response());
-        
+
         $response = $this->gateway->setupAuthorize($this->amount, $options);
 
         $request_body = $this->request->getBody();
@@ -80,7 +79,7 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
 
         $this->assert_success($response);
         $this->assertTrue($response->test());
-        
+
         $token = $response->token();
         $this->assertFalse(empty($token));
     }
@@ -99,7 +98,7 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
     {
 
         $this->mock_request($this->successful_get_details_for_token_response());
-        
+
         $token = 'EC-81B81448TC460182J';
         $payer_id = '3L2BZTVKN8N7G';
 
@@ -110,7 +109,7 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
             $this->successful_get_details_for_token_request(),
             $request_body
         );
-        
+
         $this->assert_success($response);
 
         $address = array(
@@ -154,7 +153,7 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
             $this->successful_authorize_request(),
             $request_body
         );
-        
+
         $this->assert_success($response);
     }
 
@@ -175,9 +174,9 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
             'cancel_return_url' => 'http://example.com',
         );
         $options = array_merge($this->options, $options);
-        
+
         $this->mock_request($this->successful_setup_purchase_response());
-        
+
         $response = $this->gateway->setupPurchase($this->amount, $options);
 
         $request_body = $this->request->getBody();
@@ -188,7 +187,7 @@ class PaypalExpressTest extends AktiveMerchant\TestCase
 
         $this->assert_success($response);
         $this->assertTrue($response->test());
-        
+
         $token = $response->token();
         $this->assertFalse(empty($token));
     }

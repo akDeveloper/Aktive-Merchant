@@ -2,13 +2,11 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-require_once'config.php';
-
 use AktiveMerchant\Billing\Gateways\Centinel;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
-class CentinelTest extends AktiveMerchant\TestCase
+class CentinelTest extends \AktiveMerchant\TestCase
 {
 
     public $gateway;
@@ -21,7 +19,7 @@ class CentinelTest extends AktiveMerchant\TestCase
         Base::mode('test');
 
         $login_info = $this->getFixtures()->offsetGet('centinel');
-        
+
         $this->gateway = new Centinel($login_info);
 
         $this->amount = 100.00;
@@ -62,22 +60,22 @@ class CentinelTest extends AktiveMerchant\TestCase
     function testLookup()
     {
         $this->mock_request($this->successful_lookup_response());
-        
+
         $auth = $this->gateway->lookup(
-            $this->amount, 
-            $this->creditcard, 
+            $this->amount,
+            $this->creditcard,
             $this->options
         );
-        
+
         $this->assertTrue($auth->success());
     }
 
     function testAuthenticate()
     {
         $this->mock_request($this->successful_authenticate_response());
-        
+
         $auth = $this->gateway->authenticate($this->options);
-        
+
         $this->assertTrue($auth->success());
     }
 

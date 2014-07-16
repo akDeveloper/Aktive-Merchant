@@ -6,9 +6,7 @@ use AktiveMerchant\Billing\Gateways\Mercury;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
-require_once 'config.php';
-
-class MercuryTest extends AktiveMerchant\TestCase
+class MercuryTest extends \AktiveMerchant\TestCase
 {
     public $gateway;
     public $amount;

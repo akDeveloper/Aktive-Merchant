@@ -13,8 +13,6 @@ namespace AktiveMerchant\Common;
  *
  */
 
-require_once '../autoload.php';
-
 class AddressTest extends \PHPUnit_Framework_TestCase
 {
     public function testMapping()
@@ -26,7 +24,7 @@ class AddressTest extends \PHPUnit_Framework_TestCase
             'postal_code' => '23456',
             'address_line_1' => 'Address 7 Street',
             'phone_number' => '30210123456',
-            'fullname' => 'Andreas Kollaros', 
+            'fullname' => 'Andreas Kollaros',
         );
 
         $address = new Address();
@@ -40,7 +38,7 @@ class AddressTest extends \PHPUnit_Framework_TestCase
             ->map('state', 'SHIPTOSTATE')
             ->map('country_name', 'SHIPTOCOUNTRY')
             ->map('postal_code', 'SHIPTOZIP');
-        
+
         $fields = $address->getMappedFields();
 
         $this->assertEquals('Attiki', $fields['SHIPTOSTATE']);

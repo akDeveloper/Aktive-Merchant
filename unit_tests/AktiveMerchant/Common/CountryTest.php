@@ -13,21 +13,19 @@ use AktiveMerchant\Common\Country;
  *
  */
 
-require_once '../autoload.php';
-
 class CountryTest extends PHPUnit_Framework_TestCase
 {
-    
+
     public function testGetCountryFromNumeric()
     {
         $country = Country::find(300);
 
         $this->assertInstanceOf('AktiveMerchant\\Common\\Country', $country);
-        
+
         $this->assertEquals($country->__toString(), 'Greece');
 
         $this->assertEquals($country->getCode('alpha2')->__toString(), 'GR');
-        
+
         $this->assertEquals($country->getCode('alpha3')->__toString(), 'GRC');
     }
 
@@ -36,11 +34,11 @@ class CountryTest extends PHPUnit_Framework_TestCase
         $country = Country::find('GR');
 
         $this->assertInstanceOf('AktiveMerchant\\Common\\Country', $country);
-        
+
         $this->assertEquals($country->__toString(), 'Greece');
 
         $this->assertEquals($country->getCode('alpha3')->__toString(), 'GRC');
-        
+
         $this->assertEquals($country->getCode('numeric')->__toString(), 300);
     }
 
@@ -49,11 +47,11 @@ class CountryTest extends PHPUnit_Framework_TestCase
         $country = Country::find('GRC');
 
         $this->assertInstanceOf('AktiveMerchant\\Common\\Country', $country);
-        
+
         $this->assertEquals($country->__toString(), 'Greece');
 
         $this->assertEquals($country->getCode('alpha2')->__toString(), 'GR');
-        
+
         $this->assertEquals($country->getCode('numeric')->__toString(), 300);
     }
 

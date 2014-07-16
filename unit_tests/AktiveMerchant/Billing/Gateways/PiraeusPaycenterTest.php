@@ -6,8 +6,6 @@ use AktiveMerchant\Billing\Gateways\PiraeusPaycenter;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
-require_once 'config.php';
-
 /**
  * Unit test PiraeusPaycenter
  *
@@ -16,7 +14,7 @@ require_once 'config.php';
  * @license http://www.opensource.org/licenses/mit-license.php
  *
  */
-class PiraeusPaycenterTest extends AktiveMerchant\TestCase
+class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
 {
 
     public $gateway;
@@ -68,12 +66,12 @@ class PiraeusPaycenterTest extends AktiveMerchant\TestCase
      * Tests
      */
 
-    public function testInitialization() 
+    public function testInitialization()
     {
         $this->assertNotNull($this->gateway);
 
         $this->assertNotNull($this->creditcard);
-        
+
         $this->assertImplementation(
             array(
                 'Charge',
@@ -87,11 +85,11 @@ class PiraeusPaycenterTest extends AktiveMerchant\TestCase
         $this->mock_request($this->successful_purchase_response());
 
         $response = $this->gateway->purchase(
-            $this->amount, 
-            $this->creditcard, 
+            $this->amount,
+            $this->creditcard,
             $this->options
         );
-        
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
         $this->assertEquals('Approved or completed successfully', $response->message());

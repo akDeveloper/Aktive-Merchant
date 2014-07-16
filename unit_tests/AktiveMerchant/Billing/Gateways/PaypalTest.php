@@ -6,18 +6,16 @@ use AktiveMerchant\Billing\Gateways\Paypal;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
-require_once 'config.php';
-
 /**
  * Unit tests for Paypal Pro gataway.
  *
- * TODO: add tests for capture, void, credit actions. 
+ * TODO: add tests for capture, void, credit actions.
  *
  * @package Active-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class PaypalTest extends AktiveMerchant\TestCase
+class PaypalTest extends \AktiveMerchant\TestCase
 {
 
     public $gateway;
@@ -30,7 +28,7 @@ class PaypalTest extends AktiveMerchant\TestCase
         Base::mode('test');
 
         $options = $this->getFixtures()->offsetGet('paypal_pro');
-        
+
         $options['currency'] = 'USD';
 
         $this->gateway = new Paypal($options);
@@ -63,12 +61,12 @@ class PaypalTest extends AktiveMerchant\TestCase
      * Tests
      */
 
-    public function testInitialization() 
+    public function testInitialization()
     {
         $this->assertNotNull($this->gateway);
 
         $this->assertNotNull($this->creditcard);
-        
+
         $this->assertImplementation(
             array(
                 'Charge',
@@ -80,24 +78,24 @@ class PaypalTest extends AktiveMerchant\TestCase
     public function testSuccessfulPurchase()
     {
         $this->mock_request($this->successful_purchase_response());
-        
+
         $response = $this->gateway->purchase(
-            $this->amount, 
-            $this->creditcard, 
+            $this->amount,
+            $this->creditcard,
             $this->options
         );
-        
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
-        
+
         $request_body = $this->request->getBody();
         $this->assertEquals(
             $this->successful_purchase_request(),
             $request_body
         );
-        
+
         $params = $response->params();
-        
+
         $this->assertEquals('100.00', $params['AMT']);
         $this->assertEquals('USD', $params['CURRENCYCODE']);
     }
@@ -115,20 +113,20 @@ class PaypalTest extends AktiveMerchant\TestCase
     public function testSuccessfulAuthorization()
     {
         $this->mock_request($this->successful_authorize_response());
-        
+
         $response = $this->gateway->authorize(
-            $this->amount, 
-            $this->creditcard, 
+            $this->amount,
+            $this->creditcard,
             $this->options
         );
-        
+
         $this->assert_success($response);
 
         $request_body = $this->request->getBody();
         $this->assertEquals(
             $this->successful_authorize_request(),
             $request_body
-        ); 
+        );
 
         $params = $response->params();
         $this->assertEquals('100.00', $params['AMT']);
@@ -144,16 +142,16 @@ class PaypalTest extends AktiveMerchant\TestCase
     {
         return "TIMESTAMP=2012%2d09%2d21T15%3a26%3a21Z&CORRELATIONID=d529596d5684b&ACK=Success&VERSION=85%2e0&BUILD=3719653&AMT=100%2e00&CURRENCYCODE=USD&AVSCODE=X&CVV2MATCH=M&TRANSACTIONID=0ML60749PE351283S";
     }
-    
+
     public function testFailedPurchase()
     {
         $this->mock_request($this->failure_purchase_response());
-        
+
         $this->creditcard->number = '234234234234';
-        
+
         $response = $this->gateway->purchase(
-            $this->amount, 
-            $this->creditcard, 
+            $this->amount,
+            $this->creditcard,
             $this->options
         );
 
@@ -161,8 +159,8 @@ class PaypalTest extends AktiveMerchant\TestCase
         $this->assertEquals(
             $this->failure_purchase_request(),
             $request_body
-        );         
-        
+        );
+
         $this->assert_failure($response);
         $this->assertTrue($response->test());
         $this->assertEquals('This transaction cannot be processed. Please enter a valid credit card number and type.', $response->message());
@@ -181,12 +179,12 @@ class PaypalTest extends AktiveMerchant\TestCase
     public function testFailedAuthorization()
     {
         $this->mock_request($this->failure_authorize_response());
-        
+
         $this->creditcard->number = '234234234234';
-        
+
         $response = $this->gateway->authorize(
-            $this->amount, 
-            $this->creditcard, 
+            $this->amount,
+            $this->creditcard,
             $this->options
         );
 
@@ -194,13 +192,13 @@ class PaypalTest extends AktiveMerchant\TestCase
         $this->assertEquals(
             $this->failure_authorize_request(),
             $request_body
-        ); 
+        );
 
         $this->assert_failure($response);
         $this->assertTrue($response->test());
         $this->assertEquals('This transaction cannot be processed. Please enter a valid credit card number and type.', $response->message());
     }
-    
+
     private function failure_authorize_request()
     {
         return "CREDITCARDTYPE=Visa&ACCT=234234234234&EXPDATE=012015&CVV2=000&FIRSTNAME=John&LASTNAME=Doe&CURRENCYCODE=USD&STREET=1234+Penny+Lane&CITY=Jonsetown&STATE=NC&ZIP=23456&COUNTRYCODE=US&PAYMENTACTION=Authorization&AMT=100.00&IPADDRESS=10.0.0.1&METHOD=DoDirectPayment&VERSION=85.0&PWD=y&USER=x&SIGNATURE=z";
@@ -210,17 +208,17 @@ class PaypalTest extends AktiveMerchant\TestCase
     {
         return "TIMESTAMP=2012%2d09%2d21T15%3a26%3a24Z&CORRELATIONID=bf9675817026&ACK=Failure&VERSION=85%2e0&BUILD=3719653&L_ERRORCODE0=10527&L_SHORTMESSAGE0=Invalid%20Data&L_LONGMESSAGE0=This%20transaction%20cannot%20be%20processed%2e%20Please%20enter%20a%20valid%20credit%20card%20number%20and%20type%2e&L_SEVERITYCODE0=Error&AMT=100%2e00&CURRENCYCODE=USD";
     }
-    
+
     public function testSuccessfulCapture()
     {
         $authorization = '2RU58210F2652241X';
         $options = array('complete_type' => 'Complete');
-        
+
         $this->mock_request($this->successful_capture_response());
 
         $response = $this->gateway->capture(
-            $this->amount, 
-            $authorization, 
+            $this->amount,
+            $authorization,
             $options
         );
 
@@ -260,16 +258,16 @@ class PaypalTest extends AktiveMerchant\TestCase
     {
         return 'AUTHORIZATIONID=7GL42127193626438&TIMESTAMP=2012%2d10%2d03T23%3a38%3a43Z&CORRELATIONID=f46e615eaa237&ACK=Success&VERSION=85%2e0&BUILD=3881757';
     }
-    
+
     public function testSuccessfulCredit()
     {
         $identification = '2DH16869J1538591S';
 
         $this->mock_request($this->successful_credit_response());
-        
+
         $options = array('refund_type'=>'Full');
         $response = $this->gateway->credit(
-            $this->amount, 
+            $this->amount,
             $identification,
             $options
         );
