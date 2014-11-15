@@ -138,7 +138,6 @@ class cUrl implements AdapterInterface
      */
     public function setOption($option, $value)
     {
-        $option = isset($this->map_config[$option]) ? $this->map_config[$option] : $option;
         $this->options[$option] = $value;
     }
 
