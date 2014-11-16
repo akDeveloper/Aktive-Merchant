@@ -138,6 +138,7 @@ class cUrl implements AdapterInterface
      */
     public function setOption($option, $value)
     {
+        $option = isset($this->map_config[$option]) ? $this->map_config[$option] : $option;
         $this->options[$option] = $value;
     }
 
@@ -146,6 +147,7 @@ class cUrl implements AdapterInterface
      */
     public function getOption($option)
     {
+        $option = isset($this->map_config[$option]) ? $this->map_config[$option] : $option;
         return isset($this->options[$option])
             ? $this->options[$option]
             : null;
@@ -219,7 +221,7 @@ class cUrl implements AdapterInterface
         );
 
         $config = $this->map_config($request->getConfig());
-        $options = $default + $this->options + $config;
+        $options = $this->options + $config + $default;
 
         curl_setopt_array($this->ch, $options);
     }
