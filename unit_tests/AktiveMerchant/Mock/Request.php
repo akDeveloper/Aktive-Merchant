@@ -8,7 +8,7 @@ use AktiveMerchant\Http\RequestInterface;
 use AktiveMerchant\Http\AdapterInterface;
 
 /**
- * Request Mock class 
+ * Request Mock class
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
@@ -18,23 +18,33 @@ use AktiveMerchant\Http\AdapterInterface;
 
 class Request implements RequestInterface
 {
-     
+
     protected $url;
 
     protected $method;
 
-    protected $headers = array();   
-    
+    protected $headers = array();
+
     protected $body;
-    
+
     protected $adapter;
-    
+
+    protected $options;
+
+    protected $config = array(
+        'connect_timeout'   => 10,
+        'timeout'           => 0,
+        'ssl_verify_peer'   => true,
+        'ssl_verify_host'   => 2,
+        'user_agent'        => null,
+    );
+
     public function setUrl($url)
     {
         $this->url = $url;
     }
-    
-    public function getUrl() 
+
+    public function getUrl()
     {
         return $this->url;
     }
@@ -44,19 +54,24 @@ class Request implements RequestInterface
         $this->method = strtoupper($method);
     }
 
-    public function getMethod() 
+    public function getMethod()
     {
         return $this->method;
     }
-    
-    public function setHeaders(array $headers) 
+
+    public function setHeaders(array $headers)
     {
         $this->headers = $headers;
     }
 
+    public function getHeaders()
+    {
+        return $this->headers;
+    }
+
     public function setBody($body)
     {
-        $this->body = $body; 
+        $this->body = $body;
     }
 
     public function getBody()
@@ -71,11 +86,16 @@ class Request implements RequestInterface
 
     public function getResponseBody()
     {
-        
+
     }
 
     public function setAdapter(AdapterInterface $adapter)
     {
         $this->adapter = $adapter;
+    }
+
+    public function getConfig()
+    {
+        return $this->config;
     }
 }

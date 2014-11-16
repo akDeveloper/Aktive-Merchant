@@ -4,7 +4,7 @@
 
 namespace AktiveMerchant\Http\Adapter;
 
-use AktiveMerchant\Http\Request;
+use AktiveMerchant\Http\RequestInterface;
 use AktiveMerchant\Http\AdapterInterface;
 
 /**
@@ -61,16 +61,16 @@ class cUrl implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function sendRequest(Request $request)
+    public function sendRequest(RequestInterface $request)
     {
         $this->apply_options($request);
 
-        if ($request->getMethod() == Request::METHOD_POST) {
+        if ($request->getMethod() == RequestInterface::METHOD_POST) {
             curl_setopt($this->ch, CURLOPT_POST, 1);
             curl_setopt($this->ch, CURLOPT_POSTFIELDS, $request->getBody());
-        } elseif ($request->getMethod() == Request::METHOD_GET)  {
+        } elseif ($request->getMethod() == RequestInterface::METHOD_GET)  {
             curl_setopt($this->ch, CURLOPT_HTTPGET, 1);
-        } elseif ($request->getMethod() == Request::METHOD_PUT) {
+        } elseif ($request->getMethod() == RequestInterface::METHOD_PUT) {
             curl_setopt($this->ch, CURLOPT_POST, 1);
             curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'PUT');
             curl_setopt($this->ch, CURLOPT_POSTFIELDS, $request->getBody());
@@ -169,7 +169,7 @@ class cUrl implements AdapterInterface
         $this->ch = curl_init();
     }
 
-    protected function init_url(Request $request)
+    protected function init_url(RequestInterface $request)
     {
         $server = parse_url($request->getUrl());
 
@@ -199,7 +199,7 @@ class cUrl implements AdapterInterface
             . (isset($server['query']) ? '?' . $server['query'] : '');
     }
 
-    protected function apply_options(Request $request)
+    protected function apply_options(RequestInterface $request)
     {
         $this->init_handler();
 
@@ -221,9 +221,9 @@ class cUrl implements AdapterInterface
         );
 
         $config = $this->map_config($request->getConfig());
-        $options = $this->options + $config + $default;
+        $this->options = $this->options + $config + $default;
 
-        curl_setopt_array($this->ch, $options);
+        curl_setopt_array($this->ch, $this->options);
     }
 
     protected function map_config($config)
@@ -236,5 +236,16 @@ class cUrl implements AdapterInterface
         }
 
         return $map;
+    }
+
+    /**
+     * Gets options.
+     *
+     * @access public
+     * @return mixed
+     */
+    public function getOptions()
+    {
+        return $this->options;
     }
 }
