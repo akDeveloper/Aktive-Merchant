@@ -13,9 +13,16 @@ use AktiveMerchant\Billing\Gateways\Centinel;
  * @package Aktive-Merchant
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class CentinelPaypal extends Centinel 
+class CentinelPaypal extends Centinel
 {
     const LIVE_URL = 'https://paypal.cardinalcommerce.com/maps/txns.asp';
-    
+
     public static $display_name = 'Centinel 3D Secure for Paypal';
+
+    protected function commit($action, $money, $parameters)
+    {
+        $this->getAdapter()->setOption(CURLOPT_SSLVERSION, 3);
+
+        return parent::commit($action, $money, $parameters);
+    }
 }

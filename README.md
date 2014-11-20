@@ -7,13 +7,18 @@ The aim is to develop a PHP application to includes payment gateways under commo
 ## Supported Gateways
 
 * [Authorize.net](http://www.authorize.net)
+* [Barclay's ePDQ Gateway](http://www.barclaycard.co.uk)
 * [Bridge Pay](http://www.bridgepaynetwork.com/)
 * [CardStream](http://www.cardstream.com)
 * [Centinel 3D Secure](http://www.cardinalcommerce.com)
 * [Eway](http://www.eway.com.au/)
 * [Fat Zebra](https://www.fatzebra.com.au)
 * [E-xact](http://www.e-xact.com)
+* [Eurobank Payment](http://www.eurobank.gr/online/home/generic.aspx?id=79&mid=635)
+* [Eway](http://www.eway.com.au/)
 * [Hsbc Secure e-Payment](http://www.hsbc.co.uk/1/2/business/cards-payments/secure-epayments)
+* [Fat Zebra](https://www.fatzebra.com.au/)
+* [Iridium](http://www.iridiumcorp.co.uk)
 * [Mercury](http://www.mercurypay.com)
 * [Moneris](http://www.moneris.com)
 * [Moneris US](http://www.monerisusa.com)

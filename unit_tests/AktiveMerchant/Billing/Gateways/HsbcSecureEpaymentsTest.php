@@ -15,9 +15,7 @@ use AktiveMerchant\Billing\CreditCard;
  *
  */
 
-require_once 'config.php';
-
-class HsbcSecureEpaymentsTest extends AktiveMerchant\TestCase
+class HsbcSecureEpaymentsTest extends \AktiveMerchant\TestCase
 {
 
     public $gateway;
@@ -34,7 +32,7 @@ class HsbcSecureEpaymentsTest extends AktiveMerchant\TestCase
         Base::mode('test');
 
         $options = $this->getFixtures()->offsetGet('hsbc');
-        
+
         $options['currency'] = 'EUR';
 
         $this->gateway = new HsbcSecureEpayments($options);
@@ -62,7 +60,7 @@ class HsbcSecureEpaymentsTest extends AktiveMerchant\TestCase
         $this->authorization = '483e6382-7d13-3001-002b-0003bac00fc9';
     }
 
-    public function testInitialization() 
+    public function testInitialization()
     {
 
         $this->assertNotNull($this->gateway);
@@ -72,15 +70,15 @@ class HsbcSecureEpaymentsTest extends AktiveMerchant\TestCase
         $this->assertImplementation(array('Charge'));
     }
 
-    // Tests 
+    // Tests
 
     public function testSuccessfulAuthorization()
     {
         $this->mock_request($this->successful_authorize_response());
 
         $response = $this->gateway->authorize(
-            $this->amount, 
-            $this->creditcard, 
+            $this->amount,
+            $this->creditcard,
             $this->options
         );
         $this->assert_success($response);
@@ -159,7 +157,7 @@ class HsbcSecureEpaymentsTest extends AktiveMerchant\TestCase
         $this->assert_failure($response);
         $this->assertTrue(null !== $response->fraud_review());
     }
- 
+
     // Private methods
 
     private function successful_authorize_response()

@@ -6,8 +6,6 @@ use AktiveMerchant\Billing\Gateways\AuthorizeNet;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
-require_once 'config.php';
-
 /**
  * Unit tests for AuthorizeNet gateway.
  *
@@ -17,7 +15,7 @@ require_once 'config.php';
  * @license http://www.opensource.org/licenses/mit-license.php
  *
  */
-class AuthorizeNetTest extends AktiveMerchant\TestCase
+class AuthorizeNetTest extends \AktiveMerchant\TestCase
 {
 
     public $gateway;

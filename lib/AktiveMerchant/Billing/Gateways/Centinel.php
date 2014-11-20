@@ -25,7 +25,7 @@ class Centinel extends Gateway
 
     # The homepage URL of the gateway
     public static $homepage_url = 'http://www.cardinalcommerce.com';
-    
+
     public static $display_name = 'Centinel 3D Secure';
     public static $money_format = 'cents';
     public static $default_currency = 'EUR';
@@ -138,12 +138,11 @@ XML;
         return $response;
     }
 
-    private function commit($action, $money, $parameters)
+    protected function commit($action, $money, $parameters)
     {
         $url = $this->isTest() ? static::TEST_URL : static::LIVE_URL;
 
-        $this->getAdapter()->setOption(CURLOPT_SSLVERSION, 3);
-        
+
         $data = $this->ssl_post($url, $this->post_data($action), $parameters);
 
         $options = array('test' => $this->isTest());
@@ -170,7 +169,7 @@ XML;
     {
         $cardholderEnrolled = isset($response['acs_url']);
         $acsUrlNotProvided = empty($response['acs_url']);
-        
+
         if($cardholderEnrolled && $acsUrlNotProvided)
             return false;
 
