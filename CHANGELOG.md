@@ -1,3 +1,5 @@
+* __1.0.14__ (2014-11-20)
+  * Fix ssl version on curl for CentinelPaypal.
 * __1.0.13__ (2014-11-16)
   * Allow transparent setting options to adapter.
 * __1.0.12__ (2014-07-16)
