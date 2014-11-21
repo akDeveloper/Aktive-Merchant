@@ -16,7 +16,7 @@ use AktiveMerchant\Billing\Response;
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class PiraeusPaycenter extends Gateway implements 
+class PiraeusPaycenter extends Gateway implements
     Interfaces\Charge,
     Interfaces\Credit
 {
@@ -44,35 +44,35 @@ class PiraeusPaycenter extends Gateway implements
     public static $default_currency = 'EUR';
 
     private $options;
-    
+
     private $post;
-    
+
     private $CURRENCY_MAPPINGS = array(
         'USD' => 840, 'GRD' => 300, 'EUR' => 978
     );
-    
+
     private $ENROLLED_MAPPINGS = array(
         'Y' => 'Yes',
         'N' => 'No',
         'U' => 'Undefined'
     );
-    
+
     private $PARES_MAPPINGS = array(
         'U' => 'Unknown',
         'A' => 'Attempted',
         'Y' => 'Succeded',
         'N' => 'Failed'
     );
-    
+
     private $SIGNATURE_MAPPINGS = array(
         'Y' => 'Yes',
         'N' => 'No',
         'U' => 'Undefined'
     );
-    
+
     private $CARD_MAPPINGS = array(
         'visa' => 'VISA',
-        'master' => 'MasterCard '
+        'master' => 'MasterCard'
     );
 
     /**
@@ -190,13 +190,15 @@ XML;
      */
     private function add_creditcard(CreditCard $creditcard)
     {
+        $month = $this->cc_format($creditcard->month, 'two_digits');
+
         $cardholdername = strtoupper($creditcard->name());
         $this->post .= <<<XML
       <ns:CardInfo>
         <ns:CardType>{$this->CARD_MAPPINGS[$creditcard->type]}</ns:CardType>
         <ns:CardNumber>$creditcard->number</ns:CardNumber>
         <ns:CardHolderName>$cardholdername</ns:CardHolderName>
-        <ns:ExpirationMonth>$creditcard->month</ns:ExpirationMonth>
+        <ns:ExpirationMonth>$month</ns:ExpirationMonth>
         <ns:ExpirationYear>$creditcard->year</ns:ExpirationYear>
         <ns:Cvv2>$creditcard->verification_value</ns:Cvv2>
         <ns:Aid/>
@@ -244,6 +246,8 @@ XML;
         $response['result_description'] = (string) $header->ResultDescription;
         $response['response_description'] = (string) $transaction->ResponseDescription;
         $response['authorization_id'] = (string) $transaction->TransactionID;
+        $response['result_code'] = (string) $header->ResultCode;
+        $response['response_code'] = (string) $transaction->ResponseCode;
 
         return $response;
     }
@@ -276,9 +280,9 @@ XML;
         $test_mode = $this->isTest();
 
         return new Response(
-            $this->success_from($response), 
-            $this->message_from($response), 
-            $response, 
+            $this->success_from($response),
+            $this->message_from($response),
+            $response,
             array(
                 'test' => $test_mode,
                 'authorization' => $response['authorization_id']
@@ -305,8 +309,8 @@ XML;
      */
     private function message_from($response)
     {
-        return $response['response_description'] == '' 
-            ? $response['result_description'] 
+        return $response['response_description'] == ''
+            ? $response['result_description']
             : $response['response_description'];
     }
 
