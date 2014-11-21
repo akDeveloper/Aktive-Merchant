@@ -18,7 +18,7 @@ class Base
     /**
      * @var string
      */
-    const VERSION = "1.0.14";
+    const VERSION = "1.0.15";
 
     /**
      * @var string

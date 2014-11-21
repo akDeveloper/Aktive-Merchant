@@ -1,3 +1,5 @@
+* __1.0.15__ (2014-11-21)
+  * Minor fixes to Centinel and PiraeusPaycenter gateways.
 * __1.0.14__ (2014-11-20)
   * Fix ssl version on curl for CentinelPaypal.
 * __1.0.13__ (2014-11-16)
