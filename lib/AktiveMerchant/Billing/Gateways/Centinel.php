@@ -49,6 +49,9 @@ class Centinel extends Gateway
 
         $this->add_invoice($money, $options);
         $this->add_creditcard($creditcard);
+        if (isset($options['description'])) {
+            $this->add_order_description($options['description']);
+        }
 
         return $this->commit('cmpi_lookup', $money, $options);
     }
@@ -68,6 +71,13 @@ class Centinel extends Gateway
         $this->post .= <<<XML
         <TransactionId>{$options['transaction_id']}</TransactionId>
         <PAResPayload>{$options['payload']}</PAResPayload>
+XML;
+    }
+
+    private function add_order_description($description)
+    {
+        $this->post .= <<<XML
+        <OrderDescription>{$description}</OrderDescription>
 XML;
     }
 
@@ -191,7 +201,7 @@ XML;
     private function post_data($action)
     {
         $data = <<<XML
-      <?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
         <CardinalMPI>
           <MsgType>{$action}</MsgType>
           <Version>{$this->VERSION}</Version>
