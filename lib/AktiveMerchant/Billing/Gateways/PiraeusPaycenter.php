@@ -99,7 +99,9 @@ class PiraeusPaycenter extends Gateway implements
      */
     public function authorize($money, CreditCard $creditcard, $options=array())
     {
+        $this->post = null;
         $this->add_invoice($money, $options);
+        $this->post .= '<ns:ExpirePreauth>30</ns:ExpirePreauth>';
         $this->add_creditcard($creditcard);
         $this->add_centinel_data($options);
 
@@ -116,6 +118,7 @@ class PiraeusPaycenter extends Gateway implements
      */
     public function purchase($money, CreditCard $creditcard, $options=array())
     {
+        $this->post = null;
         $this->add_invoice($money, $options);
         $this->add_creditcard($creditcard);
         $this->add_centinel_data($options);
@@ -133,9 +136,14 @@ class PiraeusPaycenter extends Gateway implements
      */
     public function capture($money, $authorization, $options = array())
     {
-        $this->post = array('authorization_id' => $authorization);
-
-        return $this->commit('capture', $money);
+        $this->post = null;
+        $amount = $this->amount($money);
+        $this->post .= <<<XML
+      <ns:TransactionReferenceID>{$authorization}</ns:TransactionReferenceID>
+      <ns:CurrencyCode>{$this->currency_lookup(self::$default_currency)}</ns:CurrencyCode>
+      <ns:Amount>$amount</ns:Amount>
+XML;
+        return $this->commit('SETTLE', $money);
     }
 
     /**
@@ -147,8 +155,15 @@ class PiraeusPaycenter extends Gateway implements
      */
     public function void($authorization, $options = array())
     {
-        $this->post = array('authorization' => $authorization);
-        return $this->commit('void', null);
+        $this->post = null;
+        $money = $options['money'];
+        $amount = $this->amount($money);
+        $this->post .= <<<XML
+      <ns:TransactionReferenceID>{$authorization}</ns:TransactionReferenceID>
+      <ns:CurrencyCode>{$this->currency_lookup(self::$default_currency)}</ns:CurrencyCode>
+      <ns:Amount>$amount</ns:Amount>
+XML;
+        return $this->commit('REFUND', null);
     }
 
     /**
@@ -161,10 +176,14 @@ class PiraeusPaycenter extends Gateway implements
      */
     public function credit($money, $identification, $options = array())
     {
-        $this->post = array('authorization' => $identification);
-
-        $this->add_invoice($options);
-        return $this->commit('credit', $money);
+        $this->post = null;
+        $amount = $this->amount($money);
+        $this->post .= <<<XML
+      <ns:TransactionReferenceID>{$identification}</ns:TransactionReferenceID>
+      <ns:CurrencyCode>{$this->currency_lookup(self::$default_currency)}</ns:CurrencyCode>
+      <ns:Amount>$amount</ns:Amount>
+XML;
+        return $this->commit('VOIDREQUEST', $money);
     }
 
     /* Private */
@@ -244,10 +263,13 @@ XML;
 
         $response['status'] = (string) $transaction->StatusFlag;
         $response['result_description'] = (string) $header->ResultDescription;
+        $response['support_reference_id'] = (string) $header->SupportReferenceID;
         $response['response_description'] = (string) $transaction->ResponseDescription;
         $response['authorization_id'] = (string) $transaction->TransactionID;
         $response['result_code'] = (string) $header->ResultCode;
         $response['response_code'] = (string) $transaction->ResponseCode;
+        $response['approval_code'] = (string) $transaction->ApprovalCode;
+        $response['package_no'] = (string) $transaction->PackageNo;
 
         return $response;
     }
