@@ -1,3 +1,5 @@
+* __1.0.16__ (2014-12-19)
+  * Add ExpirePreauth element for authorize in PiraeusPaycenter gateway.
 * __1.0.15__ (2014-11-21)
   * Minor fixes to Centinel and PiraeusPaycenter gateways.
 * __1.0.14__ (2014-11-20)
