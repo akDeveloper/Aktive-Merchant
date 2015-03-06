@@ -129,6 +129,11 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
         $this->assertEquals('Declined', $response->message());
     }
 
+    public function testTicket()
+    {
+        $response = $this->gateway->ticket($this->amount, $this->options);
+    }
+
     private function successful_test_case_01_visa_purchase_response()
     {
         return <<<XML

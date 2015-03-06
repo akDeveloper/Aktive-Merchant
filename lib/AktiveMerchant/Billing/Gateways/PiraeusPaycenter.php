@@ -22,6 +22,7 @@ class PiraeusPaycenter extends Gateway implements
 {
     const TEST_URL = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
     const LIVE_URL = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
+    const TICKET_URL = 'https://paycenter.piraeusbank.gr/services/tickets/issuer.asmx';
 
     /**
      * {@inheritdoc }
@@ -186,6 +187,25 @@ XML;
         return $this->commit('VOIDREQUEST', $money);
     }
 
+    public function ticket($money, array $options = array())
+    {
+        $this->post = null;
+
+        $amount = $this->amount($money);
+
+        $this->post .= <<<XML
+      <MerchantReference>{$options['order_id']}</MerchantReference>
+      <Amount>$amount</Amount>
+      <CurrencyCode>{$this->currency_lookup(self::$default_currency)}</CurrencyCode>
+      <ExpirePreauth>0</ExpirePreauth>
+      <Installments>0</Installments>
+      <Bnpl>0</Bnpl>
+      <Parameters></Parameters>
+XML;
+
+        return $this->commit('02', $money);
+    }
+
     /* Private */
 
     /**
@@ -256,6 +276,10 @@ XML;
         $body = preg_replace('#(</?)soap:#', '$1', $body);
         $xml = simplexml_load_string($body);
 
+        print_r($xml);
+
+        exit();
+
         $header = $xml->Body->ProcessTransactionResponse->TransactionResponse->Header;
         $transaction = $xml->Body->ProcessTransactionResponse->TransactionResponse->Body->TransactionInfo;
 
@@ -286,13 +310,23 @@ XML;
     {
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
-        $post_data = $this->post_data($action, $parameters);
+        $header = 'http://piraeusbank.gr/paycenter/ProcessTransaction';
+        if ($action == '02')  {
+            $url = self::TICKET_URL;
+            $header = 'http://piraeusbank.gr/paycenter/redirection/IssueNewTicket';
+            $post_data = $this->post_data_ticket($action, $parameters);
+        } else {
+
+            $post_data = $this->post_data($action, $parameters);
+        }
+
+
         $headers = array(
             "POST /services/paymentgateway.asmx HTTP/1.1",
             "Host: paycenter.piraeusbank.gr",
             "Content-type: text/xml; charset=\"utf-8\"",
             "Content-length: " . strlen($post_data),
-            "SOAPAction: \"http://piraeusbank.gr/paycenter/ProcessTransaction\""
+            "SOAPAction: \"$header\""
         );
 
         $data = $this->ssl_post($url, $post_data, array('headers' => $headers));
@@ -399,6 +433,39 @@ XML;
         </soap:Body>
       </soap:Envelope>
 XML;
+
+        file_put_contents(__DIR__ . "/../../../../logs/paycenter-$action-request.xml", $xml);
+
+        return ($xml);
+    }
+
+    private function post_data_ticket($action, $parameters)
+    {
+        /**
+         * Add final parameters to post data and
+         * build $this->post to the format that your payment gateway understands
+         */
+        $password = md5($this->options['password']);
+        $xml = <<<XML
+<?xml version="1.0" encoding="utf-8"?>
+      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+        <soap:Body>
+          <IssueNewTicket xmlns="http://piraeusbank.gr/paycenter/redirection">
+            <Request>
+              <Username>{$this->options['user']}</Username>
+              <Password>{$password}</Password>
+              <MerchantId>{$this->options['merchant_id']}</MerchantId>
+              <PosId>{$this->options['pos_id']}</PosId>
+              <AcquirerId>{$this->options['acquire_id']}</AcquirerId>
+              <RequestType>$action</RequestType>
+              {$this->post}
+            </Request>
+          </IssueNewTicket>
+        </soap:Body>
+      </soap:Envelope>
+XML;
+
+        file_put_contents(__DIR__ . "/../../../../logs/paycenter-$action-request.xml", $xml);
 
         return ($xml);
     }
