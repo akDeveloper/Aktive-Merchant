@@ -98,11 +98,13 @@ class cUrl implements AdapterInterface
         if (   $curl_info['http_code'] < 200
             || $curl_info['http_code'] >= 500
         ) {
+            $body = substr($response, -$curl_info['size_download']);
             $ex = new Exception(
                 "HTTP Status #"
                 . $curl_info['http_code']."\n"
                 . "CurlInfo:\n"
                 . print_r($curl_info, true)
+                . $body
             );
             throw $ex;
         }

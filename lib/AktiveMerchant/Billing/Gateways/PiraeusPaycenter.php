@@ -276,24 +276,36 @@ XML;
         $body = preg_replace('#(</?)soap:#', '$1', $body);
         $xml = simplexml_load_string($body);
 
-        print_r($xml);
-
-        exit();
-
-        $header = $xml->Body->ProcessTransactionResponse->TransactionResponse->Header;
-        $transaction = $xml->Body->ProcessTransactionResponse->TransactionResponse->Body->TransactionInfo;
-
         $response = array();
 
-        $response['status'] = (string) $transaction->StatusFlag;
-        $response['result_description'] = (string) $header->ResultDescription;
-        $response['support_reference_id'] = (string) $header->SupportReferenceID;
-        $response['response_description'] = (string) $transaction->ResponseDescription;
-        $response['authorization_id'] = (string) $transaction->TransactionID;
-        $response['result_code'] = (string) $header->ResultCode;
-        $response['response_code'] = (string) $transaction->ResponseCode;
-        $response['approval_code'] = (string) $transaction->ApprovalCode;
-        $response['package_no'] = (string) $transaction->PackageNo;
+        if (isset($xml->Body->IssueNewTicketResponse)) {
+
+            $result = $xml->Body->IssueNewTicketResponse->IssueNewTicketResult;
+
+            $response['result_code'] = (string) $result->ResultCode;
+            $response['status'] = $response['result_code'] == 0 ? 'Success' : 'Fail';
+            $response['authorization_id'] = (string) $result->TranTicket;
+            $response['timestamp'] = (string) $result->Timestamp;
+            $response['minutes_to_expiration'] = (int) $result->MinutesToExpiration;
+            $response['result_description'] = $response['response_description'] = (String) $result->ResultDescription;
+
+        } else {
+            $header = $xml->Body->ProcessTransactionResponse->TransactionResponse->Header;
+            $transaction = $xml->Body->ProcessTransactionResponse->TransactionResponse->Body->TransactionInfo;
+
+
+            $response['status'] = (string) $transaction->StatusFlag;
+            $response['result_description'] = (string) $header->ResultDescription;
+            $response['support_reference_id'] = (string) $header->SupportReferenceID;
+            $response['response_description'] = (string) $transaction->ResponseDescription;
+            $response['authorization_id'] = (string) $transaction->TransactionID;
+            $response['result_code'] = (string) $header->ResultCode;
+            $response['response_code'] = (string) $transaction->ResponseCode;
+            $response['approval_code'] = (string) $transaction->ApprovalCode;
+            $response['package_no'] = (string) $transaction->PackageNo;
+        }
+
+        print_r($response);
 
         return $response;
     }
@@ -464,8 +476,6 @@ XML;
         </soap:Body>
       </soap:Envelope>
 XML;
-
-        file_put_contents(__DIR__ . "/../../../../logs/paycenter-$action-request.xml", $xml);
 
         return ($xml);
     }
