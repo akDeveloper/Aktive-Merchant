@@ -305,8 +305,6 @@ XML;
             $response['package_no'] = (string) $transaction->PackageNo;
         }
 
-        print_r($response);
-
         return $response;
     }
 
