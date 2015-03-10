@@ -187,25 +187,6 @@ XML;
         return $this->commit('VOIDREQUEST', $money);
     }
 
-    public function ticket($money, array $options = array())
-    {
-        $this->post = null;
-
-        $amount = $this->amount($money);
-
-        $this->post .= <<<XML
-      <MerchantReference>{$options['order_id']}</MerchantReference>
-      <Amount>$amount</Amount>
-      <CurrencyCode>{$this->currency_lookup(self::$default_currency)}</CurrencyCode>
-      <ExpirePreauth>0</ExpirePreauth>
-      <Installments>0</Installments>
-      <Bnpl>0</Bnpl>
-      <Parameters></Parameters>
-XML;
-
-        return $this->commit('02', $money);
-    }
-
     /* Private */
 
     /**
@@ -278,32 +259,19 @@ XML;
 
         $response = array();
 
-        if (isset($xml->Body->IssueNewTicketResponse)) {
-
-            $result = $xml->Body->IssueNewTicketResponse->IssueNewTicketResult;
-
-            $response['result_code'] = (string) $result->ResultCode;
-            $response['status'] = $response['result_code'] == 0 ? 'Success' : 'Fail';
-            $response['authorization_id'] = (string) $result->TranTicket;
-            $response['timestamp'] = (string) $result->Timestamp;
-            $response['minutes_to_expiration'] = (int) $result->MinutesToExpiration;
-            $response['result_description'] = $response['response_description'] = (String) $result->ResultDescription;
-
-        } else {
-            $header = $xml->Body->ProcessTransactionResponse->TransactionResponse->Header;
-            $transaction = $xml->Body->ProcessTransactionResponse->TransactionResponse->Body->TransactionInfo;
+        $header = $xml->Body->ProcessTransactionResponse->TransactionResponse->Header;
+        $transaction = $xml->Body->ProcessTransactionResponse->TransactionResponse->Body->TransactionInfo;
 
 
-            $response['status'] = (string) $transaction->StatusFlag;
-            $response['result_description'] = (string) $header->ResultDescription;
-            $response['support_reference_id'] = (string) $header->SupportReferenceID;
-            $response['response_description'] = (string) $transaction->ResponseDescription;
-            $response['authorization_id'] = (string) $transaction->TransactionID;
-            $response['result_code'] = (string) $header->ResultCode;
-            $response['response_code'] = (string) $transaction->ResponseCode;
-            $response['approval_code'] = (string) $transaction->ApprovalCode;
-            $response['package_no'] = (string) $transaction->PackageNo;
-        }
+        $response['status'] = (string) $transaction->StatusFlag;
+        $response['result_description'] = (string) $header->ResultDescription;
+        $response['support_reference_id'] = (string) $header->SupportReferenceID;
+        $response['response_description'] = (string) $transaction->ResponseDescription;
+        $response['authorization_id'] = (string) $transaction->TransactionID;
+        $response['result_code'] = (string) $header->ResultCode;
+        $response['response_code'] = (string) $transaction->ResponseCode;
+        $response['approval_code'] = (string) $transaction->ApprovalCode;
+        $response['package_no'] = (string) $transaction->PackageNo;
 
         return $response;
     }
@@ -321,15 +289,8 @@ XML;
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
         $header = 'http://piraeusbank.gr/paycenter/ProcessTransaction';
-        if ($action == '02')  {
-            $url = self::TICKET_URL;
-            $header = 'http://piraeusbank.gr/paycenter/redirection/IssueNewTicket';
-            $post_data = $this->post_data_ticket($action, $parameters);
-        } else {
 
-            $post_data = $this->post_data($action, $parameters);
-        }
-
+        $post_data = $this->post_data($action, $parameters);
 
         $headers = array(
             "POST /services/paymentgateway.asmx HTTP/1.1",
@@ -444,38 +405,6 @@ XML;
       </soap:Envelope>
 XML;
 
-        file_put_contents(__DIR__ . "/../../../../logs/paycenter-$action-request.xml", $xml);
-
         return ($xml);
     }
-
-    private function post_data_ticket($action, $parameters)
-    {
-        /**
-         * Add final parameters to post data and
-         * build $this->post to the format that your payment gateway understands
-         */
-        $password = md5($this->options['password']);
-        $xml = <<<XML
-<?xml version="1.0" encoding="utf-8"?>
-      <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-        <soap:Body>
-          <IssueNewTicket xmlns="http://piraeusbank.gr/paycenter/redirection">
-            <Request>
-              <Username>{$this->options['user']}</Username>
-              <Password>{$password}</Password>
-              <MerchantId>{$this->options['merchant_id']}</MerchantId>
-              <PosId>{$this->options['pos_id']}</PosId>
-              <AcquirerId>{$this->options['acquire_id']}</AcquirerId>
-              <RequestType>$action</RequestType>
-              {$this->post}
-            </Request>
-          </IssueNewTicket>
-        </soap:Body>
-      </soap:Envelope>
-XML;
-
-        return ($xml);
-    }
-
 }
