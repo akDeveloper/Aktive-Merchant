@@ -120,7 +120,13 @@ XML;
         $body = preg_replace('#(</?)soap:#', '$1', $body);
         $xml = simplexml_load_string($body);
 
-        $response = array();
+        $response = array(
+            'result_code' => null,
+            'result_description' => null,
+            'authorization_id' => null,
+            'timestamp' => null,
+            'minutes_to_expiration' => null
+        );
 
         if (isset($xml->Body->IssueNewTicketResponse)) {
             $result = $xml->Body->IssueNewTicketResponse->IssueNewTicketResult;
@@ -133,13 +139,15 @@ XML;
 
             return $response;
         } else {
-            $body = $xml->Body;
+            if (isset($sml->Body)) {
+                $body = $xml->Body;
 
-            $response['result_code'] = (string) $body->Fault->faultcode;
-            $response['result_description'] = (string) $body->Fault->faultstring;
-            $response['authorization_id'] = null;
-            $response['timestamp'] = null;
-            $response['minutes_to_expiration'] = null;
+                $response['result_code'] = (string) $body->Fault->faultcode;
+                $response['result_description'] = (string) $body->Fault->faultstring;
+                $response['authorization_id'] = null;
+                $response['timestamp'] = null;
+                $response['minutes_to_expiration'] = null;
+            }
         }
 
         return $response;
