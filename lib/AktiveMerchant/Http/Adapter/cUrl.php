@@ -56,6 +56,7 @@ class cUrl implements AdapterInterface
         'ssl_verify_peer' => CURLOPT_SSL_VERIFYPEER,
         'ssl_verify_host' => CURLOPT_SSL_VERIFYHOST,
         'user_agent'      => CURLOPT_USERAGENT,
+        'ssl_version'     => CURLOPT_SSLVERSION,
     );
 
     /**
