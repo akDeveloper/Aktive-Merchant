@@ -8,7 +8,7 @@ use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
-use AktiveMerchant\Http\SoapRequest;
+use AktiveMerchant\Http\Adapter\SoapClientAdapter;
 
 /**
  * PiraeusPaycenter gateway
@@ -217,9 +217,9 @@ class PiraeusPaycenter extends Gateway implements
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['ExpirationMonth'] = $month;
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['ExpirationYear'] = $creditcard->year;
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Cvv2'] = $creditcard->verification_value;
-        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Aid'] = null;
-        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Emv'] = null;
-        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['PinBlock'] = null;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Aid'] = '';
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Emv'] = '';
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['PinBlock'] = '';
     }
 
     /**
@@ -281,22 +281,10 @@ class PiraeusPaycenter extends Gateway implements
 
         $post_data = $this->post_data($action, $parameters);
 
-        /*
-        $header = 'http://piraeusbank.gr/paycenter/ProcessTransaction';
-
-        $headers = array(
-            "POST /services/paymentgateway.asmx HTTP/1.1",
-            "Host: paycenter.piraeusbank.gr",
-            "Content-type: text/xml; charset=\"utf-8\"",
-            "Content-length: " . strlen($post_data),
-            "SOAPAction: \"$header\""
-        );
-         */
-
-        $request = new SoapRequest();
-        $request->setAction('ProcessTransaction');
-        $this->setRequest($request);
-        $data = $this->ssl_post($url, $post_data);//, array('headers' => $headers));
+        $adapter = new SoapClientAdapter();
+        $adapter->setOption('action', 'ProcessTransaction');
+        $this->setAdapter($adapter);
+        $data = $this->ssl_post($url, $post_data);
 
         $response = $this->parse($data);
 
@@ -378,7 +366,7 @@ class PiraeusPaycenter extends Gateway implements
         $this->post['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['PosID'] = $this->options['pos_id'];
         $this->post['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['ChannelType'] = $this->options['channel_type'];
         $this->post['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['User'] = $this->options['user'];
-        $this->post['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['Password'] = $this->options['password'];
+        $this->post['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['Password'] = $password;
 
         return $this->post;
     }

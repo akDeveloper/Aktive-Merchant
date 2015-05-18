@@ -286,7 +286,7 @@ abstract class Gateway
         $request->setUrl($endpoint);
         $request->setBody($data);
 
-        //$request->setAdapter($this->getAdapter());
+        $request->setAdapter($this->getAdapter());
 
         if (true == $request->send()) {
 

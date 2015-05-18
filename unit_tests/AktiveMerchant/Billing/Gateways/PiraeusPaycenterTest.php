@@ -40,16 +40,16 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
             "last_name" => "Doe",
             "number" => "4111111111111111",
             "month" => "01",
-            "year" => "2015",
+            "year" => date('Y') + 1,
             "verification_value" => "000"
         )
     );
         $this->options = array(
             'order_id' => 'REF' . $this->gateway->generateUniqueId(),
             'description' => 'Test Transaction',
-            'cavv' => null,
+            'cavv' => '',
             'eci_flag' => '07',
-            'xid' => null,
+            'xid' => '',
             'enrolled' => 'N',
             'pares_status' => 'U',
             'signature_verification' => 'U',
@@ -60,43 +60,6 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
                 'state' => 'WA'
             )
         );
-    }
-
-    public function testSoapClient()
-    {
-        $options = $this->getFixtures()->offsetGet('piraeus_paycenter');
-        $client = new SoapClient('https://paycenter.piraeusbank.gr/services/paymentgateway.asmx?WSDL');
-
-        $params = array();
-        $params['ProcessTransaction']['TransactionRequest']['Header']['RequestType'] = 'AUTHORIZE';
-        $params['ProcessTransaction']['TransactionRequest']['Header']['RequestMethod'] = 'SYNCHRONOUS';
-        $params['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['AcquirerID'] = $options['acquire_id'];
-        $params['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['MerchantID'] = $options['merchant_id'];
-        $params['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['PosID'] = $options['pos_id'];
-        $params['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['ChannelType'] = $options['channel_type'];
-        $params['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['User'] = $options['user'];
-        $params['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['Password'] = $options['password'];
-        $params['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['MerchantReference'] = 'REF' . $this->gateway->generateUniqueId();
-        $params['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['EntryType'] = 'KeyEntry';
-        $params['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CurrencyCode'] = 978;
-        $params['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['Amount'] = 1;
-        $params['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['ExpirePreauth'] = 30;
-        $params['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['CardType'] = 'VISA';
-        $params['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['CardNumber'] = '4111111111111111';
-        $params['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['CardHolderName'] = 'John Doe';
-        $params['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['ExpirationMonth'] = '01';
-        $params['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['ExpirationYear'] = '2016';
-        $params['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Cvv2'] = 'VISA';
-        $params['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Aid'] = null;
-        $params['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Emv'] = null;
-        $params['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['PinBlock'] = null;
-
-        print_r($params);
-
-        $response = $client->__soapCall('ProcessTransaction', $params);
-
-        print_r($response);
-
     }
 
     /**
@@ -119,7 +82,7 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
 
     public function testSuccessfulPurchase()
     {
-        //$this->mock_request($this->successful_purchase_response());
+        $this->mock_request($this->successful_purchase_response());
 
         $response = $this->gateway->purchase(
             $this->amount,
@@ -127,10 +90,9 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
             $this->options
         );
 
-        print_r($response);
-        //$this->assert_success($response);
-        //$this->assertTrue($response->test());
-        //$this->assertEquals('Approved or completed successfully', $response->message());
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+        $this->assertEquals('Approved or completed successfully', $response->message());
     }
 
     public function testCase01VisaPurchase()

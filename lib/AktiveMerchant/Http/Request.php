@@ -9,10 +9,10 @@ use AktiveMerchant\Http\Adapter\cUrl;
 use AktiveMerchant\Common\Options;
 
 /**
- * Request 
- * 
+ * Request
+ *
  * @uses    RequestInterface
- * @package Aktive-Merchant 
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license MIT {@link http://opensource.org/licenses/mit-license.php}
  */
@@ -21,7 +21,7 @@ class Request implements RequestInterface
 
     /**
      * The adapter to use for sending the request.
-     * 
+     *
      * @var    AdapterInterface
      * @access protected
      */
@@ -43,6 +43,7 @@ class Request implements RequestInterface
         'ssl_verify_peer'   => true,
         'ssl_verify_host'   => 2,
         'user_agent'        => null,
+        'ssl_version'       => null
     );
 
     /**
@@ -52,36 +53,36 @@ class Request implements RequestInterface
      *
      * connect_timeout: The number of seconds to wait while trying to connect.
      *                  Use 0 to wait indefinitely.
-     * timeout        : The maximum number of seconds to allow cURL functions 
+     * timeout        : The maximum number of seconds to allow cURL functions
      *                  to execute.
      * ssl_verify_peer: FALSE to stop cURL from verifying the peer's certificate.
-     * ssl_verify_host: 1 to check the existence of a common name in the SSL 
-     *                  peer certificate. 2 to check the existence of a common 
-     *                  name and also verify that it matches the hostname 
+     * ssl_verify_host: 1 to check the existence of a common name in the SSL
+     *                  peer certificate. 2 to check the existence of a common
+     *                  name and also verify that it matches the hostname
      *                  provided.
-     * user_agent     : The contents of the "User-Agent: " header to be used 
+     * user_agent     : The contents of the "User-Agent: " header to be used
      *                  in a HTTP request.
      *
-     * Additional options can be set via adapter directly, using 
+     * Additional options can be set via adapter directly, using
      * AdapterInterface::setOptions() method.
      *
      * @oaram  string $url     The endpoint url
      * @oaram  string $method  The request method
      * @oaram  array  $options Configuration options for request.
-     * @access public 
+     * @access public
      */
     public function __construct(
         $url,
         $method = self::METHOD_GET,
         array $options = array()
     ) {
-        
+
         $this->setUrl($url);
 
         $this->setMethod($method);
 
         $this->options = new Options($options);
-    
+
         $this->setup_options();
     }
 
@@ -99,7 +100,7 @@ class Request implements RequestInterface
 
     /**
      * Gets configuration options
-     * 
+     *
      * @access public
      * @return array
      */
@@ -119,7 +120,7 @@ class Request implements RequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getUrl() 
+    public function getUrl()
     {
         return $this->url;
     }
@@ -135,7 +136,7 @@ class Request implements RequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getMethod() 
+    public function getMethod()
     {
         return $this->method;
     }
@@ -158,9 +159,9 @@ class Request implements RequestInterface
 
     /**
      * Appends a header type to request.
-     * 
-     * @param  string $name 
-     * @param  string $value 
+     *
+     * @param  string $name
+     * @param  string $value
      * @access public
      * @return void
      */
@@ -172,7 +173,7 @@ class Request implements RequestInterface
     /**
      * {@inheritdoc}
      */
-    public function setBody($body) 
+    public function setBody($body)
     {
         $this->body = $body;
     }
@@ -180,7 +181,7 @@ class Request implements RequestInterface
     /**
      * {@inheritdoc}
      */
-    public function getBody() 
+    public function getBody()
     {
         return $this->body;
     }
@@ -188,9 +189,9 @@ class Request implements RequestInterface
     /**
      * {@inheritdoc}
      */
-    public function send() 
+    public function send()
     {
-        return $this->getAdapter()->sendRequest($this); 
+        return $this->getAdapter()->sendRequest($this);
     }
 
     /**
@@ -198,7 +199,7 @@ class Request implements RequestInterface
      */
     public function getResponseBody()
     {
-        return $this->getAdapter()->getResponseBody(); 
+        return $this->getAdapter()->getResponseBody();
     }
 
     /**
@@ -211,16 +212,16 @@ class Request implements RequestInterface
 
     protected function setup_options()
     {
-        $connect_timeout = $this->options['timeout'] 
+        $connect_timeout = $this->options['timeout']
             ?: $this->options['connect_timeout'];
 
-        $this->config['connect_timeout'] = $connect_timeout 
+        $this->config['connect_timeout'] = $connect_timeout
             ?: $this->config['connect_timeout'];
 
-        $this->config['timeout'] = $this->options['request_timeout'] 
+        $this->config['timeout'] = $this->options['request_timeout']
             ?: $this->config['timeout'];
 
-        $this->config['ssl_verify_peer'] = $this->options['ssl_verify_peer'] !== null 
+        $this->config['ssl_verify_peer'] = $this->options['ssl_verify_peer'] !== null
             ? $this->options['ssl_verify_peer']
             : $this->config['ssl_verify_peer'];
 
@@ -228,12 +229,15 @@ class Request implements RequestInterface
             ? $this->options['ssl_verify_host']
             : $this->config['ssl_verify_host'];
 
-        $this->config['user_agent'] = $this->options['user_agent'] 
+        $this->config['user_agent'] = $this->options['user_agent']
             ?: $this->default_agent();
 
         if ($this->options['headers']) {
             $this->setHeaders($this->options['headers']->getArrayCopy());
-        } 
+        }
+
+        $this->config['ssl_version'] = $this->options['ssl_version']
+            ?: $this->config['ssl_version'];
     }
 
     private function default_agent()
