@@ -5,6 +5,7 @@
 use AktiveMerchant\Billing\Gateways\PiraeusPaycenter;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Event\RequestEvents;
 
 /**
  * Unit test PiraeusPaycenter
@@ -82,7 +83,12 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
 
     public function testSuccessfulPurchase()
     {
-        $this->mock_request($this->successful_purchase_response());
+        //$this->mock_request($this->successful_purchase_response());
+
+        $this->gateway->addListener(RequestEvents::POST_SEND, function($event){
+            var_dump($event->getRequest()->getAdapter()->getRequestBodyXml());
+            var_dump($event->getRequest()->getAdapter()->getResponseBodyXml());
+        });
 
         $response = $this->gateway->purchase(
             $this->amount,

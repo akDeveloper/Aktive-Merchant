@@ -5,9 +5,9 @@
 namespace AktiveMerchant\Http;
 
 /**
- * RequestInterface 
- * 
- * @package Aktive-Merchant 
+ * RequestInterface
+ *
+ * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license MIT {@link http://opensource.org/licenses/mit-license.php}
  */
@@ -21,8 +21,8 @@ interface RequestInterface
     /**
      * Sets the method for request.
      * It can be 'GET or 'POST
-     * 
-     * @param  string $method 
+     *
+     * @param  string $method
      * @access public
      * @return void
      */
@@ -30,24 +30,24 @@ interface RequestInterface
 
     /**
      * Gets the method of the request
-     * 
+     *
      * @access public
      * @return void
      */
     public function getMethod();
 
     /**
-     * Sets the url to request for. 
-     * 
-     * @param  string $url 
+     * Sets the url to request for.
+     *
+     * @param  string $url
      * @access public
      * @return void
      */
     public function setUrl($url);
 
     /**
-     * Gets the url 
-     * 
+     * Gets the url
+     *
      * @access public
      * @return string
      */
@@ -55,8 +55,8 @@ interface RequestInterface
 
     /**
      * Sets the headers for the request.
-     * 
-     * @param  array $headers 
+     *
+     * @param  array $headers
      * @access public
      * @return void
      */
@@ -70,10 +70,10 @@ interface RequestInterface
      * @return void
      */
     public function setBody($body);
-    
+
     /**
      * Gets the request body to be sent to endpoint.
-     * 
+     *
      * @access public
      * @return string
      */
@@ -81,7 +81,7 @@ interface RequestInterface
 
     /**
      * Sends the request to endpoint.
-     * 
+     *
      * @access public
      * @return boolean
      */
@@ -91,4 +91,7 @@ interface RequestInterface
 
     public function setAdapter(AdapterInterface $adapter);
 
+    public function getDispatcher();
+
+    public function setDispatcher($dispatcher);
 }

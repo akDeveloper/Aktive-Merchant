@@ -14,6 +14,7 @@ use AktiveMerchant\Http\AdapterInterface;
 use AktiveMerchant\Http\Adapter\cUrl;
 use AktiveMerchant\Common\Options;
 use AktiveMerchant\Common\Inflect;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * Gateway abstract class
@@ -92,6 +93,8 @@ abstract class Gateway
     protected $adapter;
 
     private $debit_cards = array('switch', 'solo');
+
+    private $dispatcher;
 
     public function money_format()
     {
@@ -274,7 +277,7 @@ abstract class Gateway
      *
 	 * @return string Response from server
      */
-    protected function ssl_request($method, $endpoint, $data, $options = array())
+    protected function ssl_request($method, $endpoint, $data, array $options = array())
     {
         $request = $this->request ?: new Request(
             $endpoint,
@@ -285,6 +288,7 @@ abstract class Gateway
         $request->setMethod($method);
         $request->setUrl($endpoint);
         $request->setBody($data);
+        $request->setDispatcher($this->getDispatcher());
 
         $request->setAdapter($this->getAdapter());
 
@@ -399,5 +403,33 @@ abstract class Gateway
         }
 
         return false;
+    }
+
+    public function addListener($eventName, $listener, $priority = 0)
+    {
+        $this->getDispatcher()->addListener($eventName, $listener, $priority);
+    }
+
+    /**
+     * Gets dispatcher.
+     *
+     * @access public
+     * @return mixed
+     */
+    public function getDispatcher()
+    {
+        return $this->dispatcher ?: $this->dispatcher = new EventDispatcher();
+    }
+
+    /**
+     * Sets dispatcher.
+     *
+     * @param mixed $dispatcher the value to set.
+     * @access public
+     * @return void
+     */
+    public function setDispatcher($dispatcher)
+    {
+        $this->dispatcher = $dispatcher;
     }
 }

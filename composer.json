@@ -15,7 +15,8 @@
         "php": ">=5.3.3",
         "ext-curl": "*",
         "ext-simplexml": "*",
-        "thapp/xmlbuilder": "0.1.*"
+        "thapp/xmlbuilder": "0.1.*",
+        "symfony/event-dispatcher": "2.6.*"
     },
     "repositories": [
         {
@@ -29,6 +30,7 @@
      "config": {
         "bin-dir": "bin"
     },
+    "minimum-stability": "stable",
     "autoload": {
         "psr-0": {"AktiveMerchant": "lib/"}
     }

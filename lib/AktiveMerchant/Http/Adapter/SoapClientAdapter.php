@@ -24,6 +24,10 @@ class SoapClientAdapter implements AdapterInterface
 
     protected $response_headers;
 
+    protected $request_body_xml;
+
+    protected $response_body_xml;
+
     protected $options = array(
         'trace' => true
     );
@@ -87,6 +91,33 @@ class SoapClientAdapter implements AdapterInterface
 
         $this->response_headers = $this->client->__getLastResponseHeaders();
 
+        $this->request_body_xml = $this->client->__getLastRequest();
+        $this->response_body_xml = $this->client->__getLastResponse();
+
+
+
         return true;
+    }
+
+    /**
+     * Gets request_body_xml.
+     *
+     * @access public
+     * @return mixed
+     */
+    public function getRequestBodyXml()
+    {
+        return $this->request_body_xml;
+    }
+
+    /**
+     * Gets response_body_xml.
+     *
+     * @access public
+     * @return mixed
+     */
+    public function getResponseBodyXml()
+    {
+        return $this->response_body_xml;
     }
 }

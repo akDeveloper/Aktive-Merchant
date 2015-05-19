@@ -81,7 +81,17 @@ class Request implements RequestInterface
 
     public function send()
     {
-        return true;
+        $preSendEvent = new PreSendEvent();
+        $preSendEvent->setRequest($this);
+        $this->getDispatcher()->dispatch(static::PRE_SEND, $preSendEvent);
+
+        $return = true;
+
+        $postSendEvent = new PostSendEvent();
+        $postSendEvent->setRequest($this);
+        $this->getDispatcher()->dispatch(static::POST_SEND, $postSendEvent);
+
+        return $return;
     }
 
     public function getResponseBody()
@@ -97,5 +107,28 @@ class Request implements RequestInterface
     public function getConfig()
     {
         return $this->config;
+    }
+
+    /**
+     * Gets dispatcher.
+     *
+     * @access public
+     * @return mixed
+     */
+    public function getDispatcher()
+    {
+        return $this->dispatcher;
+    }
+
+    /**
+     * Sets dispatcher.
+     *
+     * @param mixed $dispatcher the value to set.
+     * @access public
+     * @return void
+     */
+    public function setDispatcher($dispatcher)
+    {
+        $this->dispatcher = $dispatcher;
     }
 }

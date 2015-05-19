@@ -7,6 +7,10 @@ namespace AktiveMerchant\Http;
 use AktiveMerchant\Billing\Exception;
 use AktiveMerchant\Http\Adapter\cUrl;
 use AktiveMerchant\Common\Options;
+use AktiveMerchant\Event\PreSendEvent;
+use AktiveMerchant\Event\PostSendEvent;
+use AktiveMerchant\Event\RequestEvents;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * Request
@@ -18,7 +22,6 @@ use AktiveMerchant\Common\Options;
  */
 class Request implements RequestInterface
 {
-
     /**
      * The adapter to use for sending the request.
      *
@@ -36,6 +39,8 @@ class Request implements RequestInterface
     protected $body;
 
     protected $options;
+
+    protected $dispatcher;
 
     protected $config = array(
         'connect_timeout'   => 10,
@@ -191,7 +196,17 @@ class Request implements RequestInterface
      */
     public function send()
     {
-        return $this->getAdapter()->sendRequest($this);
+        $preSendEvent = new PreSendEvent();
+        $preSendEvent->setRequest($this);
+        $this->getDispatcher()->dispatch(RequestEvents::PRE_SEND, $preSendEvent);
+
+        $return = $this->getAdapter()->sendRequest($this);
+
+        $postSendEvent = new PostSendEvent();
+        $postSendEvent->setRequest($this);
+        $this->getDispatcher()->dispatch(RequestEvents::POST_SEND, $postSendEvent);
+
+        return $return;
     }
 
     /**
@@ -250,5 +265,28 @@ class Request implements RequestInterface
             ." ($os $machine) "
             ."PHP/".\phpversion()." "
             ."ZendEngine/".\zend_version();
+    }
+
+    /**
+     * Gets dispatcher.
+     *
+     * @access public
+     * @return mixed
+     */
+    public function getDispatcher()
+    {
+        return $this->dispatcher;
+    }
+
+    /**
+     * Sets dispatcher.
+     *
+     * @param mixed $dispatcher the value to set.
+     * @access public
+     * @return void
+     */
+    public function setDispatcher($dispatcher)
+    {
+        $this->dispatcher = $dispatcher;
     }
 }

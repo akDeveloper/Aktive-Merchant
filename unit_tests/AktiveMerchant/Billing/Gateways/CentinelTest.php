@@ -5,6 +5,7 @@
 use AktiveMerchant\Billing\Gateways\Centinel;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Event\RequestEvents;
 
 class CentinelTest extends \AktiveMerchant\TestCase
 {
@@ -27,7 +28,7 @@ class CentinelTest extends \AktiveMerchant\TestCase
         $this->creditcard = new CreditCard(array(
             'number' => '5105105105105100',
             'month' => 11,
-            'year' => 2009,
+            'year' => date('Y') + 1,
             'first_name' => 'John',
             'last_name' => 'Doe',
             'verification_value' => '000',
@@ -59,8 +60,12 @@ class CentinelTest extends \AktiveMerchant\TestCase
 
     function testLookup()
     {
-        $this->mock_request($this->successful_lookup_response());
+        //$this->mock_request($this->successful_lookup_response());
 
+        $this->gateway->addListener(RequestEvents::POST_SEND, function($event){
+            var_dump(str_replace('cmpi_msg=', null, urldecode($event->getRequest()->getBody())));
+            var_dump($event->getRequest()->getResponseBody());
+        });
         $auth = $this->gateway->lookup(
             $this->amount,
             $this->creditcard,
