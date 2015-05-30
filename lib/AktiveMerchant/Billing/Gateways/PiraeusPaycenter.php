@@ -165,6 +165,7 @@ class PiraeusPaycenter extends Gateway implements
         $this->post = array();
         $money = $options['money'];
         $amount = $this->amount($money);
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['MerchantReference'] = $options['order_id'];
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['TransactionReferenceID'] = $authorization;
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CurrencyCode'] = $this->currency_lookup(self::$default_currency);
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['Amount'] = $amount;
