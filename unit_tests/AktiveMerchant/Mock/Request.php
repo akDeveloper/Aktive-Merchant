@@ -6,6 +6,10 @@ namespace AktiveMerchant\Mock;
 
 use AktiveMerchant\Http\RequestInterface;
 use AktiveMerchant\Http\AdapterInterface;
+use AktiveMerchant\Event\PreSendEvent;
+use AktiveMerchant\Event\PostSendEvent;
+use AktiveMerchant\Event\RequestEvents;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * Request Mock class
@@ -83,13 +87,13 @@ class Request implements RequestInterface
     {
         $preSendEvent = new PreSendEvent();
         $preSendEvent->setRequest($this);
-        $this->getDispatcher()->dispatch(static::PRE_SEND, $preSendEvent);
+        $this->getDispatcher()->dispatch(RequestEvents::PRE_SEND, $preSendEvent);
 
         $return = true;
 
         $postSendEvent = new PostSendEvent();
         $postSendEvent->setRequest($this);
-        $this->getDispatcher()->dispatch(static::POST_SEND, $postSendEvent);
+        $this->getDispatcher()->dispatch(RequestEvents::POST_SEND, $postSendEvent);
 
         return $return;
     }
@@ -117,7 +121,7 @@ class Request implements RequestInterface
      */
     public function getDispatcher()
     {
-        return $this->dispatcher;
+        return $this->dispatcher ?: $this->dispatcher = new EventDispatcher();
     }
 
     /**

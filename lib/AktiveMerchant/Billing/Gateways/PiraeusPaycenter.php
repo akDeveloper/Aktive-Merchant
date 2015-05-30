@@ -9,6 +9,7 @@ use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Http\Adapter\SoapClientAdapter;
+use AktiveMerchant\Common\Options;
 
 /**
  * PiraeusPaycenter gateway
@@ -152,12 +153,15 @@ class PiraeusPaycenter extends Gateway implements
     /**
      *
      * @param string $authorization
-     * @param array  $options
-     *
+     * @param array  $options Required options are:
+     *                        money The amount to refund.
+     *                        order_id Unique merchant reference.
      * @return Response
      */
     public function void($authorization, $options = array())
     {
+        Options::required('money, order_id', $options);
+
         $this->post = array();
         $money = $options['money'];
         $amount = $this->amount($money);
@@ -250,6 +254,7 @@ class PiraeusPaycenter extends Gateway implements
         $header = $body->TransactionResponse->Header;
         $transaction = $body->TransactionResponse->Body->TransactionInfo;
 
+        $response['request_type'] = $header->RequestType;
         $response['result_code'] = (string) $header->ResultCode;
         $response['result_description'] = (string) $header->ResultDescription;
         $response['support_reference_id'] = (string) $header->SupportReferenceID;
@@ -262,6 +267,7 @@ class PiraeusPaycenter extends Gateway implements
             $response['response_code'] = (string) $transaction->ResponseCode;
             $response['approval_code'] = (string) $transaction->ApprovalCode;
             $response['package_no'] = (string) $transaction->PackageNo;
+            $response['retrieval_ref'] = (string) $transaction->RetrievalRef;
         }
 
         return $response;
@@ -309,7 +315,10 @@ class PiraeusPaycenter extends Gateway implements
      */
     private function success_from($response)
     {
-        return $response['status'] == 'Success';
+        return $response['result_code'] == '0'
+            && isset($response['response_code'])
+            && ($response['response_code'] == '00'
+            || $response['response_code'] == '11');
     }
 
     /**
