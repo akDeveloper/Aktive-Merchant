@@ -93,8 +93,9 @@ class Centinel extends Gateway
         Options::required('payload, transaction_id', $options);
         $options = new Options($options);
 
-        $this->buil_xml(static::AUTHENTICATE);
-        $this->add_cmpi_lookup_data($options);
+        $this->build_xml(static::AUTHENTICATE, function($xml) use ($options){
+            $this->add_cmpi_lookup_data($options, $xml);
+        });
 
         return $this->commit(static::AUTHENTICATE, null, $options);
     }
