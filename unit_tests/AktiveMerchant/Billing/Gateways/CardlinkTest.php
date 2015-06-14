@@ -26,10 +26,10 @@ class CardlinkTest extends \AktiveMerchant\TestCase
             array(
                 "first_name" => "John",
                 "last_name" => "Doe",
-                "number" => "5458650824069296",
+                "number" => "4792731080349610",
                 "month" => "10",
-                "year" => "16",
-                "verification_value" => "201"
+                "year" => "17",
+                "verification_value" => "655"
             )
         );
         $this->options = array(
@@ -59,40 +59,58 @@ class CardlinkTest extends \AktiveMerchant\TestCase
             $this->options
         );
 
-        print_r($response);
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
     }
 
     public function testAuthorize()
     {
-        //$this->mock_request($this->success_purchase_repsponse());
-        $this->gateway->addListener(RequestEvents::POST_SEND, function($event){
-            var_dump($event->getRequest()->getBody());
-            var_dump($event->getRequest()->getResponseBody());
-        });
+        $this->mock_request($this->success_authorize_response());
+
         $response = $this->gateway->authorize(
             $this->amount,
             $this->creditcard,
             $this->options
         );
 
-        print_r($response);
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
     }
 
-    public function testCredit()
+    public function testErrorHandling()
     {
-        $identification = '1541091';
-        //$this->mock_request($this->success_purchase_repsponse());
-        $this->gateway->addListener(RequestEvents::POST_SEND, function($event){
-            var_dump($event->getRequest()->getBody());
-            var_dump($event->getRequest()->getResponseBody());
-        });
-        $response = $this->gateway->credit(
+        $this->mock_request($this->error_response());
+        $response = $this->gateway->purchase(
             $this->amount,
-            $identification
+            $this->creditcard,
             $this->options
         );
+        $this->assert_failure($response);
+        $this->assertTrue($response->test());
+    }
 
-        print_r($response);
+    public function testDuplicateOrder()
+    {
+        $this->mock_request($this->error_duplicate_order_response());
+        $response = $this->gateway->purchase(
+            $this->amount,
+            $this->creditcard,
+            $this->options
+        );
+        $this->assert_failure($response);
+        $this->assertTrue($response->test());
+    }
+
+    public function testUnsupportedCard()
+    {
+        $this->mock_request($this->error_support_card_response());
+        $response = $this->gateway->purchase(
+            $this->amount,
+            $this->creditcard,
+            $this->options
+        );
+        $this->assert_failure($response);
+        $this->assertTrue($response->test());
     }
 
     private function success_purchase_repsponse()

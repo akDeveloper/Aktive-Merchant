@@ -186,15 +186,14 @@ class Cardlink extends Gateway implements
      */
     public function credit($money, $identification, $options = array())
     {
-        $this->post = array('authorization' => $identification);
-
-        $this->add_invoice($options);
-        return $this->commit('credit', $money);
         $options = new Options($options);
 
-        $this->build_xml(static::Refund, $options, function($xml) use ($money, $identification, $options){
+        $this->build_xml(static::REFUND, $options, function($xml) use ($money, $identification, $options){
             $this->add_invoice($money, $options, $xml);
+            $this->add_identification($identification, $options, $xml);
         });
+
+        return $this->commit(static::REFUND, $money);
     }
 
     protected function build_xml($action, $options, $block)
@@ -287,19 +286,25 @@ class Cardlink extends Gateway implements
         });
     }
 
-    private function add_identification($identification, $xml)
+    private function add_identification($identification, $options, $xml)
     {
+        $xml->PaymentInfo(function($xml) use ($identification, $options) {
+            $xml->PayMethod($options['payment_method']);
+            $xml->CardPan($identification);
+        });
     }
 
     private function add_threed_secure($options, $xml)
     {
-        $xml->ThreeDSecure(function($xml) use ($options){
-            $xml->EnrollmentStatus($options['enrollment_status']);
-            $xml->AuthenticationStatus($options['authentication_status']);
-            $xml->CAVV($options['cavv']);
-            $xml->XID($options['xid']);
-            $xml->ECI($options['eci']);
-        });
+        if ($options['enrollment_status']) {
+            $xml->ThreeDSecure(function($xml) use ($options){
+                $xml->EnrollmentStatus($options['enrollment_status']);
+                $xml->AuthenticationStatus($options['authentication_status']);
+                $xml->CAVV($options['cavv']);
+                $xml->XID($options['xid']);
+                $xml->ECI($options['eci']);
+            });
+        }
     }
 
     /**
@@ -324,31 +329,55 @@ class Cardlink extends Gateway implements
         $digest = $this->calculate_digest($message->asXML());
 
         if (isset($message->ErrorMessage)) { # we 've got error
+
+            $error_code = $message->ErrorMessage->ErrorCode->__toString();
+            $description = $message->ErrorMessage->Description->__toString();
+
+            $description = $this->message_from_error_code($error_code, $description);
+
             return array_merge($defaults, array(
-                'error_code' => $message->ErrorMessage->ErrorCode->__toString(),
-                'message'    => $message->ErrorMessage->Description->__toString()
+                'error_code' => $error_code,
+                'message'    => $description
             ));
         } else {
             $response = $message->$actionResponse;
 
             $description = $response->Description->__toString();
-            preg_match("/(\w+),\s(\w+)\sresponse\scode\s(\w+)/", $description, $desc);
-            $response_code = array_pop($desc);
+            if (isset($response->ErrorCode)) {
+                $error_code = $response->ErrorCode->__toString();
 
-            if (array_key_exists($response_code, static::$statusCode)) {
-                $description = static::$statusCode[$response_code];
+                return array_merge($defaults, array(
+                    'error_code' => $error_code,
+                    'message'    => $this->message_from_error_code($error_code, $description)
+                ));
+            } else {
+
+                preg_match("/(\w+),\s(\w+)\sresponse\scode\s(\w+)/", $description, $desc);
+                $response_code = array_pop($desc);
+
+                if (array_key_exists($response_code, static::$statusCode)) {
+                    $description = static::$statusCode[$response_code];
+                }
+                return array_merge($defaults, array(
+                    'message'           => $description,
+                    'authorization_id'  => $response->TxId->__toString(),
+                    'payment_ref'       => $response->PaymentRef->__toString(),
+                    'risk_score'        => $response->RiskScore->__toString(),
+                    'response_code'     => $response_code,
+                    'status'            => $response->Status->__toString(),
+                    'order_id'          => $response->OrderId->__toString(),
+                    'payment_total'     => $response->PaymentTotal->__toString()
+                ));
             }
-            return array_merge($defaults, array(
-                'message'           => $description,
-                'authorization_id'  => $response->TxId->__toString(),
-                'payment_ref'       => $response->PaymentRef->__toString(),
-                'risk_score'        => $response->RiskScore->__toString(),
-                'response_code'     => $response_code,
-                'status'            => $response->Status->__toString(),
-                'order_id'          => $response->OrderId->__toString(),
-                'payment_total'     => $response->PaymentTotal->__toString()
-            ));
         }
+    }
+
+    private function message_from_error_code($error_code, $description = null)
+    {
+        if (array_key_exists($error_code, static::$errorCode)) {
+            return static::$errorCode[$error_code];
+        }
+        return $description;
     }
 
     /**
