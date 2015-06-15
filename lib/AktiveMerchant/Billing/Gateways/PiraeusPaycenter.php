@@ -170,7 +170,7 @@ class PiraeusPaycenter extends Gateway implements
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CurrencyCode'] = $this->currency_lookup(self::$default_currency);
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['Amount'] = $amount;
 
-        return $this->commit('REFUND', null);
+        return $this->commit('VOIDREQUEST', null);
     }
 
     /**
@@ -185,11 +185,12 @@ class PiraeusPaycenter extends Gateway implements
     {
         $this->post = array();
         $amount = $this->amount($money);
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['MerchantReference'] = $options['order_id'];
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['TransactionReferenceID'] = $identification;
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CurrencyCode'] = $this->currency_lookup(self::$default_currency);
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['Amount'] = $amount;
 
-        return $this->commit('VOIDREQUEST', $money);
+        return $this->commit('REFUND', $money);
     }
 
     /* Private */
