@@ -77,6 +77,22 @@ class CardlinkTest extends \AktiveMerchant\TestCase
         $this->assertTrue($response->test());
     }
 
+    public function testCredit()
+    {
+        $this->mock_request($this->success_credit_response());
+
+        $this->options['payment_method'] = 'visa';
+        $this->options['order_id'] = '1369981694782';
+        $response = $this->gateway->credit(
+            $this->amount,
+            'xxxxxxxxxxxxxxxx',
+            $this->options
+        );
+
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+    }
+
     public function testErrorHandling()
     {
         $this->mock_request($this->error_response());
@@ -136,5 +152,10 @@ class CardlinkTest extends \AktiveMerchant\TestCase
     private function success_authorize_response()
     {
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas"><Message version="1.0" messageId="aabdc078302f8105fce4c3f30fbc6374"><AuthorisationResponse><OrderId>REF1985947185</OrderId><OrderAmount>0.09</OrderAmount><Currency>EUR</Currency><PaymentTotal>0.09</PaymentTotal><Status>AUTHORIZED</Status><TxId>1541201</TxId><PaymentRef>750140</PaymentRef><RiskScore>0</RiskScore><Description>OK, AUTHORIZED response code 00</Description></AuthorisationResponse></Message><Digest>6T3WzbFkeubZwC3ogtjmLufmau0=</Digest></VPOS>';
+    }
+
+    private function success_credit_response()
+    {
+       return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas"><Message version="1.0" messageId="7cf4522940c8f672a0f3499792c476e2"><RefundResponse><OrderId>1369981694782</OrderId><OrderAmount>0.09</OrderAmount><Currency>EUR</Currency><PaymentTotal>0.09</PaymentTotal><Status>CAPTURED</Status><TxId>1545651</TxId><Description>OK, CAPTURED response code 00</Description></RefundResponse></Message><Digest>HVpuSrccNqrcMSfuXTQwjetUjZ8=</Digest></VPOS>';
     }
 }
