@@ -93,6 +93,22 @@ class CardlinkTest extends \AktiveMerchant\TestCase
         $this->assertTrue($response->test());
     }
 
+    public function testVoid()
+    {
+        $this->mock_request($this->success_void_response());
+
+        $this->options['payment_method'] = 'mastercard';
+        $this->options['order_id'] = 'REF1985947185';
+        $this->options['money'] = 0.09;
+        $response = $this->gateway->void(
+            'xxxxxxxxxxxxxxxx',
+            $this->options
+        );
+
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+    }
+
     public function testErrorHandling()
     {
         $this->mock_request($this->error_response());
@@ -157,5 +173,10 @@ class CardlinkTest extends \AktiveMerchant\TestCase
     private function success_credit_response()
     {
        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas"><Message version="1.0" messageId="7cf4522940c8f672a0f3499792c476e2"><RefundResponse><OrderId>1369981694782</OrderId><OrderAmount>0.09</OrderAmount><Currency>EUR</Currency><PaymentTotal>0.09</PaymentTotal><Status>CAPTURED</Status><TxId>1545651</TxId><Description>OK, CAPTURED response code 00</Description></RefundResponse></Message><Digest>HVpuSrccNqrcMSfuXTQwjetUjZ8=</Digest></VPOS>';
+    }
+
+    private function success_void_response()
+    {
+       return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas"><Message version="1.0" messageId="d553d3db39cd15c88b597def03071423"><CancelResponse><OrderId>REF1985947185</OrderId><OrderAmount>0.09</OrderAmount><Currency>EUR</Currency><PaymentTotal>0.09</PaymentTotal><Status>AUTHORIZED</Status><TxId>1553111</TxId><PaymentRef>750140</PaymentRef><Description>OK, AUTHORIZED response code 00</Description></CancelResponse></Message><Digest>moAueK4/iqBzw2X8/kSiQHxvjEs=</Digest></VPOS>';
     }
 }

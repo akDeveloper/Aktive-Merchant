@@ -172,8 +172,17 @@ class Cardlink extends Gateway implements
      */
     public function void($authorization, $options = array())
     {
-        $this->post = array('authorization' => $authorization);
-        return $this->commit('void', null);
+        Options::required('money', $options);
+
+        $options = new Options($options);
+
+        $money = $options['money'];
+        $this->build_xml(static::CANCEL, $options, function($xml) use ($money, $authorization, $options){
+            $this->add_invoice($money, $options, $xml);
+            $this->add_identification($authorization, $options, $xml);
+        });
+
+        return $this->commit(static::CANCEL, $money);
     }
 
     /**
