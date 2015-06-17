@@ -42,29 +42,25 @@ class Cardlink extends Gateway implements
     /**
      * {@inheritdoc}
      */
-    public static $supported_countries = array();
+    public static $supported_countries = array('GR');
 
     /**
      * {@inheritdoc}
      */
     public static $supported_cardtypes = array(
         'visa',
-        'master',
-        'american_express',
-        'switch',
-        'solo',
-        'maestro'
+        'master'
     );
 
     /**
      * {@inheritdoc}
      */
-    public static $homepage_url = 'http://www.example.net';
+    public static $homepage_url = 'http://www.modirum.com';
 
     /**
      * {@inheritdoc}
      */
-    public static $display_name = 'New Gateway';
+    public static $display_name = 'Cardlink';
 
     /**
      * {@inheritdoc}
