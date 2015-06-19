@@ -6,6 +6,7 @@ namespace AktiveMerchant\Billing\Gateways;
 
 use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Options;
@@ -26,6 +27,9 @@ class Cardlink extends Gateway implements
 {
     const TEST_URL = 'https://euro.test.modirum.com/vpos/xmlpayvpos';
     const LIVE_URL = 'https://example.com/live';
+
+    const MPI_TEST_URL = 'https://euro.test.modirum.com/mdpaympi/MerchantServer';
+    const MPI_LIVE_URL = 'https://euro.test.modirum.com/mdpaympi/MerchantServer';
 
     const SALE      = 'Sale';
     const AUTHORIZE = 'Authorisation';
@@ -99,6 +103,11 @@ class Cardlink extends Gateway implements
         3 => 'N',
         4 => 'A',
     );
+
+    public static function getMpiUrl()
+    {
+        return  Base::is_test() ? static::MPI_TEST_URL : static::MPI_LIVE_URL;
+    }
 
     /**
      * creates gateway instance from given options.
