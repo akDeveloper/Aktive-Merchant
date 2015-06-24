@@ -11,26 +11,26 @@ use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Billing\Exception;
 
 /**
- * This is a gateway to test the integration between your application and 
+ * This is a gateway to test the integration between your application and
  * Aktive-Merchant. It implements all interfaces so you can check all payment actions.
- * 
+ *
  * USAGE:
  * For authorize and purchase actions, use a CreditCard instance with number:
  * - 1 (For success action)
  * - 2 (For throwing an AktiveMerchant\Billing\Exception)
  * - other (For forcing action to fail)
- *
+
  * For credit action use indentification with value:
  * - 1 (For success action)
  * - 2 (For throwing an AktiveMerchant\Billing\Exception)
  * - other (For forcing action to fail)
- * 
- * For unstore action use reference with value:
+ *
+ * For store and unstore action use reference with value:
  * - 1 (For success action)
  * - 2 (For throwing an AktiveMerchant\Billing\Exception)
  * - other (For forcing action to fail)
  *
- * For capture action use authorization with value:
+ * For capture action use identification with value:
  * - 1 (For throwing an AktiveMerchant\Billing\Exception)
  * - 2 (For forcing action to fail)
  * - other (For success action)
@@ -44,8 +44,8 @@ use AktiveMerchant\Billing\Exception;
  * @author  Andreas Kollaros
  * @license MIT {@link http://opensource.org/licenses/mit-license.php}
  */
-class Bogus extends Gateway implements 
-    Interfaces\Charge, 
+class Bogus extends Gateway implements
+    Interfaces\Charge,
     Interfaces\Credit,
     Interfaces\Store
 {
@@ -69,24 +69,24 @@ class Bogus extends Gateway implements
         switch ($creditcard->number) {
             case '1':
                 return new Response(
-                    true, 
-                    self::SUCCESS_MESSAGE, 
-                    array('authorized_amount' => $money), 
-                    array('test' => true, 
+                    true,
+                    self::SUCCESS_MESSAGE,
+                    array('authorized_amount' => $money),
+                    array('test' => true,
                     'authorization' => self::AUTHORIZATION)
                 );
                 break;
             case '2':
-                return new Response(
-                    false, 
-                    self::FAILURE_MESSAGE, 
-                    array('authorized_amount' => $money, 
-                    'error' => self::FAILURE_MESSAGE), 
-                    array('test' => true)
-                );
+                throw new Exception(self::ERROR_MESSAGE);
                 break;
             default:
-                throw new Exception(self::ERROR_MESSAGE);
+                return new Response(
+                    false,
+                    self::FAILURE_MESSAGE,
+                    array('authorized_amount' => $money,
+                    'error' => self::FAILURE_MESSAGE),
+                    array('test' => true)
+                );
                 break;
         }
     }
@@ -96,25 +96,25 @@ class Bogus extends Gateway implements
         switch ($creditcard->number) {
             case '1':
                 return new Response(
-                    true, 
-                    self::SUCCESS_MESSAGE, 
-                    array('paid_amount' => $money), 
+                    true,
+                    self::SUCCESS_MESSAGE,
+                    array('paid_amount' => $money),
                     array('test' => true)
                 );
                 break;
             case '2':
+                throw new Exception(self::ERROR_MESSAGE);
+                break;
+            default:
                 return new Response(
-                    false, 
-                    self::FAILURE_MESSAGE, 
+                    false,
+                    self::FAILURE_MESSAGE,
                     array(
-                        'paid_amount' => $money, 
+                        'paid_amount' => $money,
                         'error' => self::FAILURE_MESSAGE
                     ),
                     array('test' => true)
                 );
-                break;
-            default:
-                throw new Exception(self::ERROR_MESSAGE);
                 break;
         }
     }
@@ -123,24 +123,24 @@ class Bogus extends Gateway implements
     {
         switch ($identification) {
             case '1':
-                throw new Exception(self::CREDIT_ERROR_MESSAGE);
-                break;
-            case '2':
                 return new Response(
-                    false, 
-                    self::FAILURE_MESSAGE, 
-                    array(
-                        'paid_amount' => $money, 
-                        'error' => self::FAILURE_MESSAGE
-                    ),
+                    true,
+                    self::SUCCESS_MESSAGE,
+                    array('paid_amount' => $money),
                     array('test' => true)
                 );
                 break;
+            case '2':
+                throw new Exception(self::CREDIT_ERROR_MESSAGE);
+                break;
             default:
                 return new Response(
-                    true, 
-                    self::SUCCESS_MESSAGE, 
-                    array('paid_amount' => $money), 
+                    false,
+                    self::FAILURE_MESSAGE,
+                    array(
+                        'paid_amount' => $money,
+                        'error' => self::FAILURE_MESSAGE
+                    ),
                     array('test' => true)
                 );
                 break;
@@ -149,16 +149,16 @@ class Bogus extends Gateway implements
 
     public function capture($money, $identification, $options = array())
     {
-        switch ($ident) {
+        switch ($identification) {
             case '1':
                 throw new Exception(self::CREDIT_ERROR_MESSAGE);
                 break;
             case '2':
                 return new Response(
-                    false, 
-                    self::FAILURE_MESSAGE, 
+                    false,
+                    self::FAILURE_MESSAGE,
                     array(
-                        'paid_amount' => $money, 
+                        'paid_amount' => $money,
                         'error' => self::FAILURE_MESSAGE
                     ),
                     array('test' => true)
@@ -166,9 +166,9 @@ class Bogus extends Gateway implements
                 break;
             default:
                 return new Response(
-                    true, 
-                    self::SUCCESS_MESSAGE, 
-                    array('paid_amount' => $money), 
+                    true,
+                    self::SUCCESS_MESSAGE,
+                    array('paid_amount' => $money),
                     array('test' => true)
                 );
                 break;
@@ -177,25 +177,25 @@ class Bogus extends Gateway implements
 
     public function void($authorization, $options = array())
     {
-        switch ($ident) {
+        switch ($authorization) {
             case '1':
                 throw new Exception(self::VOID_ERROR_MESSAGE);
                 break;
             case '2':
                 return new Response(
-                    false, 
-                    self::FAILURE_MESSAGE, 
+                    false,
+                    self::FAILURE_MESSAGE,
                     array(
-                        'authorization' => $ident, 
-                        'error' => self::FAILURE_MESSAGE), 
+                        'authorization' => $authorization,
+                        'error' => self::FAILURE_MESSAGE),
                     array('test' => true)
                 );
                 break;
             default:
                 return new Response(
-                    true, 
-                    self::SUCCESS_MESSAGE, 
-                    array('authorization' => $ident), 
+                    true,
+                    self::SUCCESS_MESSAGE,
+                    array('authorization' => $authorization),
                     array('test' => true)
                 );
                 break;
@@ -207,29 +207,28 @@ class Bogus extends Gateway implements
         switch ($creditcard->number) {
             case '1':
                 return new Response(
-                    true, 
-                    self::SUCCESS_MESSAGE, 
-                    array('billingid' => '1'), 
+                    true,
+                    self::SUCCESS_MESSAGE,
+                    array('billingid' => '1'),
                     array(
-                        'test' => true, 
+                        'test' => true,
                         'authorization' => self::AUTHORIZATION
                     )
                 );
                 break;
             case '2':
+                throw new Exception(self::ERROR_MESSAGE);
+                break;
+            default:
                 return new Response(
-                    false, 
-                    self::FAILURE_MESSAGE, 
+                    false,
+                    self::FAILURE_MESSAGE,
                     array(
-                        'billingid' => null, 
+                        'billingid' => null,
                         'error' => self::FAILURE_MESSAGE
-                    ), 
+                    ),
                     array('test' => true)
                 );
-                break;
-
-            default:
-                throw new Exception(self::ERROR_MESSAGE);
                 break;
         }
     }
@@ -239,23 +238,22 @@ class Bogus extends Gateway implements
         switch ($reference) {
             case '1':
                 return new Response(
-                    true, 
-                    self::SUCCESS_MESSAGE, 
-                    array(), 
+                    true,
+                    self::SUCCESS_MESSAGE,
+                    array(),
                     array('test' => true)
                 );
                 break;
             case '2':
+                throw new Exception(self::UNSTORE_ERROR_MESSAGE);
+                break;
+            default:
                 return new Response(
-                    false, 
-                    self::FAILURE_MESSAGE, 
-                    array('error' => self::FAILURE_MESSAGE), 
+                    false,
+                    self::FAILURE_MESSAGE,
+                    array('error' => self::FAILURE_MESSAGE),
                     array('test' => true)
                 );
-                break;
-
-            default:
-                throw new Exception(self::UNSTORE_ERROR_MESSAGE);
                 break;
         }
     }
