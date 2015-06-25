@@ -42,7 +42,7 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
             "number" => "4111111111111111",
             "month" => "01",
             "year" => date('Y') + 1,
-            "verification_value" => "000"
+            "verification_value" => "123"
         )
     );
         $this->options = array(
@@ -84,22 +84,32 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
     /**
      * @dataProvider casesProvider
      */
-    public function testSuccessfulPurchase($options, $expected)
+    public function testPaycenterTestCases($options, $expected)
     {
-        /*$this->gateway->addListener(RequestEvents::POST_SEND, function($event){
-            var_dump($event->getRequest()->getAdapter()->getRequestBodyXml());
-            var_dump($event->getRequest()->getAdapter()->getResponseBodyXml());
-        });*/
-
-        $method = "successful_test_case_".$options['case']."_visa_purchase_response";
+        $method = "successful_test_case_".$options['case']."_".$options['action']."_response";
         if (method_exists($this, $method)) {
             $this->mock_request($this->$method());
+        } else {
+            $this->gateway->addListener(RequestEvents::POST_SEND, function($event){
+                var_dump($event->getRequest()->getAdapter()->getRequestBodyXml());
+                var_dump($event->getRequest()->getAdapter()->getResponseBodyXml());
+            });
         }
 
         $this->creditcard->number = $options['card_number'];
         $this->creditcard->month  = $options['month'];
+        $this->creditcard->type   = CreditCard::type($this->creditcard->number);
+        if (isset($options['cvv'])) {
+            $this->creditcard->verification_value = $options['cvv'];
+        }
         $action = $options['action'];
+        if (isset($options['installments'])) {
+            $this->options['installments'] = $options['installments'];
+        }
 
+        if(isset($options['currency'])) {
+            $this->options['currency'] = $options['currency'];
+        }
         $response = $this->gateway->$action(
             $this->amount,
             $this->creditcard,
@@ -141,119 +151,111 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
                 array('action' => 'purchase', 'card_number' => '4111111111111111', 'month' => '06', 'case' => '06'),
                 array('ResultCode' => '1045', 'ResponseCode' => null, 'Message' => 'Duplicate transaction references are not allowed', 'assert_failure')
             ),
+            array(# TestCase07
+                array('action' => 'purchase', 'card_number' => '4111111111111111', 'month' => '07', 'case' => '07'),
+                array('ResultCode' => '1072', 'ResponseCode' => null, 'Message' => 'Pack is still closing', 'assert_failure')
+            ),
+            array(# TestCase08
+                array('action' => 'purchase', 'card_number' => '4111111111111111', 'month' => '08', 'case' => '08'),
+                array('ResultCode' => '1', 'ResponseCode' => null, 'Message' => 'An error occured. Please check your data or else contact Winbank PayCenter administrator', 'assert_failure')
+            ),
+            array(# TestCase09
+                array('action' => 'purchase', 'card_number' => '4908440000000003', 'month' => '08', 'case' => '09', 'installments' => 3),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),
+            array(# TestCase10
+                array('action' => 'purchase', 'card_number' => '5100150000000001', 'month' => '01', 'case' => '10'),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),
+            array(# TestCase11
+                array('action' => 'purchase', 'card_number' => '6773111111111115', 'month' => '01', 'case' => '11'),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),/*
+            array(# TestCase12. [Terminal does not support given card type]
+                array('action' => 'purchase', 'card_number' => '36131111111119', 'month' => '01', 'case' => '12'),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),
+            array(# TestCase13. [Test Case Not Found]
+                array('action' => 'purchase', 'card_number' => '6011111111111117', 'month' => '01', 'case' => '13'),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),
+            array(# TestCase14. [Terminal does not support given card type]
+                array('action' => 'purchase', 'card_number' => '375537111111116', 'month' => '01', 'case' => '14', 'cvv' => 1234),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),
+            array(# TestCase15 [Terminal does not support given currency]
+                array('action' => 'purchase', 'card_number' => '4001151111111110', 'month' => '01', 'case' => '15', 'currency' => 'GBP'),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),
+            array(# TestCase16 [Terminal does not support given currency]
+                array('action' => 'purchase', 'card_number' => '4408661111111117', 'month' => '01', 'case' => '16', 'currency' => 'USD'),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),*/
+            array(# TestCase01
+                array('action' => 'authorize', 'card_number' => '4000000000000002', 'month' => '01', 'case' => '01'),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),
+            array(# TestCase02
+                array('action' => 'authorize', 'card_number' => '4000000000000002', 'month' => '02', 'case' => '02'),
+                array('ResultCode' => '0', 'ResponseCode' => '12', 'Message' => 'Declined', 'assert_failure')
+            ),
+            array(# TestCase03
+                array('action' => 'authorize', 'card_number' => '4000000000000002', 'month' => '03', 'case' => '03'),
+                array('ResultCode' => '0', 'ResponseCode' => '11', 'Message' => 'Transaction already processed and completed', 'assert_success')
+            ),
+            array(# TestCase04
+                array('action' => 'authorize', 'card_number' => '4000000000000002', 'month' => '04', 'case' => '04'),
+                array('ResultCode' => '500', 'ResponseCode' => null, 'Message' => 'Communication error', 'assert_failure')
+            ),
+            array(# TestCase05
+                array('action' => 'authorize', 'card_number' => '4000000000000002', 'month' => '05', 'case' => '05'),
+                array('ResultCode' => '981', 'ResponseCode' => null, 'Message' => 'Invalid Card number/Exp Month/Exp Year', 'assert_failure')
+            ),
+            array(# TestCase06
+                array('action' => 'authorize', 'card_number' => '4000000000000002', 'month' => '06', 'case' => '06'),
+                array('ResultCode' => '1045', 'ResponseCode' => null, 'Message' => 'Duplicate transaction references are not allowed', 'assert_failure')
+            ),
+            array(# TestCase07
+                array('action' => 'authorize', 'card_number' => '4000000000000002', 'month' => '07', 'case' => '07'),
+                array('ResultCode' => '1072', 'ResponseCode' => null, 'Message' => 'Pack is still closing', 'assert_failure')
+            ),
+            array(# TestCase08
+                array('action' => 'authorize', 'card_number' => '4000000000000002', 'month' => '08', 'case' => '08'),
+                array('ResultCode' => '1', 'ResponseCode' => null, 'Message' => 'An error occured. Please check your data or else contact Winbank PayCenter administrator', 'assert_failure')
+            ),
+            array(# TestCase09
+                array('action' => 'authorize', 'card_number' => '4908460000000001', 'month' => '08', 'case' => '09', 'installments' => 3),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),
+            array(# TestCase10
+                array('action' => 'authorize', 'card_number' => '5100160000000000', 'month' => '01', 'case' => '10'),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),
+            array(# TestCase11
+                array('action' => 'authorize', 'card_number' => '6773110000000009', 'month' => '01', 'case' => '11'),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),/*
+            array(# TestCase12. [Terminal does not support given card type]
+                array('action' => 'authorize', 'card_number' => '36131111111119', 'month' => '01', 'case' => '12'),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),
+            array(# TestCase13. [Test Case Not Found]
+                array('action' => 'authorize', 'card_number' => '6011111111111117', 'month' => '01', 'case' => '13'),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),
+            array(# TestCase14. [Terminal does not support given card type]
+                array('action' => 'authorize', 'card_number' => '375537111111116', 'month' => '01', 'case' => '14', 'cvv' => 1234),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),
+            array(# TestCase15 [Terminal does not support given currency]
+                array('action' => 'authorize', 'card_number' => '4001151111111110', 'month' => '01', 'case' => '15', 'currency' => 'GBP'),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),
+            array(# TestCase16 [Terminal does not support given currency]
+                array('action' => 'authorize', 'card_number' => '4408661111111117', 'month' => '01', 'case' => '16', 'currency' => 'USD'),
+                array('ResultCode' => '0', 'ResponseCode' => '00', 'Message' => 'Approved or completed successfully', 'assert_success')
+            ),*/
         );
-    }
-
-    public function testCase01VisaPurchase()
-    {
-        $this->mock_request($this->successful_test_case_01_visa_purchase_response());
-
-        $response = $this->gateway->purchase(
-            $this->amount,
-            $this->creditcard,
-            $this->options
-        );
-
-        $this->assert_success($response);
-        $this->assertTrue($response->test());
-        $this->assertEquals('0', $response->result_code);
-        $this->assertEquals('00', $response->response_code);
-        $this->assertEquals('Approved or completed successfully', $response->message());
-    }
-
-    public function testCase02VisaPurchase()
-    {
-        $this->mock_request($this->successful_test_case_02_visa_purchase_response());
-
-        $this->creditcard->month = "02";
-
-        $response = $this->gateway->purchase(
-            $this->amount,
-            $this->creditcard,
-            $this->options
-        );
-
-        $this->assert_failure($response);
-        $this->assertTrue($response->test());
-        $this->assertEquals('0', $response->result_code);
-        $this->assertEquals('12', $response->response_code);
-        $this->assertEquals('Declined', $response->message());
-    }
-
-    public function testCase03VisaPurchase()
-    {
-        $this->mock_request($this->successful_test_case_03_visa_purchase_response());
-
-        $this->creditcard->month = "03";
-
-        $response = $this->gateway->purchase(
-            $this->amount,
-            $this->creditcard,
-            $this->options
-        );
-
-        $this->assert_success($response);
-        $this->assertTrue($response->test());
-        $this->assertEquals('0', $response->result_code);
-        $this->assertEquals('11', $response->response_code);
-        $this->assertEquals('Transaction already processed and completed', $response->message());
-    }
-
-    public function testCase04VisaPurchase()
-    {
-        $this->mock_request($this->successful_test_case_04_visa_purchase_response());
-
-        $this->creditcard->month = "04";
-
-        $response = $this->gateway->purchase(
-            $this->amount,
-            $this->creditcard,
-            $this->options
-        );
-
-        $this->assert_failure($response);
-        $this->assertTrue($response->test());
-        $this->assertEquals('500', $response->result_code);
-        $this->assertNull($response->response_code);
-        $this->assertEquals('Communication error', $response->message());
-    }
-
-    public function testCase05VisaPurchase()
-    {
-        $this->mock_request($this->successful_test_case_05_visa_purchase_response());
-
-        $this->creditcard->month = "05";
-
-        $response = $this->gateway->purchase(
-            $this->amount,
-            $this->creditcard,
-            $this->options
-        );
-
-        $this->assert_failure($response);
-        $this->assertTrue($response->test());
-        $this->assertEquals('981', $response->result_code);
-        $this->assertNull($response->response_code);
-        $this->assertEquals('Invalid Card number/Exp Month/Exp Year', $response->message());
-    }
-
-    public function testCase06VisaPurchase()
-    {
-        $this->mock_request($this->successful_test_case_06_visa_purchase_response());
-
-        $this->creditcard->month = "06";
-
-        $response = $this->gateway->purchase(
-            $this->amount,
-            $this->creditcard,
-            $this->options
-        );
-
-        $this->assert_failure($response);
-        $this->assertTrue($response->test());
-        $this->assertEquals('1045', $response->result_code);
-        $this->assertNull($response->response_code);
-        $this->assertEquals('Duplicate transaction references are not allowed', $response->message());
     }
 
     public function testAuthorize()
@@ -326,45 +328,146 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
         $this->assertEquals('Approved or completed successfully', $response->message());
     }
 
-    private function successful_test_case_01_visa_purchase_response()
+    private function successful_test_case_01_purchase_response()
     {
         $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:4:"SALE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:46946712;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":11:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:34:"Approved or completed successfully";s:13:"TransactionID";i:37095053;s:19:"TransactionDateTime";s:19:"2015-05-28T13:25:23";s:19:"TransactionTraceNum";i:5;s:17:"MerchantReference";s:13:"REF7903390935";s:12:"ApprovalCode";s:6:"713427";s:12:"RetrievalRef";s:12:"713427713427";s:9:"PackageNo";i:6;s:10:"SessionKey";N;}}}}';
 
         return unserialize($serialized);
     }
 
-    private function successful_test_case_02_visa_purchase_response()
+    private function successful_test_case_02_purchase_response()
     {
         $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:4:"SALE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:46946947;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":11:{s:10:"StatusFlag";s:7:"Failure";s:12:"ResponseCode";s:2:"12";s:19:"ResponseDescription";s:8:"Declined";s:13:"TransactionID";i:37095234;s:19:"TransactionDateTime";s:19:"2015-05-28T13:30:30";s:19:"TransactionTraceNum";i:6;s:17:"MerchantReference";s:13:"REF8273302155";s:12:"ApprovalCode";N;s:12:"RetrievalRef";s:12:"870438870438";s:9:"PackageNo";i:6;s:10:"SessionKey";N;}}}}';
 
         return unserialize($serialized);
     }
 
-    private function successful_test_case_03_visa_purchase_response()
+    private function successful_test_case_03_purchase_response()
     {
         $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:4:"SALE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:46955516;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":11:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"11";s:19:"ResponseDescription";s:43:"Transaction already processed and completed";s:13:"TransactionID";i:37101879;s:19:"TransactionDateTime";s:19:"2015-05-28T16:27:55";s:19:"TransactionTraceNum";i:11;s:17:"MerchantReference";s:13:"REF1843143923";s:12:"ApprovalCode";s:6:"381342";s:12:"RetrievalRef";s:12:"381342381342";s:9:"PackageNo";i:6;s:10:"SessionKey";N;}}}}';
 
         return unserialize($serialized);
     }
 
-    private function successful_test_case_04_visa_purchase_response()
+    private function successful_test_case_04_purchase_response()
     {
         $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:4:"SALE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:500;s:17:"ResultDescription";s:19:"Communication error";s:18:"SupportReferenceID";i:46955672;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":9:{s:10:"StatusFlag";s:7:"Failure";s:13:"TransactionID";N;s:19:"TransactionDateTime";N;s:19:"TransactionTraceNum";N;s:17:"MerchantReference";s:13:"REF2364377175";s:12:"ApprovalCode";N;s:12:"RetrievalRef";N;s:9:"PackageNo";N;s:10:"SessionKey";N;}}}}';
 
         return unserialize($serialized);
     }
 
-    private function successful_test_case_05_visa_purchase_response()
+    private function successful_test_case_05_purchase_response()
     {
         $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:4:"SALE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:981;s:17:"ResultDescription";s:38:"Invalid Card number/Exp Month/Exp Year";s:18:"SupportReferenceID";i:46955734;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":9:{s:10:"StatusFlag";s:7:"Failure";s:13:"TransactionID";N;s:19:"TransactionDateTime";N;s:19:"TransactionTraceNum";N;s:17:"MerchantReference";s:13:"REF1419591438";s:12:"ApprovalCode";N;s:12:"RetrievalRef";N;s:9:"PackageNo";N;s:10:"SessionKey";N;}}}}';
 
         return unserialize($serialized);
     }
 
-    private function successful_test_case_06_visa_purchase_response()
+    private function successful_test_case_06_purchase_response()
     {
         $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:4:"SALE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:1045;s:17:"ResultDescription";s:48:"Duplicate transaction references are not allowed";s:18:"SupportReferenceID";i:46956561;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":9:{s:10:"StatusFlag";s:7:"Failure";s:13:"TransactionID";N;s:19:"TransactionDateTime";N;s:19:"TransactionTraceNum";N;s:17:"MerchantReference";s:13:"REF1165494255";s:12:"ApprovalCode";N;s:12:"RetrievalRef";N;s:9:"PackageNo";N;s:10:"SessionKey";N;}}}}';
 
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_07_purchase_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:4:"SALE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:1072;s:17:"ResultDescription";s:21:"Pack is still closing";s:18:"SupportReferenceID";i:48323674;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":9:{s:10:"StatusFlag";s:7:"Failure";s:13:"TransactionID";N;s:19:"TransactionDateTime";N;s:19:"TransactionTraceNum";N;s:17:"MerchantReference";s:13:"REF5496273385";s:12:"ApprovalCode";N;s:12:"RetrievalRef";N;s:9:"PackageNo";N;s:10:"SessionKey";N;}}}}';
+
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_08_purchase_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:4:"SALE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:1;s:17:"ResultDescription";s:88:"An error occured. Please check your data or else contact Winbank PayCenter administrator";s:18:"SupportReferenceID";i:48323766;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":9:{s:10:"StatusFlag";s:7:"Failure";s:13:"TransactionID";N;s:19:"TransactionDateTime";N;s:19:"TransactionTraceNum";N;s:17:"MerchantReference";s:13:"REF1390241569";s:12:"ApprovalCode";N;s:12:"RetrievalRef";N;s:9:"PackageNo";N;s:10:"SessionKey";N;}}}}';
+
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_09_purchase_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:4:"SALE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:48325481;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":12:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:34:"Approved or completed successfully";s:13:"TransactionID";i:38055603;s:19:"TransactionDateTime";s:19:"2015-06-25T12:15:13";s:19:"TransactionTraceNum";i:12;s:17:"MerchantReference";s:13:"REF7736856415";s:12:"ApprovalCode";s:6:"889903";s:12:"RetrievalRef";s:12:"889903889903";s:9:"PackageNo";i:61;s:10:"SessionKey";N;s:5:"Token";s:16:"8888885995495110";}}}}';
+
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_10_purchase_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:4:"SALE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:48324647;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":12:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:34:"Approved or completed successfully";s:13:"TransactionID";i:38054968;s:19:"TransactionDateTime";s:19:"2015-06-25T11:58:19";s:19:"TransactionTraceNum";i:9;s:17:"MerchantReference";s:13:"REF1770580602";s:12:"ApprovalCode";s:6:"683892";s:12:"RetrievalRef";s:12:"683892683892";s:9:"PackageNo";i:61;s:10:"SessionKey";N;s:5:"Token";s:16:"8888881404604475";}}}}';
+
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_11_purchase_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:4:"SALE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:48325597;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":12:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:34:"Approved or completed successfully";s:13:"TransactionID";i:38055683;s:19:"TransactionDateTime";s:19:"2015-06-25T12:17:23";s:19:"TransactionTraceNum";i:14;s:17:"MerchantReference";s:13:"REF3426314355";s:12:"ApprovalCode";s:6:"491079";s:12:"RetrievalRef";s:12:"491079491079";s:9:"PackageNo";i:61;s:10:"SessionKey";N;s:5:"Token";s:16:"8888882500835898";}}}}';
+
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_01_authorize_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:9:"AUTHORIZE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:48327765;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":12:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:34:"Approved or completed successfully";s:13:"TransactionID";i:38057251;s:19:"TransactionDateTime";s:19:"2015-06-25T13:01:32";s:19:"TransactionTraceNum";i:38;s:17:"MerchantReference";s:13:"REF5691670995";s:12:"ApprovalCode";s:6:"541806";s:12:"RetrievalRef";s:12:"541806541806";s:9:"PackageNo";i:61;s:10:"SessionKey";N;s:5:"Token";s:16:"8888886940550462";}}}}';
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_02_authorize_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:9:"AUTHORIZE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:48327768;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":11:{s:10:"StatusFlag";s:7:"Failure";s:12:"ResponseCode";s:2:"12";s:19:"ResponseDescription";s:8:"Declined";s:13:"TransactionID";i:38057253;s:19:"TransactionDateTime";s:19:"2015-06-25T13:01:33";s:19:"TransactionTraceNum";i:39;s:17:"MerchantReference";s:13:"REF1710401275";s:12:"ApprovalCode";s:0:"";s:12:"RetrievalRef";s:12:"321273321273";s:9:"PackageNo";i:61;s:10:"SessionKey";N;}}}}';
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_03_authorize_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:9:"AUTHORIZE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:48327769;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":11:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"11";s:19:"ResponseDescription";s:43:"Transaction already processed and completed";s:13:"TransactionID";i:38057255;s:19:"TransactionDateTime";s:19:"2015-06-25T13:01:34";s:19:"TransactionTraceNum";i:40;s:17:"MerchantReference";s:13:"REF1395187950";s:12:"ApprovalCode";s:6:"949726";s:12:"RetrievalRef";s:12:"949726949726";s:9:"PackageNo";i:61;s:10:"SessionKey";N;}}}}';
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_04_authorize_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:9:"AUTHORIZE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:500;s:17:"ResultDescription";s:19:"Communication error";s:18:"SupportReferenceID";i:48327771;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":9:{s:10:"StatusFlag";s:7:"Failure";s:13:"TransactionID";N;s:19:"TransactionDateTime";N;s:19:"TransactionTraceNum";N;s:17:"MerchantReference";s:13:"REF6509767255";s:12:"ApprovalCode";N;s:12:"RetrievalRef";N;s:9:"PackageNo";N;s:10:"SessionKey";N;}}}}';
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_05_authorize_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:9:"AUTHORIZE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:981;s:17:"ResultDescription";s:38:"Invalid Card number/Exp Month/Exp Year";s:18:"SupportReferenceID";i:48327772;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":9:{s:10:"StatusFlag";s:7:"Failure";s:13:"TransactionID";N;s:19:"TransactionDateTime";N;s:19:"TransactionTraceNum";N;s:17:"MerchantReference";s:13:"REF1482897762";s:12:"ApprovalCode";N;s:12:"RetrievalRef";N;s:9:"PackageNo";N;s:10:"SessionKey";N;}}}}';
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_06_authorize_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:9:"AUTHORIZE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:1045;s:17:"ResultDescription";s:48:"Duplicate transaction references are not allowed";s:18:"SupportReferenceID";i:48327774;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":9:{s:10:"StatusFlag";s:7:"Failure";s:13:"TransactionID";N;s:19:"TransactionDateTime";N;s:19:"TransactionTraceNum";N;s:17:"MerchantReference";s:13:"REF1465392104";s:12:"ApprovalCode";N;s:12:"RetrievalRef";N;s:9:"PackageNo";N;s:10:"SessionKey";N;}}}}';
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_07_authorize_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:9:"AUTHORIZE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:1072;s:17:"ResultDescription";s:21:"Pack is still closing";s:18:"SupportReferenceID";i:48327775;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":9:{s:10:"StatusFlag";s:7:"Failure";s:13:"TransactionID";N;s:19:"TransactionDateTime";N;s:19:"TransactionTraceNum";N;s:17:"MerchantReference";s:13:"REF1499399490";s:12:"ApprovalCode";N;s:12:"RetrievalRef";N;s:9:"PackageNo";N;s:10:"SessionKey";N;}}}}';
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_08_authorize_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:9:"AUTHORIZE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:1;s:17:"ResultDescription";s:88:"An error occured. Please check your data or else contact Winbank PayCenter administrator";s:18:"SupportReferenceID";i:48327776;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":9:{s:10:"StatusFlag";s:7:"Failure";s:13:"TransactionID";N;s:19:"TransactionDateTime";N;s:19:"TransactionTraceNum";N;s:17:"MerchantReference";s:13:"REF1654944517";s:12:"ApprovalCode";N;s:12:"RetrievalRef";N;s:9:"PackageNo";N;s:10:"SessionKey";N;}}}}';
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_09_authorize_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:9:"AUTHORIZE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:48327779;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":12:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:34:"Approved or completed successfully";s:13:"TransactionID";i:38057264;s:19:"TransactionDateTime";s:19:"2015-06-25T13:01:39";s:19:"TransactionTraceNum";i:46;s:17:"MerchantReference";s:13:"REF4458717085";s:12:"ApprovalCode";s:6:"462921";s:12:"RetrievalRef";s:12:"462921462921";s:9:"PackageNo";i:61;s:10:"SessionKey";N;s:5:"Token";s:16:"8888884802784618";}}}}';
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_10_authorize_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:9:"AUTHORIZE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:48327781;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":12:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:34:"Approved or completed successfully";s:13:"TransactionID";i:38057266;s:19:"TransactionDateTime";s:19:"2015-06-25T13:01:40";s:19:"TransactionTraceNum";i:47;s:17:"MerchantReference";s:13:"REF6441345995";s:12:"ApprovalCode";s:6:"947622";s:12:"RetrievalRef";s:12:"947622947622";s:9:"PackageNo";i:61;s:10:"SessionKey";N;s:5:"Token";s:16:"8888889070124389";}}}}';
+        return unserialize($serialized);
+    }
+
+    private function successful_test_case_11_authorize_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:9:"AUTHORIZE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:48327784;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":12:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:34:"Approved or completed successfully";s:13:"TransactionID";i:38057267;s:19:"TransactionDateTime";s:19:"2015-06-25T13:01:41";s:19:"TransactionTraceNum";i:48;s:17:"MerchantReference";s:13:"REF1128311090";s:12:"ApprovalCode";s:6:"264957";s:12:"RetrievalRef";s:12:"264957264957";s:9:"PackageNo";i:61;s:10:"SessionKey";N;s:5:"Token";s:16:"8888883622159274";}}}}';
         return unserialize($serialized);
     }
 
