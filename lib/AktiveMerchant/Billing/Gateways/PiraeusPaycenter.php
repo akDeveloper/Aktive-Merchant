@@ -76,8 +76,12 @@ class PiraeusPaycenter extends Gateway implements
     );
 
     private $CARD_MAPPINGS = array(
-        'visa' => 'VISA',
-        'master' => 'MasterCard'
+        'visa'              => 'VISA',
+        'master'            => 'MasterCard',
+        'maestro'           => 'Maestro',
+        'diners_club'       => 'DinersClub',
+        'discover'          => 'DinersClub',
+        'american_express'  => 'AMEX'
     );
 
     /**
@@ -201,11 +205,16 @@ class PiraeusPaycenter extends Gateway implements
      */
     private function add_invoice($money, $options)
     {
+        $options = new Options($options);
+        $currency = $options['currency'] ?: self::$default_currency;
         $amount = $this->amount($money);
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['MerchantReference'] = $options['order_id'];
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['EntryType'] = 'KeyEntry';
-        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CurrencyCode'] = $this->currency_lookup(self::$default_currency);
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CurrencyCode'] = $this->currency_lookup($currency);
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['Amount'] = $amount;
+        if (isset($options['installments'])) {
+            $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['Installments'] = $options['installments'];
+        }
     }
 
     /**
