@@ -72,8 +72,10 @@ class Bogus extends Gateway implements
                     true,
                     self::SUCCESS_MESSAGE,
                     array('authorized_amount' => $money),
-                    array('test' => true,
-                    'authorization' => self::AUTHORIZATION)
+                    array(
+                        'test' => true,
+                        'authorization' => self::AUTHORIZATION
+                    )
                 );
                 break;
             case '2':
@@ -99,7 +101,10 @@ class Bogus extends Gateway implements
                     true,
                     self::SUCCESS_MESSAGE,
                     array('paid_amount' => $money),
-                    array('test' => true)
+                    array(
+                        'test' => true,
+                        'authorization' => self::AUTHORIZATION
+                    )
                 );
                 break;
             case '2':
