@@ -20,13 +20,16 @@ use AktiveMerchant\Common\Options;
  */
 class PiraeusPaycenter extends Gateway implements
     Interfaces\Charge,
-    Interfaces\Credit
+    Interfaces\Credit,
+    Interfaces\Store
 {
     const TEST_URL     = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
     const LIVE_URL     = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
-    const TICKET_URL   = 'https://paycenter.piraeusbank.gr/services/tickets/issuer.asmx';
     const WSDL         = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx?WSDL';
-    const TICKET_WSDL  = 'https://paycenter.piraeusbank.gr/services/tickets/issuer.asmx?WSDL';
+    const TOKEN_WSDL   = 'https://paycenter.piraeusbank.gr/services/TokenService.asmx?WSDL';
+
+    const ACTION       = 'ProcessTransaction';
+    const TOKEN_ACTION = 'RequestToken';
 
     /**
      * {@inheritdoc }
@@ -125,12 +128,37 @@ class PiraeusPaycenter extends Gateway implements
      *
      * @return Response
      */
-    public function purchase($money, CreditCard $creditcard, $options=array())
+    public function purchase($money, CreditCard $creditcard, $options = array())
     {
         $this->post = array();
         $this->add_invoice($money, $options);
         $this->add_creditcard($creditcard);
         $this->add_centinel_data($options);
+
+        return $this->commit('SALE', $money);
+    }
+
+    /**
+     *
+     * @param number $money
+     * @param string $reference
+     * @param array  $options
+     *
+     * @return Response
+     */
+    public function charge($money, $reference, array $options = array())
+    {
+        $this->post = array();
+        $this->add_invoice($money, $options);
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['CardType'] = 'UNKNOWN';
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['CardNumber'] = $reference;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['CardHolderName'] = null;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['ExpirationMonth'] = null;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['ExpirationYear'] = null;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Cvv2'] = null;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Aid'] = '';
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Emv'] = '';
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['PinBlock'] = '';
 
         return $this->commit('SALE', $money);
     }
@@ -195,6 +223,29 @@ class PiraeusPaycenter extends Gateway implements
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['Amount'] = $amount;
 
         return $this->commit('REFUND', $money);
+    }
+
+    public function store(CreditCard $creditcard, $options = array())
+    {
+        Options::required('order_id', $options);
+
+        $this->post = array();
+        $password = md5($this->options['password']);
+        $month = $this->cc_format($creditcard->month, 'two_digits');
+        $this->post[static::TOKEN_ACTION]['Request']['CRS'] = $this->options['crs'];
+        $this->post[static::TOKEN_ACTION]['Request']['Username'] = $this->options['user'];
+        $this->post[static::TOKEN_ACTION]['Request']['Password'] = $password;
+        $this->post[static::TOKEN_ACTION]['Request']['MerchantReference'] = $options['order_id'];
+        $this->post[static::TOKEN_ACTION]['Request']['CardNumber'] = $creditcard->number;
+        $this->post[static::TOKEN_ACTION]['Request']['ExpirationMonth'] = $month;
+        $this->post[static::TOKEN_ACTION]['Request']['ExpirationYear'] = $creditcard->year;
+
+        return $this->commit('TOKEN', 0);
+    }
+
+    public function unstore($reference, $options = array())
+    {
+
     }
 
     /* Private */
@@ -262,23 +313,38 @@ class PiraeusPaycenter extends Gateway implements
     {
         $response = array();
 
-        $header = $body->TransactionResponse->Header;
-        $transaction = $body->TransactionResponse->Body->TransactionInfo;
+        if (isset($body->TransactionResponse)) { # Handle transaction response.
 
-        $response['request_type'] = $header->RequestType;
-        $response['result_code'] = (string) $header->ResultCode;
-        $response['result_description'] = (string) $header->ResultDescription;
-        $response['support_reference_id'] = (string) $header->SupportReferenceID;
+            $header = $body->TransactionResponse->Header;
+            $transaction = $body->TransactionResponse->Body->TransactionInfo;
 
-        $response['status'] = (string) $transaction->StatusFlag;
+            $response['request_type'] = $header->RequestType;
+            $response['result_code'] = (string) $header->ResultCode;
+            $response['result_description'] = (string) $header->ResultDescription;
+            $response['support_reference_id'] = (string) $header->SupportReferenceID;
 
-        if ($response['result_code'] == 0) {
-            $response['response_description'] = (string) $transaction->ResponseDescription;
-            $response['authorization_id'] = (string) $transaction->TransactionID;
-            $response['response_code'] = (string) $transaction->ResponseCode;
-            $response['approval_code'] = (string) $transaction->ApprovalCode;
-            $response['package_no'] = (string) $transaction->PackageNo;
-            $response['retrieval_ref'] = (string) $transaction->RetrievalRef;
+            $response['status'] = (string) $transaction->StatusFlag;
+
+            if ($response['result_code'] == 0) {
+                $response['response_description'] = (string) $transaction->ResponseDescription;
+                $response['authorization_id'] = (string) $transaction->TransactionID;
+                $response['response_code'] = (string) $transaction->ResponseCode;
+                $response['approval_code'] = (string) $transaction->ApprovalCode;
+                $response['package_no'] = (string) $transaction->PackageNo;
+                $response['retrieval_ref'] = (string) $transaction->RetrievalRef;
+            }
+        }
+
+        if (isset($body->RequestTokenResult)) { # Handle tokenization response.
+            $result = $body->RequestTokenResult;
+            $response['result_code'] = (string) $result->ResultCode;
+            $response['result_description'] = (string) $result->ResultDescription;
+            $response['status'] = (string) $result->StatusFlag;
+            $response['support_reference_id'] = (string) $result->SupportReferenceID;
+            $response['merchant_reference'] = (string) $result->MerchantReference;
+            if ($response['result_code'] == 0) {
+                $response['authorization_id'] = (string) $result->Token;
+            }
         }
 
         return $response;
@@ -294,12 +360,15 @@ class PiraeusPaycenter extends Gateway implements
      */
     private function commit($action, $money, $parameters = array())
     {
-        $url = static::WSDL;
-
         $post_data = $this->post_data($action, $parameters);
 
         $adapter = new SoapClientAdapter();
-        $adapter->setOption('action', 'ProcessTransaction');
+        $adapter->setOption('action', static::ACTION);
+        $url = static::WSDL;
+        if ($action == 'TOKEN') {
+            $adapter->setOption('action', static::TOKEN_ACTION);
+            $url = static::TOKEN_WSDL;
+        }
         $this->setAdapter($adapter);
         $data = $this->ssl_post($url, $post_data);
 
@@ -308,7 +377,7 @@ class PiraeusPaycenter extends Gateway implements
         $test_mode = $this->isTest();
 
         return new Response(
-            $this->success_from($response),
+            $this->success_from($response, $action == 'TOKEN'),
             $this->message_from($response),
             $response,
             array(
@@ -324,8 +393,13 @@ class PiraeusPaycenter extends Gateway implements
      *
      * @return string
      */
-    private function success_from($response)
+    private function success_from($response, $token = false)
     {
+        if ($token) {
+            return $response['result_code'] == '0'
+                && $response['status'] == 'Success';
+        }
+
         return $response['result_code'] == '0'
             && isset($response['response_code'])
             && ($response['response_code'] == '00'

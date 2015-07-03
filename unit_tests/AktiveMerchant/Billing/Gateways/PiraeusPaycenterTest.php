@@ -30,7 +30,6 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
     {
         Base::mode('test');
 
-
         $options = $this->getFixtures()->offsetGet('piraeus_paycenter');
 
         $this->gateway = new PiraeusPaycenter($options);
@@ -328,6 +327,36 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
         $this->assertEquals('Approved or completed successfully', $response->message());
     }
 
+    public function testTokenization()
+    {
+        $options = $this->getFixtures()->offsetGet('piraeus_paycenter_tokenization');
+        $this->gateway = new PiraeusPaycenter($options);
+
+        $this->mock_request($this->successful_store_response());
+
+        $response = $this->gateway->store($this->creditcard, $this->options);
+
+        $this->assert_success($response);
+    }
+
+
+    public function testCharge()
+    {
+        $options = $this->getFixtures()->offsetGet('piraeus_paycenter_tokenization');
+        $this->gateway = new PiraeusPaycenter($options);
+
+        $this->mock_request($this->successful_charge_response());
+
+        $reference = '8888889256045945';
+        $response = $this->gateway->charge(
+            $this->amount,
+            $reference,
+            $this->options
+        );
+
+        $this->assert_success($response);
+    }
+
     private function successful_test_case_01_purchase_response()
     {
         $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:4:"SALE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:46946712;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":11:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:34:"Approved or completed successfully";s:13:"TransactionID";i:37095053;s:19:"TransactionDateTime";s:19:"2015-05-28T13:25:23";s:19:"TransactionTraceNum";i:5;s:17:"MerchantReference";s:13:"REF7903390935";s:12:"ApprovalCode";s:6:"713427";s:12:"RetrievalRef";s:12:"713427713427";s:9:"PackageNo";i:6;s:10:"SessionKey";N;}}}}';
@@ -495,6 +524,20 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
     private function successful_authorize_response()
     {
         $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:9:"AUTHORIZE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:47060877;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":11:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:34:"Approved or completed successfully";s:13:"TransactionID";i:37176983;s:19:"TransactionDateTime";s:19:"2015-05-30T20:53:52";s:19:"TransactionTraceNum";i:6;s:17:"MerchantReference";s:13:"REF1637771035";s:12:"ApprovalCode";s:6:"005925";s:12:"RetrievalRef";s:12:"005925005925";s:9:"PackageNo";i:7;s:10:"SessionKey";N;}}}}';
+
+        return unserialize($serialized);
+    }
+
+    private function successful_store_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:18:"RequestTokenResult";O:8:"stdClass":6:{s:17:"MerchantReference";s:13:"REF2052753086";s:18:"SupportReferenceID";i:48764761;s:10:"StatusFlag";s:7:"Success";s:10:"ResultCode";s:1:"0";s:17:"ResultDescription";s:0:"";s:5:"Token";s:16:"8888889256045945";}}';
+
+        return unserialize($serialized);
+    }
+
+    private function successful_charge_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:4:"SALE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:9:"eCommerce";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:48695150;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":11:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:34:"Approved or completed successfully";s:13:"TransactionID";i:38313565;s:19:"TransactionDateTime";s:19:"2015-07-03T17:41:06";s:19:"TransactionTraceNum";i:3;s:17:"MerchantReference";s:13:"REF7182310275";s:12:"ApprovalCode";s:6:"845556";s:12:"RetrievalRef";s:12:"845556845556";s:9:"PackageNo";i:4;s:10:"SessionKey";N;}}}}';
 
         return unserialize($serialized);
     }
