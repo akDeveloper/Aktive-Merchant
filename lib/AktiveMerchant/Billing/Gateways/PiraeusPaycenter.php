@@ -370,6 +370,7 @@ class PiraeusPaycenter extends Gateway implements
             $url = static::TOKEN_WSDL;
         }
         $this->setAdapter($adapter);
+
         $data = $this->ssl_post($url, $post_data);
 
         $response = $this->parse($data);
@@ -448,6 +449,9 @@ class PiraeusPaycenter extends Gateway implements
      */
     private function post_data($action, $parameters = array())
     {
+        if ($action == 'TOKEN') {
+            return $this->post;
+        }
         /**
          * Add final parameters to post data and
          * build $this->post to the format that your payment gateway understands
