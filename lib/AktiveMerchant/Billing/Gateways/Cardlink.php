@@ -340,8 +340,14 @@ class Cardlink extends Gateway implements
 
         $message = $data->Message; # Always returned
 
-        $digest = $this->calculate_digest($message->asXML());
+        $messageXml = $this->normalizeXml($message);
 
+        $digest = $this->calculate_digest($messageXml);
+        if ($digest !== $data->Digest->__toString()) {
+            $defaults['error_code'] = 500;
+            $defaults['message'] = 'Invalid digest.';
+            return $defaults;
+        }
         if (isset($message->ErrorMessage)) { # we 've got error
 
             $error_code = $message->ErrorMessage->ErrorCode->__toString();
@@ -384,6 +390,16 @@ class Cardlink extends Gateway implements
                 ));
             }
         }
+    }
+
+    private function normalizeXml($message)
+    {
+        $messageXml = $message->asXML();
+        preg_match('/messageId=\"[\w]+\"/', $messageXml, $m);
+        $messageId = $m[0];
+        $messageXml = str_replace('version="1.0" '.$messageId, $messageId . ' version="1.0"', $messageXml);
+
+        return $messageXml;
     }
 
     private function message_from_error_code($error_code, $description = null)
