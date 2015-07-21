@@ -101,6 +101,11 @@ class PiraeusPaycenter extends Gateway implements
         $this->options = $options;
     }
 
+    public function amount($money)
+    {
+        return $money;
+    }
+
     /**
      *
      * @param number     $money
