@@ -257,6 +257,25 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
         );
     }
 
+    public function testPurchase()
+    {
+        $this->mock_request($this->successful_test_case_01_purchase_response());
+
+        $this->creditcard->number = '4111111111111111';
+
+        $response = $this->gateway->purchase(
+            2000.15,
+            $this->creditcard,
+            $this->options
+        );
+
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+        $this->assertEquals('0', $response->result_code);
+        $this->assertEquals('00', $response->response_code);
+        $this->assertEquals('Approved or completed successfully', $response->message());
+    }
+
     public function testAuthorize()
     {
         $this->mock_request($this->successful_authorize_response());

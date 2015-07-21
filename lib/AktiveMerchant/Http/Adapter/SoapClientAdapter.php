@@ -7,6 +7,7 @@ namespace AktiveMerchant\Http\Adapter;
 use AktiveMerchant\Http\AdapterInterface;
 use AktiveMerchant\Http\RequestInterface;
 use SoapClient;
+use SoapFault;
 
 /**
  * SoapClient adapter
@@ -29,7 +30,8 @@ class SoapClientAdapter implements AdapterInterface
     protected $response_body_xml;
 
     protected $options = array(
-        'trace' => true
+        'trace' => true,
+        'exceptions' => true
     );
 
     protected $map_config = array(
@@ -87,7 +89,14 @@ class SoapClientAdapter implements AdapterInterface
         unset($this->options['action']);
         $this->client = new SoapClient($request->getUrl(), $this->options);
 
-        $this->response_body = $this->client->__soapCall($action, $request->getBody());
+        try {
+            $this->response_body = $this->client->__soapCall($action, $request->getBody());
+        } catch (SoapFault $e) {
+            $this->response_body = null;
+
+            throw new Exception($e->getMessage(), $e->getCode());
+            return false;
+        }
 
         $this->response_headers = $this->client->__getLastResponseHeaders();
 

@@ -10,6 +10,7 @@ use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Http\Adapter\SoapClientAdapter;
 use AktiveMerchant\Common\Options;
+use AktiveMerchant\Http\Adapter\Exception as AdapterException;
 
 /**
  * PiraeusPaycenter gateway
@@ -103,7 +104,7 @@ class PiraeusPaycenter extends Gateway implements
 
     public function amount($money)
     {
-        return $money;
+        return number_format($money, 2, '.', '');
     }
 
     /**
@@ -316,7 +317,10 @@ class PiraeusPaycenter extends Gateway implements
      */
     private function parse($body)
     {
-        $response = array();
+        $response = array(
+            'result_code' => 500,
+            'result_description'
+        );
 
         if (isset($body->TransactionResponse)) { # Handle transaction response.
 
@@ -376,11 +380,23 @@ class PiraeusPaycenter extends Gateway implements
         }
         $this->setAdapter($adapter);
 
-        $data = $this->ssl_post($url, $post_data);
+        $test_mode = $this->isTest();
+
+        try {
+            $data = $this->ssl_post($url, $post_data);
+        } catch (AdapterException $e) {
+            return new Response(
+                false,
+                $e->getMessage(),
+                array(),
+            array(
+                'test' => $test_mode,
+                'authorization' => null
+            )
+            );
+        }
 
         $response = $this->parse($data);
-
-        $test_mode = $this->isTest();
 
         return new Response(
             $this->success_from($response, $action == 'TOKEN'),
