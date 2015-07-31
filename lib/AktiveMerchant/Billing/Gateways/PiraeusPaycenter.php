@@ -254,6 +254,12 @@ class PiraeusPaycenter extends Gateway implements
 
     }
 
+    public function followUp($merchantReference)
+    {
+        $this->post = array();
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['MerchantReference'] = $merchantReference;
+        return $this->commit('FOLLOW_UP', 0);
+    }
     /* Private */
 
     /**
@@ -341,6 +347,9 @@ class PiraeusPaycenter extends Gateway implements
                 $response['approval_code'] = (string) $transaction->ApprovalCode;
                 $response['package_no'] = (string) $transaction->PackageNo;
                 $response['retrieval_ref'] = (string) $transaction->RetrievalRef;
+                $response['merchant_reference'] = (string) $transaction->MerchantReference;
+                $response['transaction_trace_num'] = (string) $transaction->TransactionTraceNum;
+                $response['transaction_date_time'] = (string) $transaction->TransactionDateTime;
             }
         }
 
