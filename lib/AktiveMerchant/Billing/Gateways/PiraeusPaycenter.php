@@ -396,7 +396,6 @@ class PiraeusPaycenter extends Gateway implements
 
         try {
             $data = $this->ssl_post($url, $post_data);
-            echo serialize($data);
         } catch (AdapterException $e) {
             return new Response(
                 false,
