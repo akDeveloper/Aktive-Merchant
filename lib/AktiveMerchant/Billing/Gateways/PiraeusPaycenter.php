@@ -325,7 +325,7 @@ class PiraeusPaycenter extends Gateway implements
     {
         $response = array(
             'result_code' => 500,
-            'result_description'
+            'result_description' => null
         );
 
         if (isset($body->TransactionResponse)) { # Handle transaction response.
