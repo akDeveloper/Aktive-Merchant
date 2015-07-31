@@ -115,11 +115,14 @@ class PiraeusPaycenter extends Gateway implements
      *
      * @return Merchant_Billing_Response
      */
-    public function authorize($money, CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options = array())
     {
         $this->post = array();
+        $authorizeDays = isset($options['authorize_days'])
+            ? (int) $options['authorize_days']
+            : 30;
         $this->add_invoice($money, $options);
-        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['ExpirePreauth'] = 30;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['ExpirePreauth'] = $authorizeDays;
         $this->add_creditcard($creditcard);
         $this->add_centinel_data($options);
 
@@ -393,6 +396,7 @@ class PiraeusPaycenter extends Gateway implements
 
         try {
             $data = $this->ssl_post($url, $post_data);
+            echo serialize($data);
         } catch (AdapterException $e) {
             return new Response(
                 false,
