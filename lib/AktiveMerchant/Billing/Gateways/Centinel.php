@@ -20,7 +20,7 @@ use AktiveMerchant\Common\XmlBuilder;
 class Centinel extends Gateway
 {
     const TEST_URL = 'https://centineltest.cardinalcommerce.com/maps/txns.asp';
-    const LIVE_URL = 'https://centinel.cardinalcommerce.com/maps/txns.asp';
+    const LIVE_URL = 'https://centinel.piraeusbank.fdsecure.com/maps/txns.asp';
 
 
     /**
