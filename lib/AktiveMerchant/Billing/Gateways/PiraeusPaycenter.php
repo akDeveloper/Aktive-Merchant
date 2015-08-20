@@ -353,6 +353,9 @@ class PiraeusPaycenter extends Gateway implements
                 $response['merchant_reference'] = (string) $transaction->MerchantReference;
                 $response['transaction_trace_num'] = (string) $transaction->TransactionTraceNum;
                 $response['transaction_date_time'] = (string) $transaction->TransactionDateTime;
+                if (isset($transaction->Token)) {
+                    $response['token'] = (string) $transaction->Token;
+                }
             }
         }
 
