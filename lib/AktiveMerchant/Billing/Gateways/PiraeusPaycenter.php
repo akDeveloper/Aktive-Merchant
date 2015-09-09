@@ -85,7 +85,8 @@ class PiraeusPaycenter extends Gateway implements
         'maestro'           => 'Maestro',
         'diners_club'       => 'DinersClub',
         'discover'          => 'DinersClub',
-        'american_express'  => 'AMEX'
+        'american_express'  => 'AMEX',
+        'UNKNOWN'           => 'UNKNOWN'
     );
 
     /**
@@ -124,7 +125,9 @@ class PiraeusPaycenter extends Gateway implements
         $this->add_invoice($money, $options);
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['ExpirePreauth'] = $authorizeDays;
         $this->add_creditcard($creditcard);
-        $this->add_centinel_data($options);
+        if ($creditcard->type !== 'UNKNOWN') {
+            $this->add_centinel_data($options);
+        }
 
         return $this->commit('AUTHORIZE', $money);
     }
@@ -142,32 +145,9 @@ class PiraeusPaycenter extends Gateway implements
         $this->post = array();
         $this->add_invoice($money, $options);
         $this->add_creditcard($creditcard);
-        $this->add_centinel_data($options);
-
-        return $this->commit('SALE', $money);
-    }
-
-    /**
-     *
-     * @param number $money
-     * @param string $reference
-     * @param array  $options
-     *
-     * @return Response
-     */
-    public function charge($money, $reference, array $options = array())
-    {
-        $this->post = array();
-        $this->add_invoice($money, $options);
-        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['CardType'] = 'UNKNOWN';
-        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['CardNumber'] = $reference;
-        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['CardHolderName'] = null;
-        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['ExpirationMonth'] = null;
-        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['ExpirationYear'] = null;
-        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Cvv2'] = null;
-        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Aid'] = '';
-        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Emv'] = '';
-        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['PinBlock'] = '';
+        if ($creditcard->type !== 'UNKNOWN') {
+            $this->add_centinel_data($options);
+        }
 
         return $this->commit('SALE', $money);
     }
@@ -289,9 +269,12 @@ class PiraeusPaycenter extends Gateway implements
      */
     private function add_creditcard(CreditCard $creditcard)
     {
-        $month = $this->cc_format($creditcard->month, 'two_digits');
+        $month = null;
+        if ($creditcard->month) {
+            $month = $this->cc_format($creditcard->month, 'two_digits');
+        }
 
-        $cardholdername = strtoupper($creditcard->name());
+        $cardholdername = trim(strtoupper($creditcard->name())) ?: null;
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['CardType'] = $this->CARD_MAPPINGS[$creditcard->type];
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['CardNumber'] = $creditcard->number;
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['CardHolderName'] = $cardholdername;

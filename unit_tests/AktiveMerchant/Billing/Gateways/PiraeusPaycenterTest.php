@@ -366,10 +366,15 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
 
         $this->mock_request($this->successful_charge_response());
 
-        $reference = '8888889256045945';
-        $response = $this->gateway->charge(
+        $this->creditcard->first_name = null;
+        $this->creditcard->last_name = null;
+        $this->creditcard->number = '8888889256045945';
+        $this->creditcard->verification_value = null;
+        $this->creditcard->month = null;
+        $this->creditcard->year = null;
+        $response = $this->gateway->purchase(
             $this->amount,
-            $reference,
+            $this->creditcard,
             $this->options
         );
 
