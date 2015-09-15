@@ -358,6 +358,18 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
         $this->assert_success($response);
     }
 
+    public function testInstallmentsSupport()
+    {
+        $this->mock_request($this->successfull_installments_support_response());
+
+        $this->creditcard->number = '4908440000000003';
+        $amount = 120;
+        $response = $this->gateway->supportsInstallment($amount, $this->creditcard);
+
+        $this->assert_success($response);
+    }
+
+
 
     public function testCharge()
     {
@@ -579,9 +591,17 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
 
         return unserialize($serialized);
     }
+
     private function successful_followup_response()
     {
         $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:9:"FOLLOW_UP";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:49877382;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":12:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:34:"Approved or completed successfully";s:13:"TransactionID";i:39055402;s:19:"TransactionDateTime";s:19:"2015-07-31T14:27:51";s:19:"TransactionTraceNum";i:16;s:17:"MerchantReference";s:13:"REF2961958575";s:12:"ApprovalCode";s:6:"203858";s:12:"RetrievalRef";s:12:"203858203858";s:9:"PackageNo";i:78;s:10:"SessionKey";N;s:5:"Token";s:16:"8888889256045945";}}}}';
+
+        return unserialize($serialized);
+    }
+
+    private function successfull_installments_support_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:30:"GetInstallmentsSupportedResult";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":2:{s:8:"Merchant";O:8:"stdClass":3:{s:10:"MerchantID";i:2140528633;s:10:"AcquirerID";s:5:"GR014";s:4:"User";s:8:"EV835779";}s:18:"SupportReferenceID";i:51697033;}s:4:"Body";O:8:"stdClass":4:{s:20:"SupportsInstallments";s:3:"Yes";s:12:"Installments";i:3;s:10:"ResultCode";i:0;s:17:"ResultDescription";s:0:"";}}}';
 
         return unserialize($serialized);
     }

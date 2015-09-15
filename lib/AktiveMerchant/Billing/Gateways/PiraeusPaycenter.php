@@ -28,9 +28,11 @@ class PiraeusPaycenter extends Gateway implements
     const LIVE_URL     = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
     const WSDL         = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx?WSDL';
     const TOKEN_WSDL   = 'https://paycenter.piraeusbank.gr/services/TokenService.asmx?WSDL';
+    const BIN_WSDL     = 'https://paycenter.piraeusbank.gr/Services/BinServiceClient.asmx?WSDL';
 
     const ACTION       = 'ProcessTransaction';
     const TOKEN_ACTION = 'RequestToken';
+    const BIN_ACTION   = 'GetInstallmentsSupported';
 
     /**
      * {@inheritdoc }
@@ -243,6 +245,20 @@ class PiraeusPaycenter extends Gateway implements
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['MerchantReference'] = $merchantReference;
         return $this->commit('FOLLOW_UP', 0);
     }
+
+
+    public function supportsInstallment($amount, CreditCard $creditcard)
+    {
+        $this->post[static::BIN_ACTION]['request']['Header']['Merchant']['MerchantID']  = $this->options['merchant_id'];
+        $this->post[static::BIN_ACTION]['request']['Header']['Merchant']['AcquirerID']  = $this->options['acquire_id'];
+        $this->post[static::BIN_ACTION]['request']['Header']['Merchant']['User']        = $this->options['user'];
+        $this->post[static::BIN_ACTION]['request']['Header']['Merchant']['Password']    = md5($this->options['password']);
+        $this->post[static::BIN_ACTION]['request']['Body']['Amount']                    = $this->amount($amount);
+        $this->post[static::BIN_ACTION]['request']['Body']['Bin']                       = substr($creditcard->number, 0, 8);
+
+        return $this->commit('BIN', 0);
+    }
+
     /* Private */
 
     /**
@@ -354,6 +370,15 @@ class PiraeusPaycenter extends Gateway implements
             }
         }
 
+        if (isset($body->GetInstallmentsSupportedResult)) {
+            $result = $body->GetInstallmentsSupportedResult;
+            $response['support_reference_id'] = (string) $result->Header->SupportReferenceID;
+            $response['supports_installments'] = (string) $result->Body->SupportsInstallments;
+            $response['installments'] = (string) $result->Body->Installments;
+            $response['result_code'] = (string) $result->Body->ResultCode;
+            $response['result_description'] = (string) $result->Body->ResultDescription;
+        }
+
         return $response;
     }
 
@@ -376,6 +401,11 @@ class PiraeusPaycenter extends Gateway implements
             $adapter->setOption('action', static::TOKEN_ACTION);
             $url = static::TOKEN_WSDL;
         }
+        if ($action == 'BIN') {
+            $adapter->setOption('action', static::BIN_ACTION);
+            $url = static::BIN_WSDL;
+        }
+
         $this->setAdapter($adapter);
 
         $test_mode = $this->isTest();
@@ -387,17 +417,17 @@ class PiraeusPaycenter extends Gateway implements
                 false,
                 $e->getMessage(),
                 array(),
-            array(
-                'test' => $test_mode,
-                'authorization' => null
-            )
+                array(
+                    'test' => $test_mode,
+                    'authorization' => null
+                )
             );
         }
 
         $response = $this->parse($data);
 
         return new Response(
-            $this->success_from($response, $action == 'TOKEN'),
+            $this->success_from($response, $action == 'TOKEN', $action == 'BIN'),
             $this->message_from($response),
             $response,
             array(
@@ -413,11 +443,15 @@ class PiraeusPaycenter extends Gateway implements
      *
      * @return string
      */
-    private function success_from($response, $token = false)
+    private function success_from($response, $token = false, $bin = false)
     {
         if ($token) {
             return $response['result_code'] == '0'
                 && $response['status'] == 'Success';
+        }
+
+        if ($bin) {
+            return $response['result_code'] == 0;
         }
 
         return $response['result_code'] == '0'
