@@ -137,6 +137,9 @@ class Centinel extends Gateway
         $xml->OrderNumber($order_number);
         $xml->CurrencyCode($this->currency_lookup($default_currency));
         $xml->Amount($amount);
+        if ($options['installment']) {
+            $xml->Installment($options['installment']);
+        }
     }
 
     private function add_creditcard(CreditCard $creditcard, $xml)
