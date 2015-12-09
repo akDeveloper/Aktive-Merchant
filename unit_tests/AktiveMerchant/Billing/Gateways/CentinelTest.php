@@ -60,12 +60,13 @@ class CentinelTest extends \AktiveMerchant\TestCase
 
     function testLookup()
     {
-        //$this->mock_request($this->successful_lookup_response());
+        $this->mock_request($this->successful_lookup_response());
 
+        /*
         $this->gateway->addListener(RequestEvents::POST_SEND, function($event){
             var_dump(str_replace('cmpi_msg=', null, urldecode($event->getRequest()->getBody())));
             var_dump($event->getRequest()->getResponseBody());
-        });
+        });*/
         $auth = $this->gateway->lookup(
             $this->amount,
             $this->creditcard,

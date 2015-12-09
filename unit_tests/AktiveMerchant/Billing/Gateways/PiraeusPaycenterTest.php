@@ -89,10 +89,10 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
         if (method_exists($this, $method)) {
             $this->mock_request($this->$method());
         } else {
-            $this->gateway->addListener(RequestEvents::POST_SEND, function($event){
+            /*$this->gateway->addListener(RequestEvents::POST_SEND, function($event){
                 var_dump($event->getRequest()->getAdapter()->getRequestBodyXml());
                 var_dump($event->getRequest()->getAdapter()->getResponseBodyXml());
-            });
+            });*/
         }
 
         $this->creditcard->number = $options['card_number'];
