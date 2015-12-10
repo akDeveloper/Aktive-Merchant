@@ -407,6 +407,18 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
         $this->assertEquals('Approved or completed successfully', $response->message());
     }
 
+    public function testIsAvailable()
+    {
+        $this->mock_request($this->successfull_is_available_response());
+
+        $response = $this->gateway->isAvailable();
+
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+        $this->assertEquals('0', $response->result_code);
+        $this->assertEquals('00', $response->response_code);
+    }
+
     private function successful_test_case_01_purchase_response()
     {
         $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:4:"SALE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"TR222222";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:46946712;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":11:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:34:"Approved or completed successfully";s:13:"TransactionID";i:37095053;s:19:"TransactionDateTime";s:19:"2015-05-28T13:25:23";s:19:"TransactionTraceNum";i:5;s:17:"MerchantReference";s:13:"REF7903390935";s:12:"ApprovalCode";s:6:"713427";s:12:"RetrievalRef";s:12:"713427713427";s:9:"PackageNo";i:6;s:10:"SessionKey";N;}}}}';
@@ -602,6 +614,13 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
     private function successfull_installments_support_response()
     {
         $serialized = 'O:8:"stdClass":1:{s:30:"GetInstallmentsSupportedResult";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":2:{s:8:"Merchant";O:8:"stdClass":3:{s:10:"MerchantID";i:2140528633;s:10:"AcquirerID";s:5:"GR014";s:4:"User";s:8:"EV835779";}s:18:"SupportReferenceID";i:51697033;}s:4:"Body";O:8:"stdClass":4:{s:20:"SupportsInstallments";s:3:"Yes";s:12:"Installments";i:3;s:10:"ResultCode";i:0;s:17:"ResultDescription";s:0:"";}}}';
+
+        return unserialize($serialized);
+    }
+
+    private function successfull_is_available_response()
+    {
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:11:"ISAVAILABLE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2140528633;s:5:"PosID";i:2143048044;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"EV835779";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:56966842;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":11:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:9:"Available";s:13:"TransactionID";N;s:19:"TransactionDateTime";N;s:19:"TransactionTraceNum";N;s:17:"MerchantReference";N;s:12:"ApprovalCode";N;s:12:"RetrievalRef";N;s:9:"PackageNo";N;s:10:"SessionKey";N;}}}}';
 
         return unserialize($serialized);
     }

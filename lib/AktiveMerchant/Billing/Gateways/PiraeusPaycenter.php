@@ -243,7 +243,16 @@ class PiraeusPaycenter extends Gateway implements
     {
         $this->post = array();
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['MerchantReference'] = $merchantReference;
+
         return $this->commit('FOLLOW_UP', 0);
+    }
+
+    public function isAvailable()
+    {
+        $this->post = array();
+
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['MerchantReference'] = $this->generateUniqueId();
+        return $this->commit('ISAVAILABLE', 0);
     }
 
 
