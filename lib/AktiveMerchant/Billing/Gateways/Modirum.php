@@ -112,11 +112,18 @@ abstract class Modirum extends Gateway implements
         $this->options = $options;
     }
 
+    public function amount($money)
+    {
+        return number_format($money, 2, '.', '');
+    }
+
     /**
      * {@inheritdoc}
      */
     public function authorize($money, CreditCard $creditcard, $options = array())
     {
+        $options = new Options($options);
+
         $this->buildXml(static::AUTHORIZE, $options, function ($xml) use ($money, $creditcard, $options) {
             $this->addInvoice($money, $options, $xml);
             $this->addCreditcard($creditcard, $xml);
@@ -151,10 +158,16 @@ abstract class Modirum extends Gateway implements
      */
     public function capture($money, $authorization, $options = array())
     {
-        $this->post = array('authorization_id' => $authorization);
-        $this->add_customer_data($options);
+        Options::required('order_id, payment_method', $options);
 
-        return $this->commit('capture', $money);
+        $options = new Options($options);
+
+        $this->buildXml(static::CAPTURE, $options, function ($xml) use ($money, $authorization, $options) {
+            $this->addInvoice($money, $options, $xml);
+            $this->addIdentification($authorization, $options, $xml);
+        });
+
+        return $this->commit(static::CAPTURE, $money);
     }
 
     /**
@@ -235,6 +248,11 @@ abstract class Modirum extends Gateway implements
             $xml->OrderAmount($this->amount($money));
             $xml->Currency(static::$default_currency);
             $xml->PayerEmail("");
+            if ($options['installments']) {
+                $xml->InstallmentParameters(function ($xml) use ($options) {
+                    $xml->ExtInstallmentperiod($options['installments']);
+                });
+            }
         });
     }
 

@@ -61,6 +61,24 @@ class AlphaBankTest extends \AktiveMerchant\TestCase
 
         $this->assert_success($response);
         $this->assertTrue($response->test());
+
+        return $response->order_id;
+    }
+
+    public function testPurchaseWithInstallments()
+    {
+        $this->mock_request($this->success_purchase_with_installments_repsponse());
+
+        $this->options['installments'] = 6;
+
+        $response = $this->gateway->purchase(
+            $this->amount,
+            $this->creditcard,
+            $this->options
+        );
+
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
     }
 
     public function testAuthorize()
@@ -75,17 +93,43 @@ class AlphaBankTest extends \AktiveMerchant\TestCase
 
         $this->assert_success($response);
         $this->assertTrue($response->test());
+
+        return $response->order_id;
     }
 
-    public function testCredit()
+    /**
+     * @depends testAuthorize
+     */
+    public function testCapture($order_id)
+    {
+        $this->mock_request($this->success_capture_response());
+
+        $this->options['payment_method'] = 'visa';
+        $this->options['order_id'] = $order_id;
+        $response = $this->gateway->capture(
+            $this->amount,
+            $this->creditcard->number,
+            $this->options
+        );
+
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+
+        return $response->order_id;
+    }
+
+    /**
+     * @depends testPurchase
+     */
+    public function testCredit($order_id)
     {
         $this->mock_request($this->success_credit_response());
 
         $this->options['payment_method'] = 'visa';
-        $this->options['order_id'] = '1369981694782';
+        $this->options['order_id'] = $order_id;
         $response = $this->gateway->credit(
             $this->amount,
-            'xxxxxxxxxxxxxxxx',
+            $this->creditcard->number,
             $this->options
         );
 
@@ -93,12 +137,15 @@ class AlphaBankTest extends \AktiveMerchant\TestCase
         $this->assertTrue($response->test());
     }
 
-    public function testVoid()
+    /**
+     * @depends testCapture
+     */
+    public function testVoid($order_id)
     {
         $this->mock_request($this->success_void_response());
 
         $this->options['payment_method'] = 'visa';
-        $this->options['order_id'] = 'REF9355783865';
+        $this->options['order_id'] = $order_id;
         $this->options['money'] = 0.09;
         $response = $this->gateway->void(
             $this->creditcard->number,
@@ -157,6 +204,11 @@ class AlphaBankTest extends \AktiveMerchant\TestCase
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas"><Message version="1.0" messageId="00b64732ba90dd5aad0eda4568deae90"><SaleResponse><OrderId>REF9355783865</OrderId><OrderAmount>0.09</OrderAmount><Currency>EUR</Currency><PaymentTotal>0.09</PaymentTotal><Status>CAPTURED</Status><TxId>24227051</TxId><PaymentRef>133541</PaymentRef><RiskScore>0</RiskScore><Description>OK, CAPTURED response code 00</Description></SaleResponse></Message><Digest>rDWmTquVdqWv1vaAlucstv/IaOc=</Digest></VPOS>';
     }
 
+    private function success_purchase_with_installments_repsponse()
+    {
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas"><Message version="1.0" messageId="bc53a032a53b02fbbe813fef9e1c9f6b"><SaleResponse><OrderId>REF4096019945</OrderId><OrderAmount>0.09</OrderAmount><Currency>EUR</Currency><PaymentTotal>0.09</PaymentTotal><Status>CAPTURED</Status><TxId>24228541</TxId><PaymentRef>101517</PaymentRef><RiskScore>0</RiskScore><Description>OK, CAPTURED response code 00</Description></SaleResponse></Message><Digest>wJrNheHA59yI6XUVvAjuffAGUNA=</Digest></VPOS>';
+    }
+
     private function error_response()
     {
         return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas"><Message version="1.0" messageId="1434105759548"><ErrorMessage><ErrorCode>SE</ErrorCode><Description>Unspecified Exception. Errror id: 1434105759548</Description></ErrorMessage></Message></VPOS>';
@@ -174,17 +226,22 @@ class AlphaBankTest extends \AktiveMerchant\TestCase
 
     private function success_authorize_response()
     {
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas"><Message version="1.0" messageId="aabdc078302f8105fce4c3f30fbc6374"><AuthorisationResponse><OrderId>REF1985947185</OrderId><OrderAmount>0.09</OrderAmount><Currency>EUR</Currency><PaymentTotal>0.09</PaymentTotal><Status>AUTHORIZED</Status><TxId>1541201</TxId><PaymentRef>750140</PaymentRef><RiskScore>0</RiskScore><Description>OK, AUTHORIZED response code 00</Description></AuthorisationResponse></Message><Digest>6T3WzbFkeubZwC3ogtjmLufmau0=</Digest></VPOS>';
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas"><Message version="1.0" messageId="c3c7814c6a2896266ca9b5b92d73544b"><AuthorisationResponse><OrderId>REF6134229075</OrderId><OrderAmount>0.09</OrderAmount><Currency>EUR</Currency><PaymentTotal>0.09</PaymentTotal><Status>AUTHORIZED</Status><TxId>24228771</TxId><PaymentRef>104000</PaymentRef><RiskScore>0</RiskScore><Description>OK, AUTHORIZED response code 00</Description></AuthorisationResponse></Message><Digest>O5rqINjQymXE8O1fXb5NJaprKPY=</Digest></VPOS>';
+    }
+
+    private function success_capture_response()
+    {
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas"><Message version="1.0" messageId="10cc3d0c482163e8f285cd27471fd5c9"><CaptureResponse><OrderId>REF6134229075</OrderId><OrderAmount>0.09</OrderAmount><Currency>EUR</Currency><PaymentTotal>0.09</PaymentTotal><Status>CAPTURED</Status><TxId>24230001</TxId><PaymentRef>104000</PaymentRef><Description>OK, CAPTURED response code 00</Description></CaptureResponse></Message><Digest>4GylJuD2bUS9G8+wBBpvAa5b1FA=</Digest></VPOS>';
     }
 
     private function success_credit_response()
     {
-       return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas"><Message version="1.0" messageId="7cf4522940c8f672a0f3499792c476e2"><RefundResponse><OrderId>1369981694782</OrderId><OrderAmount>0.09</OrderAmount><Currency>EUR</Currency><PaymentTotal>0.09</PaymentTotal><Status>CAPTURED</Status><TxId>1545651</TxId><Description>OK, CAPTURED response code 00</Description></RefundResponse></Message><Digest>HVpuSrccNqrcMSfuXTQwjetUjZ8=</Digest></VPOS>';
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas"><Message version="1.0" messageId="b6721996c563e30e15514a65551402da"><RefundResponse><OrderId>REF4090800935</OrderId><OrderAmount>0.09</OrderAmount><Currency>EUR</Currency><PaymentTotal>0.09</PaymentTotal><Status>CAPTURED</Status><TxId>24230081</TxId><Description>OK, CAPTURED response code 00</Description></RefundResponse></Message><Digest>BGVY0C2DbMQHqUZPTSd6iBjJu+w=</Digest></VPOS>';
     }
 
     private function success_void_response()
     {
-       return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas"><Message version="1.0" messageId="e168db59b2acf9c4d66a1db0c57b64e7"><CancelResponse><OrderId>REF9355783865</OrderId><OrderAmount>0.09</OrderAmount><Currency>EUR</Currency><PaymentTotal>0.09</PaymentTotal><Status>AUTHORIZED</Status><TxId>24227111</TxId><PaymentRef>133541</PaymentRef><Description>OK, AUTHORIZED response code 00</Description></CancelResponse></Message><Digest>zHmmXsy9sJOH7INceSNDNJKroi0=</Digest></VPOS>';
+        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas"><Message version="1.0" messageId="e168db59b2acf9c4d66a1db0c57b64e7"><CancelResponse><OrderId>REF9355783865</OrderId><OrderAmount>0.09</OrderAmount><Currency>EUR</Currency><PaymentTotal>0.09</PaymentTotal><Status>AUTHORIZED</Status><TxId>24227111</TxId><PaymentRef>133541</PaymentRef><Description>OK, AUTHORIZED response code 00</Description></CancelResponse></Message><Digest>zHmmXsy9sJOH7INceSNDNJKroi0=</Digest></VPOS>';
     }
 
     private function success_status_response()
