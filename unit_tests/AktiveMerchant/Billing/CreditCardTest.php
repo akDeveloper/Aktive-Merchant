@@ -22,7 +22,7 @@ class CreditCardTest extends PHPUnit_Framework_TestCase
                 "last_name" => "Doe",
                 "number" => "4381258770269608",
                 "month" => "1",
-                "year" => "2015",
+                "year" => date('Y') + 1,
                 "verification_value" => "000"
                 )
         );
