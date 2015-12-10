@@ -53,6 +53,8 @@ class ePDQTest extends \AktiveMerchant\TestCase
                 'state' => 'WA'
             )
         );
+
+        $this->markTestIncomplete('Uncomplete implementation.');
     }
 
     public function testSuccessfulPurchase()

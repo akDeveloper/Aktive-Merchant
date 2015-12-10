@@ -7,14 +7,12 @@ use AktiveMerchant\Billing\Base;
 
 class PiraeusPaycenterRedirectTest extends \AktiveMerchant\TestCase
 {
-
     /**
      * Setup
      */
-    function setUp()
+    public function setUp()
     {
         Base::mode('test');
-
 
         $options = $this->getFixtures()->offsetGet('piraeus_paycenter_redirect');
 
@@ -25,7 +23,10 @@ class PiraeusPaycenterRedirectTest extends \AktiveMerchant\TestCase
         $this->options = array(
             'order_id' => 'REF' . $this->gateway->generateUniqueId()
         );
+
+        $this->markTestIncomplete('Uncomplete implementation.');
     }
+
     public function testTicket()
     {
         $response = $this->gateway->ticket($this->amount, $this->options);
