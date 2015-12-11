@@ -26,7 +26,7 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
     /**
      * Setup
      */
-    function setUp()
+    public function setUp()
     {
         Base::mode('test');
 
@@ -35,15 +35,16 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
         $this->gateway = new PiraeusPaycenter($options);
 
         $this->amount = 1;
-        $this->creditcard = new CreditCard(array(
-            "first_name" => "John",
-            "last_name" => "Doe",
-            "number" => "4111111111111111",
-            "month" => "01",
-            "year" => date('Y') + 1,
-            "verification_value" => "123"
-        )
-    );
+        $this->creditcard = new CreditCard(
+            array(
+                "first_name" => "John",
+                "last_name" => "Doe",
+                "number" => "4111111111111111",
+                "month" => "01",
+                "year" => date('Y') + 1,
+                "verification_value" => "123"
+            )
+        );
         $this->options = array(
             'order_id' => 'REF' . $this->gateway->generateUniqueId(),
             'description' => 'Test Transaction',
@@ -613,14 +614,14 @@ class PiraeusPaycenterTest extends \AktiveMerchant\TestCase
 
     private function successfull_installments_support_response()
     {
-        $serialized = 'O:8:"stdClass":1:{s:30:"GetInstallmentsSupportedResult";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":2:{s:8:"Merchant";O:8:"stdClass":3:{s:10:"MerchantID";i:2140528633;s:10:"AcquirerID";s:5:"GR014";s:4:"User";s:8:"EV835779";}s:18:"SupportReferenceID";i:51697033;}s:4:"Body";O:8:"stdClass":4:{s:20:"SupportsInstallments";s:3:"Yes";s:12:"Installments";i:3;s:10:"ResultCode";i:0;s:17:"ResultDescription";s:0:"";}}}';
+        $serialized = 'O:8:"stdClass":1:{s:30:"GetInstallmentsSupportedResult";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":2:{s:8:"Merchant";O:8:"stdClass":3:{s:10:"MerchantID";i:2222222222;s:10:"AcquirerID";s:5:"GR014";s:4:"User";s:8:"EV777777";}s:18:"SupportReferenceID";i:51697033;}s:4:"Body";O:8:"stdClass":4:{s:20:"SupportsInstallments";s:3:"Yes";s:12:"Installments";i:3;s:10:"ResultCode";i:0;s:17:"ResultDescription";s:0:"";}}}';
 
         return unserialize($serialized);
     }
 
     private function successfull_is_available_response()
     {
-        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:11:"ISAVAILABLE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2140528633;s:5:"PosID";i:2143048044;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"EV835779";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:56966842;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":11:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:9:"Available";s:13:"TransactionID";N;s:19:"TransactionDateTime";N;s:19:"TransactionTraceNum";N;s:17:"MerchantReference";N;s:12:"ApprovalCode";N;s:12:"RetrievalRef";N;s:9:"PackageNo";N;s:10:"SessionKey";N;}}}}';
+        $serialized = 'O:8:"stdClass":1:{s:19:"TransactionResponse";O:8:"stdClass":2:{s:6:"Header";O:8:"stdClass":5:{s:11:"RequestType";s:11:"ISAVAILABLE";s:12:"MerchantInfo";O:8:"stdClass":4:{s:10:"MerchantID";i:2222222222;s:5:"PosID";i:2222222222;s:11:"ChannelType";s:8:"3DSecure";s:4:"User";s:8:"EV777777";}s:10:"ResultCode";i:0;s:17:"ResultDescription";s:8:"No Error";s:18:"SupportReferenceID";i:56966842;}s:4:"Body";O:8:"stdClass":1:{s:15:"TransactionInfo";O:8:"stdClass":11:{s:10:"StatusFlag";s:7:"Success";s:12:"ResponseCode";s:2:"00";s:19:"ResponseDescription";s:9:"Available";s:13:"TransactionID";N;s:19:"TransactionDateTime";N;s:19:"TransactionTraceNum";N;s:17:"MerchantReference";N;s:12:"ApprovalCode";N;s:12:"RetrievalRef";N;s:9:"PackageNo";N;s:10:"SessionKey";N;}}}}';
 
         return unserialize($serialized);
     }
