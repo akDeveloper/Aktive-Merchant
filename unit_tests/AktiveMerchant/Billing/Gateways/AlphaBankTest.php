@@ -161,6 +161,9 @@ class AlphaBankTest extends \AktiveMerchant\TestCase
         $this->mock_request($this->success_status_response());
 
         $response = $this->gateway->status('24227111');
+
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
     }
 
     public function testErrorHandling()
@@ -195,8 +198,10 @@ class AlphaBankTest extends \AktiveMerchant\TestCase
             $this->creditcard,
             $this->options
         );
+
         $this->assert_failure($response);
         $this->assertTrue($response->test());
+        $this->assertEquals('T3', array_search($response->message(), AlphaBank::$statusCode));
     }
 
     private function success_purchase_repsponse()
@@ -246,6 +251,6 @@ class AlphaBankTest extends \AktiveMerchant\TestCase
 
     private function success_status_response()
     {
-        return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas"><Message version="1.0" messageId="7b00c7380e025722cf5b61b12feb49d0" timeStamp="2015-12-09T16:03:51.332+02:00"><StatusResponse><TransactionDetails><OrderAmount>0.09</OrderAmount><Currency>EUR</Currency><PaymentTotal>0.09</PaymentTotal><Status>AUTHORIZED</Status><TxId>24227111</TxId><PaymentRef>133541</PaymentRef><Description>OK, AUTHORIZED response code 00</Description><TxType>VOID</TxType><TxDate>2015-12-09T15:51:50.206+02:00</TxDate><TxStarted>2015-12-09T15:51:50.158+02:00</TxStarted><TxCompleted>2015-12-09T15:51:50.721+02:00</TxCompleted><PaymentMethod>visa</PaymentMethod><Attribute name="MERCHANT NO">0022000230</Attribute><Attribute name="USER IP">77.69.3.98</Attribute><Attribute name="CHANNEL">XML API</Attribute><Attribute name="SETTLEMENT STATUS">NA</Attribute><Attribute name="BATCH NO">1</Attribute><Attribute name="ISO response code">00</Attribute><Attribute name="ORDER DESCRIPTION"/><Attribute name="CARD MASK PAN">4000########0002</Attribute><Attribute name="ECOM-FLG"> </Attribute><Attribute name="BONUS PARTICIPATION">No</Attribute></TransactionDetails></StatusResponse></Message><Digest>cwDXoAgB9pPb4jRF1NJP8aEpCN0=</Digest></VPOS>';
+        return '<?xml version="1.0"?> <VPOS xmlns="http://www.modirum.com/schemas"> <Message messageId="7b00c7380e025722cf5b61b12feb49d0" timeStamp="2015-12-09T16:03:51.332+02:00" version="1.0"> <StatusResponse> <TransactionDetails> <OrderAmount>0.09</OrderAmount> <Currency>EUR</Currency> <PaymentTotal>0.09</PaymentTotal> <Status>AUTHORIZED</Status> <TxId>24227111</TxId> <PaymentRef>133541</PaymentRef> <Description>OK, AUTHORIZED response code 00</Description> <TxType>VOID</TxType> <TxDate>2015-12-09T15:51:50.206+02:00</TxDate> <TxStarted>2015-12-09T15:51:50.158+02:00</TxStarted> <TxCompleted>2015-12-09T15:51:50.721+02:00</TxCompleted> <PaymentMethod>visa</PaymentMethod> <Attribute name="MERCHANT NO">0022000230</Attribute> <Attribute name="USER IP">77.69.3.98</Attribute> <Attribute name="CHANNEL">XML API</Attribute> <Attribute name="SETTLEMENT STATUS">NA</Attribute> <Attribute name="BATCH NO">1</Attribute> <Attribute name="ISO response code">00</Attribute> <Attribute name="ORDER DESCRIPTION"></Attribute> <Attribute name="CARD MASK PAN">4000########0002</Attribute> <Attribute name="ECOM-FLG"> </Attribute> <Attribute name="BONUS PARTICIPATION">No</Attribute> </TransactionDetails> </StatusResponse> </Message> <Digest>cwDXoAgB9pPb4jRF1NJP8aEpCN0=</Digest> </VPOS>';
     }
 }

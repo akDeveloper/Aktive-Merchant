@@ -175,7 +175,7 @@ abstract class Modirum extends Gateway implements
      */
     public function void($authorization, $options = array())
     {
-        Options::required('money', $options);
+        Options::required('order_id, payment_method, money', $options);
 
         $options = new Options($options);
 
@@ -198,6 +198,8 @@ abstract class Modirum extends Gateway implements
      */
     public function credit($money, $identification, $options = array())
     {
+        Options::required('order_id, payment_method', $options);
+
         $options = new Options($options);
 
         $this->buildXml(static::REFUND, $options, function ($xml) use ($money, $identification, $options) {
@@ -244,7 +246,7 @@ abstract class Modirum extends Gateway implements
     {
         $xml->OrderInfo(function ($xml) use ($money, $options) {
             $xml->OrderId($options['order_id']);
-            $xml->OrderDesc("");
+            $xml->OrderDesc($options['order_id']);
             $xml->OrderAmount($this->amount($money));
             $xml->Currency(static::$default_currency);
             $xml->PayerEmail("");
@@ -302,14 +304,15 @@ abstract class Modirum extends Gateway implements
      */
     private function parse($body, $actionResponse)
     {
-        $data = simplexml_load_string($body);
+        $data = simplexml_load_string($body, 'SimpleXMLElement', LIBXML_NOBLANKS);
 
         $defaults = array(
-            'error_code'       => 0,
-            'message'          => null,
+            'error_code' => 0,
+            'message' => null,
             'authorization_id' => null,
-            'status'           => null,
-            'response_code'    => null
+            'status' => null,
+            'response_code' => null,
+            'notice' => null,
         );
 
         $message = $data->Message; # Always returned
@@ -318,10 +321,7 @@ abstract class Modirum extends Gateway implements
 
         $digest = $this->calculateDigest($messageXml);
         if ($digest !== $data->Digest->__toString()) {
-            $defaults['error_code'] = 500;
-            $defaults['message'] = 'Invalid digest.';
-
-            return $defaults;
+            $defaults['notice'] = 'Invalid digest.';
         }
         if (isset($message->ErrorMessage)) { # we 've got error
             $error_code = $message->ErrorMessage->ErrorCode->__toString();
@@ -335,7 +335,12 @@ abstract class Modirum extends Gateway implements
             ));
         } else {
             $response = $message->$actionResponse;
+            $statusResponse = array();
 
+            if (isset($response->TransactionDetails)) {
+                $statusResponse = $this->parseStatusResponse($response);
+                $response = $response->TransactionDetails;
+            }
             $description = $response->Description->__toString();
             if (isset($response->ErrorCode)) {
                 $error_code = $response->ErrorCode->__toString();
@@ -361,14 +366,28 @@ abstract class Modirum extends Gateway implements
                     'status'            => $response->Status->__toString(),
                     'order_id'          => $response->OrderId->__toString(),
                     'payment_total'     => $response->PaymentTotal->__toString()
-                ));
+                ), $statusResponse);
             }
         }
+    }
+
+    private function parseStatusResponse($response)
+    {
+        $status = array();
+        foreach ($response->TransactionDetails->Attribute as $a) {
+            $key = $a->attributes()->__toString();
+            $key = strtolower(str_replace(' ', '_', $key));
+            $value = $a->__toString();
+            $status[$key] = $value;
+        }
+
+        return $status;
     }
 
     private function normalizeXml($message)
     {
         $messageXml = $message->asXML();
+
         preg_match('/messageId=\"[\w]+\"/', $messageXml, $m);
         $messageId = $m[0];
         $messageXml = str_replace('version="1.0" '.$messageId, $messageId . ' version="1.0"', $messageXml);
@@ -484,18 +503,18 @@ XML;
      * @param string $message
      * @return string
      */
-    protected function canonicalize($message)
+    protected function canonicalize($xml)
     {
-        // remove the whitespace characters before and
-        // after the < > tag delimiters
-        $xml = preg_replace('~\s*(<([^>]*)>[^<]*</\2>|<[^>]*>)\s*~', '$1', $message);
-
         $replacement = 'xmlns="http://www.modirum.com/schemas" ';
         $start  = 0;
         $length = 9;
 
         $xml = substr($xml, $start, $length)
              . substr_replace($xml, $replacement, $start, $length);
+
+        $dom = new \DOMDocument("1.0", "utf-8");
+        $dom->loadXML($xml);
+        $xml = $dom->C14N();
 
         return $xml;
     }
