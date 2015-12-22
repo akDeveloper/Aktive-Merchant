@@ -22,6 +22,7 @@ class PiraeusPaycenter extends Gateway implements
 {
     const TEST_URL = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
     const LIVE_URL = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
+    const TICKET_URL = 'https://paycenter.piraeusbank.gr/services/tickets/issuer.asmx';
 
     /**
      * {@inheritdoc }
@@ -256,10 +257,11 @@ XML;
         $body = preg_replace('#(</?)soap:#', '$1', $body);
         $xml = simplexml_load_string($body);
 
+        $response = array();
+
         $header = $xml->Body->ProcessTransactionResponse->TransactionResponse->Header;
         $transaction = $xml->Body->ProcessTransactionResponse->TransactionResponse->Body->TransactionInfo;
 
-        $response = array();
 
         $response['status'] = (string) $transaction->StatusFlag;
         $response['result_description'] = (string) $header->ResultDescription;
@@ -286,13 +288,16 @@ XML;
     {
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
+        $header = 'http://piraeusbank.gr/paycenter/ProcessTransaction';
+
         $post_data = $this->post_data($action, $parameters);
+
         $headers = array(
             "POST /services/paymentgateway.asmx HTTP/1.1",
             "Host: paycenter.piraeusbank.gr",
             "Content-type: text/xml; charset=\"utf-8\"",
             "Content-length: " . strlen($post_data),
-            "SOAPAction: \"http://piraeusbank.gr/paycenter/ProcessTransaction\""
+            "SOAPAction: \"$header\""
         );
 
         $data = $this->ssl_post($url, $post_data, array('headers' => $headers));
@@ -402,5 +407,4 @@ XML;
 
         return ($xml);
     }
-
 }
