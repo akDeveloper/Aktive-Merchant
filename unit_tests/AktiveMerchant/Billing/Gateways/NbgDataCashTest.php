@@ -66,8 +66,8 @@ class NbgDataCashTest extends \AktiveMerchant\TestCase
     public function testCapture()
     {
         $this->mock_request($this->successCaptureResponse());
-        $this->options['reference'] = '3400900013651606';
-        $response = $this->gateway->capture($this->amount, '013648', $this->options);
+        $authorization = '3400900013651606;013648';
+        $response = $this->gateway->capture($this->amount, $authorization, $this->options);
 
         $this->assert_success($response);
     }

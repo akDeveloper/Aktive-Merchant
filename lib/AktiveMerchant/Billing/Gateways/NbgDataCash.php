@@ -31,6 +31,8 @@ class NbgDataCash extends Gateway implements
     const VOID = 'cancel';
     const CREDIT = 'txn_refund';
 
+    const SUCCESS = '1';
+
     /**
      * {@inheritdoc}
      */
@@ -133,7 +135,6 @@ class NbgDataCash extends Gateway implements
      */
     public function capture($money, $authorization, $options = array())
     {
-        Options::required('reference', $options);
         $options = new Options($options);
 
         $this->buildXml($options, function ($xml) use ($money, $authorization, $options) {
@@ -312,7 +313,7 @@ class NbgDataCash extends Gateway implements
     private function parseCardTxn($cardTxn, $data)
     {
         $response = array();
-        $response['authorization_id'] = $cardTxn->authcode->__toString();
+        $response['authorization_id'] = sprintf('%s;%s', $cardTxn->authcode->__toString(), $data['datacash_reference']);
         $response['card_scheme'] = $cardTxn->card_scheme->__toString();
         $response['country'] = $cardTxn->country->__toString();
         $response['issuer'] = $cardTxn->issuer->__toString();
@@ -368,7 +369,7 @@ class NbgDataCash extends Gateway implements
      */
     private function successFrom($response)
     {
-        return $response['status'] == 1;
+        return $response['status'] == static::SUCCESS;
     }
 
     /**
@@ -436,5 +437,15 @@ class NbgDataCash extends Gateway implements
                 $block($xml);
             });
         }, array('version' => '2'));
+    }
+
+    private function parseAuthorization($authorization)
+    {
+        list($datacash_reference, $authcode) = explode(';', $authorization);
+
+        return array(
+            'datacash_reference' => $datacash_reference,
+            'authcode' => $authcode
+        );
     }
 }
