@@ -18,7 +18,7 @@ use AktiveMerchant\Common\XmlBuilder;
  * @author   Andreas Kollaros
  * @license  MIT License http://www.opensource.org/licenses/mit-license.php
  */
-class NbgDataCash extends Gateway implements
+class DataCash extends Gateway implements
     Interfaces\Charge,
     Interfaces\Credit
 {
@@ -39,47 +39,18 @@ class NbgDataCash extends Gateway implements
     public static $money_format = 'dollars';
 
     /**
-     * {@inheritdoc}
-     */
-    public static $supported_countries = array('GR');
-
-    /**
-     * {@inheritdoc}
-     */
-    public static $supported_cardtypes = array(
-        'visa',
-        'master',
-        'maestro'
-    );
-
-    /**
-     * {@inheritdoc}
-     */
-    public static $homepage_url = 'https://www.nbg.gr';
-
-    /**
-     * {@inheritdoc}
-     */
-    public static $display_name = 'Nbg DataCash';
-
-    /**
-     * {@inheritdoc}
-     */
-    public static $default_currency = 'EUR';
-
-    /**
      * Additional options needed by gateway
      *
      * @var array
      */
-    private $options;
+    protected $options;
 
     /**
      * Contains the main body of the request.
      *
      * @var array
      */
-    private $post;
+    protected $post;
 
     /**
      * creates gateway instance from given options.
@@ -112,7 +83,7 @@ class NbgDataCash extends Gateway implements
             $this->addCreditcard($creditcard, static::AUTHORIZE, $xml);
         });
 
-        return $this->commit(static::AUTHORIZE, $money);
+        return $this->commit();
     }
 
     /**
@@ -127,7 +98,7 @@ class NbgDataCash extends Gateway implements
             $this->addCreditcard($creditcard, static::PURCHASE, $xml);
         });
 
-        return $this->commit(static::PURCHASE, $money);
+        return $this->commit();
     }
 
     /**
@@ -137,16 +108,18 @@ class NbgDataCash extends Gateway implements
     {
         $options = new Options($options);
 
-        $this->buildXml($options, function ($xml) use ($money, $authorization, $options) {
+        $reference = $this->parseAuthorization($authorization);
+
+        $this->buildXml($options, function ($xml) use ($money, $reference, $options) {
             $this->addInvoice($money, $options, $xml);
-            $xml->HistoricTxn(function ($xml) use ($options, $authorization) {
-                $xml->reference($options['reference']);
-                $xml->authcode($authorization);
+            $xml->HistoricTxn(function ($xml) use ($options, $reference) {
+                $xml->reference($reference['datacash_reference']);
+                $xml->authcode($reference['authcode']);
                 $xml->method(static::CAPTURE);
             });
         });
 
-        return $this->commit(static::CAPTURE, $money);
+        return $this->commit();
     }
 
     /**
@@ -154,8 +127,16 @@ class NbgDataCash extends Gateway implements
      */
     public function void($authorization, $options = array())
     {
-        $this->post = array('authorization' => $authorization);
-        return $this->commit('void', null);
+        $reference = $this->parseAuthorization($authorization);
+
+        $this->buildXml($options, function ($xml) use ($reference) {
+            $xml->HistoricTxn(function ($xml) use ($reference) {
+                $xml->reference($reference['datacash_reference']);
+                $xml->method(static::VOID);
+            });
+        });
+
+        return $this->commit();
     }
 
     /**
@@ -168,20 +149,82 @@ class NbgDataCash extends Gateway implements
      */
     public function credit($money, $identification, $options = array())
     {
-        $this->post = array('authorization' => $identification);
+        $reference = $this->parseAuthorization($identification);
 
-        $this->add_invoice($options);
-        return $this->commit('credit', $money);
+        $this->buildXml($options, function ($xml) use ($money, $reference) {
+            $xml->TxnDetails(function ($xml) use ($money) {
+                $xml->amount($this->amount($money));
+            });
+            $xml->HistoricTxn(function ($xml) use ($reference) {
+                $xml->reference($reference['datacash_reference']);
+                $xml->method(static::CREDIT);
+            });
+        });
+
+        return $this->commit();
     }
 
-    // Private methods
+    public function store(CreditCard $creditcard, $options = array())
+    {
+
+    }
+
+    /**
+     *
+     * @param  string $action
+     * @param  number $money
+     * @param  array  $parameters
+     *
+     * @return Response
+     */
+    protected function commit()
+    {
+        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
+
+        $postData = $this->postData();
+
+        echo $postData;
+        $data = $this->ssl_post($url, $postData);
+
+        echo $data;
+        $response = $this->parse($data);
+
+        $test_mode = $this->isTest();
+
+        return new Response(
+            $this->successFrom($response),
+            $this->messageFrom($response),
+            $response,
+            array(
+                'test' => $test_mode,
+                'authorization' => $response['authorization_id'],
+                'fraud_review' => $this->fraudReviewFrom($response),
+                'avs_result' => $this->avsResultFrom($response),
+                'cvv_result' => $response['card_code']
+            )
+        );
+    }
+
+    protected function buildXml($options, $block)
+    {
+        $this->xml = new XmlBuilder();
+        $this->xml->Request(function ($xml) use ($block) {
+            $xml->Authentication(function ($xml) {
+                $xml->client($this->options['client']);
+                $xml->password($this->options['password']);
+            });
+            $xml->Transaction(function ($xml) use ($block) {
+                $block($xml);
+            });
+        }, array('version' => '2'));
+    }
 
     /**
      * Customer data like e-mail, ip, web browser used for transaction etc
      *
      * @param array $options
      */
-    private function addCustomerData($options)
+    protected function addCustomerData($xml, $options)
     {
 
     }
@@ -213,7 +256,7 @@ class NbgDataCash extends Gateway implements
      *
      * @return void
      */
-    private function addAddress($options)
+    protected function addAddress($options)
     {
 
     }
@@ -223,9 +266,9 @@ class NbgDataCash extends Gateway implements
      *
      * @param array $options
      */
-    private function addInvoice($money, $options, $xml)
+    protected function addInvoice($money, $options, $xml, $mpi = false)
     {
-        $xml->TxnDetails(function ($xml) use ($money, $options) {
+        $xml->TxnDetails(function ($xml) use ($money, $options, $mpi) {
             $xml->merchantreference($options['order_id']);
             $xml->amount($this->amount($money), array('currency' => self::$default_currency));
         });
@@ -236,7 +279,7 @@ class NbgDataCash extends Gateway implements
      *
      * @param CreditCard $creditcard
      */
-    private function addCreditcard(CreditCard $creditcard, $action, $xml)
+    protected function addCreditcard(CreditCard $creditcard, $action, $xml)
     {
         $xml->CardTxn(function ($xml) use ($creditcard, $action) {
             $xml->Card(function ($xml) use ($creditcard) {
@@ -280,10 +323,11 @@ class NbgDataCash extends Gateway implements
      *
      * @param string $body
      */
-    private function parse($body)
+    protected function parse($body)
     {
         $response = array();
-        $data = simplexml_load_string($body, 'SimpleXMLElement');
+
+        $data = simplexml_load_string($body);
 
         $response['authorization_id'] = null;
         $response['avs_result_code'] = null;
@@ -310,10 +354,12 @@ class NbgDataCash extends Gateway implements
         return $response;
     }
 
-    private function parseCardTxn($cardTxn, $data)
+    protected function parseCardTxn($cardTxn, $data)
     {
+        $datacashReference = $data->datacash_reference->__toString();
+
         $response = array();
-        $response['authorization_id'] = sprintf('%s;%s', $cardTxn->authcode->__toString(), $data['datacash_reference']);
+        $response['authcode'] = $cardTxn->authcode->__toString();
         $response['card_scheme'] = $cardTxn->card_scheme->__toString();
         $response['country'] = $cardTxn->country->__toString();
         $response['issuer'] = $cardTxn->issuer->__toString();
@@ -324,40 +370,11 @@ class NbgDataCash extends Gateway implements
         $response['stan'] = $data->stan->__toString();
         $response['mode'] = $data->mode->__toString();
         $response['aiic'] = $data->aiic->__toString();
+        if ($datacashReference && $response['authcode']) {
+            $response['authorization_id'] = sprintf('%s;%s', $response['authcode'], $datacashReference);
+        }
 
         return $response;
-    }
-
-    /**
-     *
-     * @param  string $action
-     * @param  number $money
-     * @param  array  $parameters
-     *
-     * @return Response
-     */
-    private function commit($action, $money, $parameters = array())
-    {
-        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
-
-        $data = $this->ssl_post($url, $this->postData($action, $parameters));
-
-        $response = $this->parse($data);
-
-        $test_mode = $this->isTest();
-
-        return new Response(
-            $this->successFrom($response),
-            $this->messageFrom($response),
-            $response,
-            array(
-                'test' => $test_mode,
-                'authorization' => $response['authorization_id'],
-                'fraud_review' => $this->fraudReviewFrom($response),
-                'avs_result' => $this->avsResultFrom($response),
-                'cvv_result' => $response['card_code']
-            )
-        );
     }
 
     /**
@@ -367,7 +384,7 @@ class NbgDataCash extends Gateway implements
      *
      * @return string
      */
-    private function successFrom($response)
+    protected function successFrom($response)
     {
         return $response['status'] == static::SUCCESS;
     }
@@ -379,7 +396,7 @@ class NbgDataCash extends Gateway implements
      *
      * @return string
      */
-    private function messageFrom($response)
+    protected function messageFrom($response)
     {
         return $response['reason'];
     }
@@ -391,7 +408,7 @@ class NbgDataCash extends Gateway implements
      *
      * @return string
      */
-    private function fraudReviewFrom($response)
+    protected function fraudReviewFrom($response)
     {
 
     }
@@ -404,7 +421,7 @@ class NbgDataCash extends Gateway implements
      *
      * @return string
      */
-    private function avsResultFrom($response)
+    protected function avsResultFrom($response)
     {
         return array('code' => $response['avs_result_code']);
     }
@@ -418,28 +435,14 @@ class NbgDataCash extends Gateway implements
      *
      * @return void
      */
-    private function postData($action, $parameters = array())
+    protected function postData()
     {
         $xml = $this->xml->__toString();
 
         return $xml;
     }
 
-    private function buildXml($options, $block)
-    {
-        $this->xml = new XmlBuilder();
-        $this->xml->Request(function ($xml) use ($block) {
-            $xml->Authentication(function ($xml) {
-                $xml->client($this->options['client']);
-                $xml->password($this->options['password']);
-            });
-            $xml->Transaction(function ($xml) use ($block) {
-                $block($xml);
-            });
-        }, array('version' => '2'));
-    }
-
-    private function parseAuthorization($authorization)
+    protected function parseAuthorization($authorization)
     {
         list($datacash_reference, $authcode) = explode(';', $authorization);
 

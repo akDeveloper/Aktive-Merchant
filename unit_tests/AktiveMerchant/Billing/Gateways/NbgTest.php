@@ -2,11 +2,11 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-use AktiveMerchant\Billing\Gateways\NbgDataCash;
+use AktiveMerchant\Billing\Gateways\Nbg;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
-class NbgDataCashTest extends \AktiveMerchant\TestCase
+class NbgTest extends \AktiveMerchant\TestCase
 {
     public $gateway;
     public $amount;
@@ -18,21 +18,19 @@ class NbgDataCashTest extends \AktiveMerchant\TestCase
     {
         Base::mode('test');
 
-        $login_info = $this->getFixtures()->offsetGet('nbg_datacash');
+        $login_info = $this->getFixtures()->offsetGet('nbg');
 
-        $this->gateway = new NbgDataCash($login_info);
+        $this->gateway = new Nbg($login_info);
 
         $this->amount = 20.30;
 
+        $magic = $this->getMagicNumbers(0);
+
         $this->creditcard = new CreditCard(
-            array(
+            array_merge(array(
                 "first_name" => "John",
                 "last_name" => "Doe",
-                "number" => "",
-                "month" => "01",
-                "year" => "2016",
-                "verification_value" => "xxx"
-            )
+            ), $magic)
         );
 
         $this->options = array(
@@ -72,6 +70,24 @@ class NbgDataCashTest extends \AktiveMerchant\TestCase
         $this->assert_success($response);
     }
 
+    public function testVoid()
+    {
+        $this->mock_request($this->successVoidResponse());
+        $authorization = "3200900013655530;732727";
+        $response = $this->gateway->void($authorization, $this->options);
+
+        $this->assert_success($response);
+    }
+
+    public function testCredit()
+    {
+        $this->mock_request($this->successCreditResponse());
+        $identification = "3700900013657174;529021";
+        $response = $this->gateway->credit($this->amount, $identification, $this->options);
+
+        $this->assert_success($response);
+    }
+
     public function testDeclinedResponse()
     {
         $this->mock_request($this->declinedResponse());
@@ -94,6 +110,17 @@ class NbgDataCashTest extends \AktiveMerchant\TestCase
         $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
 
         $this->assert_failure($response);
+    }
+
+    private function getMagicNumbers($index)
+    {
+        $numbers = include __DIR__ . '/../../../datacash_magic_numbers.php';
+
+        if (array_key_exists($index, $numbers)) {
+            return $numbers[$index];
+        }
+
+        throw new Exception(sprintf('Undefined index `%s`. Please check your datacash_magic_numbers.php file.', $index));
     }
 
     private function successPurchaseResponse()
@@ -246,6 +273,39 @@ class NbgDataCashTest extends \AktiveMerchant\TestCase
   <reason>FULFILLED OK</reason>
   <status>1</status>
   <time>1452268581</time>
+</Response>";
+    }
+
+    private function successVoidResponse()
+    {
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<Response version='2'>
+  <acquirer>NBG s2a</acquirer>
+  <datacash_reference>3200900013655530</datacash_reference>
+  <merchantreference>3200900013655530</merchantreference>
+  <mid>7003706</mid>
+  <mode>LIVE</mode>
+  <reason>CANCELLED OK</reason>
+  <status>1</status>
+  <time>1452526486</time>
+</Response>";
+    }
+
+    private function successCreditResponse()
+    {
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<Response version='2'>
+  <HistoricTxn>
+    <authcode>REFUND ACCEPTED</authcode>
+  </HistoricTxn>
+  <acquirer>NBG s2a</acquirer>
+  <datacash_reference>3400900013657180</datacash_reference>
+  <merchantreference>3700900013657174</merchantreference>
+  <mid>1234567</mid>
+  <mode>LIVE</mode>
+  <reason>ACCEPTED</reason>
+  <status>1</status>
+  <time>1452609668</time>
 </Response>";
     }
 }

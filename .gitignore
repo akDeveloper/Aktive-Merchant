@@ -4,3 +4,4 @@ vendor
 bin/*
 composer.lock
 unit_tests/fixtures.ini
+unit_tests/datacash_magic_numbers.php
