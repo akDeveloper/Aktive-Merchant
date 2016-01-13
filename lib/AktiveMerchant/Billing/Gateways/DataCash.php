@@ -370,7 +370,7 @@ class DataCash extends Gateway implements
         $response['mode'] = $data->mode->__toString();
         $response['aiic'] = $data->aiic->__toString();
         if ($datacashReference && $response['authcode']) {
-            $response['authorization_id'] = sprintf('%s;%s', $response['authcode'], $datacashReference);
+            $response['authorization_id'] = sprintf('%s;%s', $datacashReference, $response['authcode']);
         }
 
         return $response;
