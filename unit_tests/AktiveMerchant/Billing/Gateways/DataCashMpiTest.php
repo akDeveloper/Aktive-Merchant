@@ -66,9 +66,11 @@ class DataCashMpiTest extends AktiveMerchant\TestCase
     public function testAuthenticate()
     {
         $this->mock_request($this->successAuthenticateResponse());
-        $pares = "thePaReqWithBreaks";
-        $reference = "3300900013655290";
-        $response = $this->gateway->authenticate($reference, $pares);
+        $options = array(
+            'pares' => "thePaReqWithBreaks",
+            'reference' => "3300900013655290",
+        );
+        $response = $this->gateway->authenticate($options);
 
         $this->assert_success($response);
     }
