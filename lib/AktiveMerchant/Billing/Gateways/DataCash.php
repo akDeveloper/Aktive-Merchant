@@ -349,7 +349,6 @@ class DataCash extends Gateway implements
             $response = array_merge($response, $this->parseCardTxn($cardTxn, $data));
         }
 
-
         return $response;
     }
 

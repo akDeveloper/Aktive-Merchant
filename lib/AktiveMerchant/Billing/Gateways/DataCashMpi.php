@@ -41,8 +41,13 @@ class DataCashMpi extends DataCash
         return $this->commit();
     }
 
-    public function authenticate($reference, $pares)
+    public function authenticate(array $options)
     {
+        Options::required('reference, pares', $options);
+
+        $reference = $options['reference'];
+        $pares  = $options['pares'];
+
         $this->buildXml([], function ($xml) use ($reference, $pares) {
             $xml->HistoricTxn(function ($xml) use ($reference, $pares) {
                 $xml->reference($reference);
