@@ -43,7 +43,10 @@ class XmlBuilder
             }
             $block_or_string($this);
             $this->writer->endElement();
-        } else if (is_string($block_or_string) || is_numeric($block_or_string)) {
+        } else if (is_string($block_or_string)
+            || is_numeric($block_or_string)
+            || is_null($block_or_string)
+        ) {
             if ($attribute) {
                 $this->writer->startElement($name);
                     foreach ($attribute as $key => $value) {
