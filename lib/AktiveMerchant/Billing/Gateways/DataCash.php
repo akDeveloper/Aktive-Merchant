@@ -183,10 +183,8 @@ class DataCash extends Gateway implements
 
         $postData = $this->postData();
 
-        echo $postData;
         $data = $this->ssl_post($url, $postData);
 
-        echo $data;
         $response = $this->parse($data);
 
         $test_mode = $this->isTest();

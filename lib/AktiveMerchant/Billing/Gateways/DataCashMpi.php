@@ -22,12 +22,14 @@ class DataCashMpi extends DataCash
 
     const SUCCESS_LOOKUP = '150';
 
+    const NOT_ENROLLED = '162';
+
     /**
      * {@inheritdoc}
      */
     public static $default_currency = 'EUR';
 
-    public function authorizeMpi($money, CreditCard $creditcard, $options)
+    public function lookup($money, CreditCard $creditcard, $options)
     {
         $options = new Options($options);
 
@@ -39,7 +41,7 @@ class DataCashMpi extends DataCash
         return $this->commit();
     }
 
-    public function authenticateMpi($reference, $pares)
+    public function authenticate($reference, $pares)
     {
         $this->buildXml([], function ($xml) use ($reference, $pares) {
             $xml->HistoricTxn(function ($xml) use ($reference, $pares) {
@@ -64,6 +66,13 @@ class DataCashMpi extends DataCash
         $data = simplexml_load_string($body);
 
         if ($data->CardTxn && $tds = $data->CardTxn->ThreeDSecure) {
+            $response['acs_url'] = $tds->acs_url->__toString();
+            $response['pareq_message'] = $tds->pareq_message->__toString();
+            $response['aav'] = $tds->aav->__toString();
+            $response['cardholder_registered'] = $tds->cardholder_registered->__toString();
+            $response['cavvAlgorithm'] = $tds->cavvAlgorithm->__toString();
+            $response['eci'] = $tds->eci->__toString();
+            $response['xid'] = $tds->xid->__toString();
         }
 
         return $response;
@@ -110,6 +119,13 @@ class DataCashMpi extends DataCash
      */
     protected function successFrom($response)
     {
-        return $response['status'] == static::SUCCESS || static::SUCCESS_LOOKUP;
+        return in_array(
+            $response['status'],
+            array(
+                static::SUCCESS,
+                static::SUCCESS_LOOKUP,
+                static::NOT_ENROLLED
+            )
+        );
     }
 }

@@ -46,32 +46,41 @@ class DataCashMpiTest extends AktiveMerchant\TestCase
             )
         );
     }
-    public function testMpiAuthorize()
+
+    public function testLookup()
     {
-        $this->mock_request($this->successAuthorizeMpiResponse());
-        $response = $this->gateway->authorizeMpi($this->amount, $this->creditcard, $this->options);
+        $this->mock_request($this->successLookupResponse());
+        $response = $this->gateway->lookup($this->amount, $this->creditcard, $this->options);
 
         $this->assert_success($response);
     }
 
-    public function testMpiAuthenticate()
+    public function testLookupNotEnroled()
     {
-        $this->mock_request($this->successAuthenticateMpiResponse());
+        $this->mock_request($this->notEnrolledResponse());
+        $response = $this->gateway->lookup($this->amount, $this->creditcard, $this->options);
+
+        $this->assert_success($response);
+    }
+
+    public function testAuthenticate()
+    {
+        $this->mock_request($this->successAuthenticateResponse());
         $pares = "thePaReqWithBreaks";
         $reference = "3300900013655290";
-        $response = $this->gateway->authenticateMpi($reference, $pares);
+        $response = $this->gateway->authenticate($reference, $pares);
 
         $this->assert_success($response);
     }
 
-    private function successAuthorizeMpiResponse()
+    private function successLookupResponse()
     {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <Response version='2'>
   <CardTxn>
     <ThreeDSecure>
       <acs_url>https://accreditation.datacash.com/acs-acq_a</acs_url>
-      <pareq_message>ethePaReqWithBreaks
+      <pareq_message>thePaReqWithBreaks
 </pareq_message>
     </ThreeDSecure>
     <card_scheme>Mastercard</card_scheme>
@@ -109,7 +118,7 @@ class DataCashMpiTest extends AktiveMerchant\TestCase
 </Response>";
     }
 
-    private function successAuthenticateMpiResponse()
+    private function successAuthenticateResponse()
     {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <Response version='2'>
