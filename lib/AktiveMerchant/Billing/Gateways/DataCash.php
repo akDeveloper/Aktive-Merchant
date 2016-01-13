@@ -65,7 +65,7 @@ class DataCash extends Gateway implements
         $this->required_options('client, password', $options);
 
         if (isset($options['currency'])) {
-            self::$default_currency = $options['currency'];
+            static::$default_currency = $options['currency'];
         }
 
         $this->options = $options;
@@ -206,6 +206,7 @@ class DataCash extends Gateway implements
     protected function buildXml($options, $block)
     {
         $this->xml = new XmlBuilder();
+        $this->xml->instruct('1.0', 'UTF-8');
         $this->xml->Request(function ($xml) use ($block) {
             $xml->Authentication(function ($xml) {
                 $xml->client($this->options['client']);
@@ -268,7 +269,7 @@ class DataCash extends Gateway implements
     {
         $xml->TxnDetails(function ($xml) use ($money, $options, $mpi) {
             $xml->merchantreference($options['order_id']);
-            $xml->amount($this->amount($money), array('currency' => self::$default_currency));
+            $xml->amount($this->amount($money), array('currency' => static::$default_currency));
         });
     }
 
