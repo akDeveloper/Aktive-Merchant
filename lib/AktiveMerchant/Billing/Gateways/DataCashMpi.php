@@ -21,7 +21,6 @@ class DataCashMpi extends DataCash
     const AUTHORIZATION = 'threedsecure_validate_authentication';
 
     const SUCCESS_LOOKUP = '150';
-
     const NOT_ENROLLED = '162';
 
     const MPI = 'mpi';
@@ -36,7 +35,7 @@ class DataCashMpi extends DataCash
         $options = new Options($options);
 
         $this->buildXml($options, function ($xml) use ($money, $creditcard, $options) {
-            $this->addInvoice($money, $options, $xml, true);
+            $this->addInvoice($money, $options, $xml);
             $this->addMpiTransaction($creditcard, static::MPI, $xml);
         });
 
@@ -46,6 +45,8 @@ class DataCashMpi extends DataCash
     public function authenticate(array $options)
     {
         Options::required('reference, pares', $options);
+
+        $options = new Options($options);
 
         $reference = $options['reference'];
         $pares  = $options['pares'];
@@ -120,9 +121,9 @@ class DataCashMpi extends DataCash
      *
      * @param array $options
      */
-    protected function addInvoice($money, $options, $xml, $mpi = false)
+    protected function addInvoice($money, $options, $xml)
     {
-        $xml->TxnDetails(function ($xml) use ($money, $options, $mpi) {
+        $xml->TxnDetails(function ($xml) use ($money, $options) {
             $xml->merchantreference($options['order_id']);
             $xml->amount($this->amount($money), array('currency' => self::$default_currency));
             $this->addThreeDSecure($xml, $options);

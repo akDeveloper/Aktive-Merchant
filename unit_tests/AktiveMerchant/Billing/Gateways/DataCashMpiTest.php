@@ -24,7 +24,7 @@ class DataCashMpiTest extends AktiveMerchant\TestCase
 
         $this->amount = 20.30;
 
-        $magic = $this->getMagicNumbers(1);
+        $magic = $this->getMagicNumbers(0);
 
         $this->creditcard = new CreditCard(
             array_merge(array(
@@ -55,7 +55,7 @@ class DataCashMpiTest extends AktiveMerchant\TestCase
         $this->assert_success($response);
     }
 
-    public function testLookupNotEnroled()
+    public function testNotEnroledLookup()
     {
         $this->mock_request($this->notEnrolledResponse());
         $response = $this->gateway->lookup($this->amount, $this->creditcard, $this->options);
