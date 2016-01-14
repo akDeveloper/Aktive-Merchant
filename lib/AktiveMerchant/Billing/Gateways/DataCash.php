@@ -31,6 +31,9 @@ class DataCash extends Gateway implements
     const VOID = 'cancel';
     const CREDIT = 'txn_refund';
 
+    const METHOD_ECOMM = 'ecomm';
+    const METHOD_MOTO = 'cnp';
+
     const SUCCESS = '1';
 
     /**
@@ -80,7 +83,7 @@ class DataCash extends Gateway implements
 
         $this->buildXml($options, function ($xml) use ($money, $creditcard, $options) {
             $this->addInvoice($money, $options, $xml);
-            $this->addCreditcard($creditcard, static::AUTHORIZE, $xml);
+            $this->addCreditcard($creditcard, static::AUTHORIZE, $xml, $options);
         });
 
         return $this->commit();
@@ -95,7 +98,7 @@ class DataCash extends Gateway implements
 
         $this->buildXml($options, function ($xml) use ($money, $creditcard, $options) {
             $this->addInvoice($money, $options, $xml);
-            $this->addCreditcard($creditcard, static::PURCHASE, $xml);
+            $this->addCreditcard($creditcard, static::PURCHASE, $xml, $options);
         });
 
         return $this->commit();
@@ -265,11 +268,14 @@ class DataCash extends Gateway implements
      *
      * @param array $options
      */
-    protected function addInvoice($money, $options, $xml, $mpi = false)
+    protected function addInvoice($money, $options, $xml)
     {
-        $xml->TxnDetails(function ($xml) use ($money, $options, $mpi) {
+        $xml->TxnDetails(function ($xml) use ($money, $options) {
             $xml->merchantreference($options['order_id']);
             $xml->amount($this->amount($money), array('currency' => static::$default_currency));
+            if ($options['cardholder_registered']) {
+                $xml->capturemethod(static::METHOD_ECOMM);
+            }
         });
     }
 
@@ -278,9 +284,9 @@ class DataCash extends Gateway implements
      *
      * @param CreditCard $creditcard
      */
-    protected function addCreditcard(CreditCard $creditcard, $action, $xml)
+    protected function addCreditcard(CreditCard $creditcard, $action, $xml, $options = array())
     {
-        $xml->CardTxn(function ($xml) use ($creditcard, $action) {
+        $xml->CardTxn(function ($xml) use ($creditcard, $action, $options) {
             $xml->Card(function ($xml) use ($creditcard) {
                 $xml->pan($creditcard->number);
                 $year  = $this->cc_format($creditcard->year, 'two_digits');
@@ -314,6 +320,23 @@ class DataCash extends Gateway implements
                 });
             });
             $xml->method($action);
+            $type = $creditcard->type == 'visa' ? 'visa' : 'ucaf';
+            if ($options['cardholder_registered']) {
+                $xml->Secure(function ($xml) use ($options) {
+                    $xml->cardholder_registered($options['cardholder_registered']);
+                    if ($options['aav']) {
+                        $xml->security_code($options['aav']);
+                    }
+
+                    if ($options['eci']) {
+                        $xml->eci($options['eci']);
+                    }
+
+                    if ($options['xid']) {
+                        $xml->transactionID($options['xid']);
+                    }
+                }, array('type' => $type));
+            }
         });
     }
 
@@ -328,51 +351,46 @@ class DataCash extends Gateway implements
 
         $data = simplexml_load_string($body);
 
+        foreach ($data as $node) {
+            $this->parseElement($response, $node);
+        }
+
         $response['authorization_id'] = null;
         $response['avs_result_code'] = null;
         $response['card_code'] = null;
-        $status = $data->status->__toString();
-        $response['status'] = $status;
-        $response['datacash_reference'] = $data->datacash_reference->__toString();
-        $response['reason'] = $data->reason->__toString();
-        $response['time'] = $data->time->__toString();
 
-        if ($status == 1) { #success
-            if ($cardTxn = $data->CardTxn) {
-                $response = array_merge($response, $this->parseCardTxn($cardTxn, $data));
-            }
-
-            return $response;
-        }
-
-        if ($cardTxn = $data->CardTxn) {
-            $response = array_merge($response, $this->parseCardTxn($cardTxn, $data));
-        }
+        $this->setAuthorization($response);
 
         return $response;
     }
 
-    protected function parseCardTxn($cardTxn, $data)
+    protected function parseElement(&$response, $node)
     {
-        $datacashReference = $data->datacash_reference->__toString();
+        if ($node->count() > 0) {
+            foreach ($node as $n) {
+                $this->parseElement($response, $n);
+            }
+        } else {
+            $response[$node->getName()] = $node->__toString();
+        }
+    }
 
-        $response = array();
-        $response['authcode'] = $cardTxn->authcode->__toString();
-        $response['card_scheme'] = $cardTxn->card_scheme->__toString();
-        $response['country'] = $cardTxn->country->__toString();
-        $response['issuer'] = $cardTxn->issuer->__toString();
-        $response['response_code'] = $cardTxn->response_code->__toString();
-        $response['acquirer'] = $data->acquirer->__toString();
-        $response['mid'] = $data->mid->__toString();
-        $response['rrn'] = $data->rrn->__toString();
-        $response['stan'] = $data->stan->__toString();
-        $response['mode'] = $data->mode->__toString();
-        $response['aiic'] = $data->aiic->__toString();
-        if ($datacashReference && $response['authcode']) {
-            $response['authorization_id'] = sprintf('%s;%s', $datacashReference, $response['authcode']);
+    private function setAuthorization(&$response)
+    {
+        if (isset($response['datacash_reference'])
+            && isset($response['authcode'])
+        ) {
+            $response['authorization_id'] = sprintf(
+                '%s;%s',
+                $response['datacash_reference'],
+                $response['authcode']
+            );
         }
 
-        return $response;
+        if (isset($response['datacash_reference'])) {
+            $response['authorization_id'] = $response['datacash_reference'];
+        }
+
     }
 
     /**

@@ -18,11 +18,13 @@ use AktiveMerchant\Common\XmlBuilder;
  */
 class DataCashMpi extends DataCash
 {
-    const AUTHORIZATION = 'threedsecure_authorization_request';
+    const AUTHORIZATION = 'threedsecure_validate_authentication';
 
     const SUCCESS_LOOKUP = '150';
 
     const NOT_ENROLLED = '162';
+
+    const MPI = 'mpi';
 
     /**
      * {@inheritdoc}
@@ -35,7 +37,7 @@ class DataCashMpi extends DataCash
 
         $this->buildXml($options, function ($xml) use ($money, $creditcard, $options) {
             $this->addInvoice($money, $options, $xml, true);
-            $this->addCreditcard($creditcard, static::PURCHASE, $xml);
+            $this->addMpiTransaction($creditcard, static::MPI, $xml);
         });
 
         return $this->commit();
@@ -73,6 +75,7 @@ class DataCashMpi extends DataCash
         if ($data->CardTxn && $tds = $data->CardTxn->ThreeDSecure) {
             $response['acs_url'] = $tds->acs_url->__toString();
             $response['pareq_message'] = $tds->pareq_message->__toString();
+            $response['pares_status'] = $tds->status->__toString();
             $response['aav'] = $tds->aav->__toString();
             $response['cardholder_registered'] = $tds->cardholder_registered->__toString();
             $response['cavvAlgorithm'] = $tds->cavvAlgorithm->__toString();
@@ -96,7 +99,19 @@ class DataCashMpi extends DataCash
             $xml->purchase_datetime(date('Ymd H:i:s'));
             $xml->merchant_url($options['merchant_url']);
             $xml->purchase_desc($options['description']);
-            $xml->verify('yes');
+        });
+    }
+
+    protected function addMpiTransaction($creditcard, $action, $xml)
+    {
+        $xml->MpiTxn(function ($xml) use ($creditcard, $action) {
+            $xml->Card(function ($xml) use ($creditcard) {
+                $xml->pan($creditcard->number);
+                $year  = $this->cc_format($creditcard->year, 'two_digits');
+                $month = $this->cc_format($creditcard->month, 'two_digits');
+                $xml->expirydate("{$month}/{$year}");
+            });
+            $xml->method($action);
         });
     }
 
@@ -110,7 +125,6 @@ class DataCashMpi extends DataCash
         $xml->TxnDetails(function ($xml) use ($money, $options, $mpi) {
             $xml->merchantreference($options['order_id']);
             $xml->amount($this->amount($money), array('currency' => self::$default_currency));
-            $xml->capturemethod('ecomm');
             $this->addThreeDSecure($xml, $options);
         });
     }
