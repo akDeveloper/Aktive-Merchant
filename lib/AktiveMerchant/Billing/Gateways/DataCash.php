@@ -396,6 +396,8 @@ class DataCash extends Gateway implements
                 $response['datacash_reference'],
                 $response['authcode']
             );
+
+            return;
         }
 
         if (isset($response['datacash_reference'])) {
