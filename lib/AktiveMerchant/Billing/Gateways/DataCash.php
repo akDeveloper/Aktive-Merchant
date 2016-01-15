@@ -324,9 +324,11 @@ class DataCash extends Gateway implements
                 $year  = $this->cc_format($creditcard->year, 'two_digits');
                 $month = $this->cc_format($creditcard->month, 'two_digits');
                 $xml->expirydate("{$month}/{$year}");
-                $xml->Cv2Avs(function ($xml) use ($creditcard) {
-                    $xml->cv2($creditcard->verification_value);
-                });
+                if (null == $options['token']) {
+                    $xml->Cv2Avs(function ($xml) use ($creditcard) {
+                        $xml->cv2($creditcard->verification_value);
+                    });
+                }
             });
             $xml->method($action);
             $type = $creditcard->type == 'visa' ? 'visa' : 'ucaf';
