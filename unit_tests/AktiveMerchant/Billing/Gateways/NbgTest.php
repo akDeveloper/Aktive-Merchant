@@ -47,8 +47,31 @@ class NbgTest extends \AktiveMerchant\TestCase
     public function testPurchase()
     {
         $this->mock_request($this->successPurchaseResponse());
+        $this->options['moto'] = true;
         $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
 
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+    }
+
+    /*
+    public function test3DSecurePurchase()
+    {
+        $this->mock_request($this->success3DSecurePurchaseResponse());
+        $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
+
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+    }*/
+
+    public function testTokenPurchase()
+    {
+        $this->options['token'] = true;
+        $this->creditcard->number = 'XXXXXXXXXXXXXXXXXXXXXXXXXXX';
+        $this->mock_request($this->successTokenPurchaseResponse());
+        $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
+
+        print_r($response);
         $this->assert_success($response);
         $this->assertTrue($response->test());
     }
@@ -88,6 +111,15 @@ class NbgTest extends \AktiveMerchant\TestCase
         $this->assert_success($response);
     }
 
+    public function testStore()
+    {
+        $response = $this->gateway->store($this->creditcard, $this->options);
+
+        print_r($response);
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+    }
+
     public function testDeclinedResponse()
     {
         $this->mock_request($this->declinedResponse());
@@ -110,6 +142,14 @@ class NbgTest extends \AktiveMerchant\TestCase
         $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
 
         $this->assert_failure($response);
+    }
+
+    public function testQuery()
+    {
+        $authorization = "3100900013661334";
+        $response = $this->gateway->query($authorization);
+
+        $this->assert_success($response);
     }
 
     private function getMagicNumbers($index)
@@ -306,6 +346,36 @@ class NbgTest extends \AktiveMerchant\TestCase
   <reason>ACCEPTED</reason>
   <status>1</status>
   <time>1452609668</time>
+</Response>";
+    }
+
+    private function successTokenPurchaseResponse()
+    {
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<Response version='2'>
+  <CardTxn>
+    <Cv2Avs>
+      <cv2avs_status>NO DATA MATCHES</cv2avs_status>
+      <policy>0</policy>
+    </Cv2Avs>
+    <authcode>160350</authcode>
+    <card_scheme>Mastercard</card_scheme>
+    <country>Greece</country>
+    <issuer>NATIONAL BANK OF GREECE, S.A.</issuer>
+    <response_code>00</response_code>
+    <token>XXXXXXXXXXXXXXXXXXXXXXXXXXX</token>
+  </CardTxn>
+  <acquirer>NBG s2a</acquirer>
+  <aiic>001259</aiic>
+  <datacash_reference>3300900013661583</datacash_reference>
+  <merchantreference>REF1538340954</merchantreference>
+  <mid>123456</mid>
+  <mode>LIVE</mode>
+  <reason>ACCEPTED</reason>
+  <rrn>601512004609</rrn>
+  <stan>004609</stan>
+  <status>1</status>
+  <time>1452860086</time>
 </Response>";
     }
 }

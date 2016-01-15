@@ -30,6 +30,7 @@ class DataCash extends Gateway implements
     const CAPTURE = 'fulfill';
     const VOID = 'cancel';
     const CREDIT = 'txn_refund';
+    const QUERY = 'query';
 
     const METHOD_ECOMM = 'ecomm';
     const METHOD_MOTO = 'cnp';
@@ -169,7 +170,35 @@ class DataCash extends Gateway implements
 
     public function store(CreditCard $creditcard, $options = array())
     {
+        Options::required('order_id', $options);
 
+        $options = new Options($options);
+
+        $this->buildXml([], function ($xml) use ($creditcard, $options) {
+            $xml->TokenizeTxn(function ($xml) use ($creditcard, $options) {
+                $xml->Card(function ($xml) use ($creditcard) {
+                    $xml->pan($creditcard->number);
+                });
+                $xml->method('tokenize');
+            });
+            $xml->TxnDetails(function ($xml) use ($options) {
+                $xml->merchantreference($options['order_id']);
+            });
+        });
+
+        return $this->commit();
+    }
+
+    public function query($authorization)
+    {
+        $this->buildXml([], function ($xml) use ($authorization) {
+            $xml->HistoricTxn(function ($xml) use ($authorization) {
+                $xml->reference($authorization);
+                $xml->method(static::QUERY);
+            });
+        });
+
+        return $this->commit();
     }
 
     /**
@@ -186,8 +215,10 @@ class DataCash extends Gateway implements
 
         $postData = $this->postData();
 
+        echo $postData;
         $data = $this->ssl_post($url, $postData);
 
+        echo $data;
         $response = $this->parse($data);
 
         $test_mode = $this->isTest();
@@ -273,8 +304,10 @@ class DataCash extends Gateway implements
         $xml->TxnDetails(function ($xml) use ($money, $options) {
             $xml->merchantreference($options['order_id']);
             $xml->amount($this->amount($money), array('currency' => static::$default_currency));
-            if ($options['cardholder_registered']) {
+            if ($options['cardholder_registered']) {# For 3D Secure transactions.
                 $xml->capturemethod(static::METHOD_ECOMM);
+            } elseif ($options['token'] || $options['moto']) {# For tokenization or no 3D Secure transactions.
+                $xml->capturemethod(static::METHOD_MOTO);
             }
         });
     }
@@ -287,36 +320,14 @@ class DataCash extends Gateway implements
     protected function addCreditcard(CreditCard $creditcard, $action, $xml, $options = array())
     {
         $xml->CardTxn(function ($xml) use ($creditcard, $action, $options) {
-            $xml->Card(function ($xml) use ($creditcard) {
-                $xml->pan($creditcard->number);
+            $xml->Card(function ($xml) use ($creditcard, $options) {
+                $token = $options['token'] ? array('type' => 'token') : null;
+                $xml->pan($creditcard->number, $token);
                 $year  = $this->cc_format($creditcard->year, 'two_digits');
                 $month = $this->cc_format($creditcard->month, 'two_digits');
                 $xml->expirydate("{$month}/{$year}");
                 $xml->Cv2Avs(function ($xml) use ($creditcard) {
                     $xml->cv2($creditcard->verification_value);
-                    $xml->ExtendedPolicy(function ($xml) {
-                        $xml->cv2_policy(null, array(
-                            'notprovided' => 'reject',
-                            'notchecked' => 'accept',
-                            'matched' => 'accept',
-                            'notmatched' => 'reject',
-                            'partialmatch' => 'reject'
-                        ));
-                        $xml->postcode_policy(null, array(
-                            'notprovided' => 'accept',
-                            'notchecked' => 'accept',
-                            'matched' => 'accept',
-                            'notmatched' => 'accept',
-                            'partialmatch' => 'accept'
-                        ));
-                        $xml->address_policy(null, array(
-                            'notprovided' => 'accept',
-                            'notchecked' => 'accept',
-                            'matched' => 'accept',
-                            'notmatched' => 'accept',
-                            'partialmatch' => 'accept'
-                        ));
-                    });
                 });
             });
             $xml->method($action);
