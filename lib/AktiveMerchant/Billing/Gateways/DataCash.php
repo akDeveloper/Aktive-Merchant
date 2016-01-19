@@ -302,11 +302,11 @@ class DataCash extends Gateway implements
         $xml->TxnDetails(function ($xml) use ($money, $options) {
             $xml->merchantreference($options['order_id']);
             $xml->amount($this->amount($money), array('currency' => static::$default_currency));
-            if ($options['cardholder_registered']) {# For 3D Secure transactions.
-                $xml->capturemethod(static::METHOD_ECOMM);
-            } elseif ($options['token'] || $options['moto']) {# For tokenization or no 3D Secure transactions.
-                $xml->capturemethod(static::METHOD_MOTO);
+            $captureMethod = static::METHOD_ECOMM; # For 3D Secure or No 3D Secure transactions.
+            if ($options['token'] || $options['moto']) {# For tokenization or MOTO transactions.
+                $captureMethod = static::METHOD_MOTO;
             }
+            $xml->capturemethod($captureMethod);
         });
     }
 
