@@ -307,6 +307,11 @@ class DataCash extends Gateway implements
                 $captureMethod = static::METHOD_MOTO;
             }
             $xml->capturemethod($captureMethod);
+            if ($options['installments']) {
+                $xml->Instalments(function ($xml) use ($options) {
+                    $xml->number($options['installments']);
+                });
+            }
         });
     }
 
