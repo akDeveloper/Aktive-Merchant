@@ -126,7 +126,7 @@ abstract class Modirum extends Gateway implements
 
         $this->buildXml(static::AUTHORIZE, $options, function ($xml) use ($money, $creditcard, $options) {
             $this->addInvoice($money, $options, $xml);
-            $this->addCreditcard($creditcard, $xml);
+            $this->addCreditcard($creditcard, $options, $xml);
             $this->addThreedSecure($options, $xml);
         });
 
@@ -142,7 +142,7 @@ abstract class Modirum extends Gateway implements
 
         $this->buildXml(static::SALE, $options, function ($xml) use ($money, $creditcard, $options) {
             $this->addInvoice($money, $options, $xml);
-            $this->addCreditcard($creditcard, $xml);
+            $this->addCreditcard($creditcard, $options, $xml);
             $this->addThreedSecure($options, $xml);
         });
 
@@ -250,10 +250,8 @@ abstract class Modirum extends Gateway implements
             $xml->OrderAmount($this->amount($money));
             $xml->Currency(static::$default_currency);
             $xml->PayerEmail("");
-            if ($options['installments']) {
-                $xml->InstallmentParameters(function ($xml) use ($options) {
-                    $xml->ExtInstallmentperiod($options['installments']);
-                });
+            if (true == $options['moto']) {
+                $xml->MOTO(1);
             }
         });
     }
@@ -263,9 +261,9 @@ abstract class Modirum extends Gateway implements
      *
      * @param CreditCard $creditcard
      */
-    private function addCreditcard(CreditCard $creditcard, $xml)
+    private function addCreditcard(CreditCard $creditcard, $options, $xml)
     {
-        $xml->PaymentInfo(function ($xml) use ($creditcard) {
+        $xml->PaymentInfo(function ($xml) use ($creditcard, $options) {
             $xml->PayMethod($this->CARD_MAPPINGS[CreditCard::type($creditcard->number)]);
             $xml->CardPan($creditcard->number);
             $year  = $this->cc_format($creditcard->year, 'two_digits');
@@ -273,6 +271,12 @@ abstract class Modirum extends Gateway implements
             $xml->CardExpDate("{$year}{$month}");
             $xml->CardCvv2($creditcard->verification_value);
             $xml->CardHolderName(trim($creditcard->name()));
+            if ($options['installments']) {
+                $xml->InstallmentParameters(function ($xml) use ($options) {
+                    $xml->ExtInstallmentoffset(0);
+                    $xml->ExtInstallmentperiod($options['installments']);
+                });
+            }
         });
     }
 
