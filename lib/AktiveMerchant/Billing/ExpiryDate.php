@@ -46,8 +46,10 @@ class ExpiryDate
     private function _month_days()
     {
         $mdays = array(null, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
-        if ($this->_is_leap())
+        if ($this->_is_leap()) {
             $mdays[2] = 29;
+        }
+
         return $mdays[$this->month];
     }
 
@@ -55,11 +57,10 @@ class ExpiryDate
     {
         $time = strtotime($this->year . "-02-29");
         $time_array = localtime($time);
-        if ($time_array[4] == 1)
+        if ($time_array[4] == 1) {
             return true;
+        }
+
         return false;
     }
-
 }
-
-?>

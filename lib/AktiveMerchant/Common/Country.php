@@ -5,9 +5,9 @@
 namespace AktiveMerchant\Common;
 
 /**
- * Allows lookup for country names by given iso(alpha2), iso3(alpha3) or numeric 
+ * Allows lookup for country names by given iso(alpha2), iso3(alpha3) or numeric
  * code.
- * 
+ *
  * <code>
  *      $country = Country::find(300); // Returns Country object
  *      echo $country; // Return Greece
@@ -15,7 +15,7 @@ namespace AktiveMerchant\Common;
  *      echo $country->code('alpha2'); // Returns GR
  *      echo $country->code('alpha3'); // Returns GRC
  * </code>
- * 
+ *
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
@@ -45,14 +45,14 @@ class Country
 
         $this->name = $options['name'];
         unset($options['name']);
-        
+
         foreach ($options as $k => $v) {
             $this->codes[] = new CountryCode($v);
         }
     }
 
     /**
-     * @param string $format The format to display the Country name (alpha2, 
+     * @param string $format The format to display the Country name (alpha2,
      *                       alpha3 or numeric)
      *
      *
@@ -86,14 +86,15 @@ class Country
      *      $country = Country::find('GRC');
      * </code>
      *
-     * @param string|integer Alpha name or numeric code of a country 
+     * @param string|integer Alpha name or numeric code of a country
      *
      * @return Country A Country object.
      */
     public static function find($name)
     {
-        if (empty($name))
+        if (empty($name)) {
             throw new \InvalidArgumentException('Cannot lookup country for an empty name');
+        }
 
         if (strlen($name) == 2 || strlen($name) == 3) {
             $upcase_name = strtoupper($name);
@@ -113,8 +114,9 @@ class Country
                 }
             }
         }
-        if (!isset($country))
+        if (!isset($country)) {
             throw new \OutOfRangeException("No country could be found for name {$name}");
+        }
 
         return new Country($country);
     }
@@ -122,7 +124,7 @@ class Country
     /**
      * List of countries with full names alpha2, alpha3 and numeric codes.
      *
-     * @var array 
+     * @var array
      */
     public static $COUNTRIES = array(
         array('alpha2' => 'AF', 'name' => 'Afghanistan', 'alpha3' => 'AFG', 'numeric' => '004'),

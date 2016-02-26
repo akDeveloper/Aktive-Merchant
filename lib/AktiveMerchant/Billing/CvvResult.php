@@ -28,8 +28,9 @@ class CvvResult
 
     public function __construct($code)
     {
-        if ($code != "")
+        if ($code != "") {
             $this->code = $code;
+        }
 
         $this->message = isset(self::$MESSAGES[$this->code]) ? self::$MESSAGES[$this->code] : 'Unknown';
     }
@@ -46,7 +47,4 @@ class CvvResult
             'message' => $this->message
         );
     }
-
 }
-
-?>

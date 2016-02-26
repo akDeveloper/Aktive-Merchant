@@ -57,24 +57,28 @@ class CreditCardMethods
 
     public static function isValidNumber($number)
     {
-        return ((self::_is_valid_card_number_length($number) && 
+        return ((self::_is_valid_card_number_length($number) &&
             self::_is_valid_checksum($number)));
     }
 
     public static function type($number)
     {
-        if (self::_is_valid_test_mode_card_number($number))
+        if (self::_is_valid_test_mode_card_number($number)) {
             return 'bogus';
-
-        foreach (self::$CARD_COMPANIES as $name => $pattern) {
-            if ($name == 'maestro')
-                continue;
-            if (preg_match($pattern, $number))
-                return $name;
         }
 
-        if (preg_match(self::$CARD_COMPANIES['maestro'], $number))
+        foreach (self::$CARD_COMPANIES as $name => $pattern) {
+            if ($name == 'maestro') {
+                continue;
+            }
+            if (preg_match($pattern, $number)) {
+                return $name;
+            }
+        }
+
+        if (preg_match(self::$CARD_COMPANIES['maestro'], $number)) {
             return 'maestro';
+        }
     }
 
     public static function getLastDigits($number)
@@ -121,7 +125,4 @@ class CreditCardMethods
 
         return ($sum % 10 == 0);
     }
-
 }
-
-?>

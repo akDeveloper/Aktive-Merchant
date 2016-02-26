@@ -21,7 +21,7 @@ class Response
 
     /**
      * Available parameters returned by gateway response.
-     * 
+     *
      * @var Options
      */
     protected $params;
@@ -40,12 +40,12 @@ class Response
      * @param array $options Options that should be interepreted by the response.  Valid
      *                       options are:
      *                       <ul>
-     *                       	<li>test - If true, this is a test transaction.
+     *                          <li>test - If true, this is a test transaction.
      *                          <li>authorization - Set the authorization property
      *                          <li>fraud_review - Set the fraud_review property
-     *                          <li>avs_result - If set, passed to the {@link \AktiveMerchant\Billing\AvsResult} constructor, 
-     *                              and the resulting object is stored in the avs_result property 
-     *                          <li>cvv_result - If set, passed to the {@link \AktiveMerchant\Billing\CvvResult} constructor,
+     *                          <li>avs_result - If set, passed to the {@link AktiveMerchant\Billing\AvsResult} constructor,
+     *                              and the resulting object is stored in the avs_result property
+     *                          <li>cvv_result - If set, passed to the {@link AktiveMerchant\Billing\CvvResult} constructor,
      *                              and the resulting object is stored in the cvv_result property
      *                       </ul>
      */
@@ -69,7 +69,7 @@ class Response
 
     /**
      * Check if the transaction was successful or not
-     * 
+     *
      * @return boolean Whether this transaction was successful or not
      */
     public function success()
@@ -86,20 +86,20 @@ class Response
         return $this->test;
     }
 
-    /** 
+    /**
      *
-     * @return boolean Whether the request was flagged for fraud review 
+     * @return boolean Whether the request was flagged for fraud review
      */
     public function fraud_review()
     {
         return $this->fraud_review;
     }
 
-    /** 
+    /**
      * This string should contain any information required to complete, refund, or
      * void a transaction.  If multiple identifiers are required, they should all be
      * encoded into one string here, and decoded as necessary.
-     * 
+     *
      * @return string|null Authorization identifier, or null if unavailable.
      */
     public function authorization()
@@ -107,27 +107,27 @@ class Response
         return $this->authorization;
     }
 
-    /** 
+    /**
      *
-     * @return string Human-readable message provided with the response 
+     * @return string Human-readable message provided with the response
      */
     public function message()
     {
         return $this->message;
     }
 
-    /** 
-     * 
-     * @return \AktiveMerchant\Billing\AvsResult|null Address verification result, or null if unavailable 
+    /**
+     *
+     * @return \AktiveMerchant\Billing\AvsResult|null Address verification result, or null if unavailable
      */
     public function avs_result()
     {
         return $this->avs_result;
     }
 
-    /** 
-     * 
-     * @return \AktiveMerchant\Billing\CvvResult|null Card verification value result, or null if unavailable 
+    /**
+     *
+     * @return \AktiveMerchant\Billing\CvvResult|null Card verification value result, or null if unavailable
      */
     public function cvv_result()
     {
@@ -136,7 +136,7 @@ class Response
 
     /**
      *
-     * @return Options All additional parameters available for this response 
+     * @return Options All additional parameters available for this response
      */
     public function params()
     {

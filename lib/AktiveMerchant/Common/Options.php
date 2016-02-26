@@ -9,18 +9,18 @@ use AktiveMerchant\Billing\Exception;
 /**
  * Options class.
  *
- * Provides an easy way of accessing options with arrays. 
- * 
- * @package Aktive-Merchant 
- * @author  Andreas Kollaros 
+ * Provides an easy way of accessing options with arrays.
+ *
+ * @package Aktive-Merchant
+ * @author  Andreas Kollaros
  * @license MIT {@link http://opensource.org/licenses/mit-license.php}
  */
 class Options implements \ArrayAccess, \Iterator
 {
-    
+
     /**
      * The array of option values.
-     * 
+     *
      * @var array
      * @access private
      */
@@ -43,7 +43,7 @@ class Options implements \ArrayAccess, \Iterator
 
     /**
      * Returns an array from options.
-     * 
+     *
      * @access public
      * @return array
      */
@@ -80,8 +80,8 @@ class Options implements \ArrayAccess, \Iterator
     }
 
     /* -(  ArrayAccess  )--------------------------------------------------- */
-    
-    public function offsetSet($offset, $value) 
+
+    public function offsetSet($offset, $value)
     {
         if (is_null($offset)) {
             $this->options[] = $value;
@@ -89,22 +89,23 @@ class Options implements \ArrayAccess, \Iterator
             $this->options[$offset] = $value;
         }
     }
-    
-    public function offsetExists($offset) 
+
+    public function offsetExists($offset)
     {
         return isset($this->options[$offset]);
     }
-    
-    public function offsetUnset($offset) {
+
+    public function offsetUnset($offset)
+    {
         unset($this->options[$offset]);
     }
 
-    public function offsetGet($offset) 
+    public function offsetGet($offset)
     {
-        $value = isset($this->options[$offset]) 
-            ? $this->options[$offset] 
+        $value = isset($this->options[$offset])
+            ? $this->options[$offset]
             : null;
-        
+
         if (is_array($value)) {
             return new self($value);
         }
@@ -113,7 +114,7 @@ class Options implements \ArrayAccess, \Iterator
     }
 
     /**
-     * Checks if keys in $required parameter exist in the given $options array. 
+     * Checks if keys in $required parameter exist in the given $options array.
      *
      * @throws \InvalidArgumentException If a required parameter is missing
      *
@@ -127,20 +128,19 @@ class Options implements \ArrayAccess, \Iterator
         $required = explode(',', $required);
 
         foreach ($required as $r) {
-
             if (is_array($options)) {
                 $exists = array_key_exists(trim($r), $options);
             } elseif ($options instanceof \ArrayAccess) {
                 $exists = $options->offsetExists(trim($r));
             }
-            
+
             if (!$exists) {
                 throw new \InvalidArgumentException($r . " parameter is required!");
                 break;
                 return false;
             }
         }
-        
-        return true; 
+
+        return true;
     }
 }

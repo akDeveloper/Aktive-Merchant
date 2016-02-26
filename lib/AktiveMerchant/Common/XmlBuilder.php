@@ -7,6 +7,14 @@ namespace AktiveMerchant\Common;
 use Closure;
 use XMLWriter;
 
+/**
+ * XmlBuilder provides a fluent way to create xml strings.
+ *
+ * @since Class available since Release 1.1.0
+ * @package Aktive-Merchant
+ * @author Andreas Kollaros <andreas@larium.net>
+ * @license MIT {@link http://opensource.org/licenses/mit-license.php}
+ */
 class XmlBuilder
 {
     protected $writer;
@@ -49,12 +57,12 @@ class XmlBuilder
         ) {
             if ($attribute) {
                 $this->writer->startElement($name);
-                    foreach ($attribute as $key => $value) {
-                        $this->writer->startAttribute($key);
-                            $this->writer->text($value);
-                        $this->writer->endAttribute();
-                    }
-                    $this->writer->text($block_or_string);
+                foreach ($attribute as $key => $value) {
+                    $this->writer->startAttribute($key);
+                    $this->writer->text($value);
+                    $this->writer->endAttribute();
+                }
+                $this->writer->text($block_or_string);
                 $this->writer->endElement();
             } else {
                 $this->writer->writeElement($name, $block_or_string);

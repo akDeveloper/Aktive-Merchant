@@ -4,6 +4,8 @@
 
 namespace AktiveMerchant\Http;
 
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+
 /**
  * RequestInterface
  *
@@ -93,5 +95,5 @@ interface RequestInterface
 
     public function getDispatcher();
 
-    public function setDispatcher($dispatcher);
+    public function setDispatcher(EventDispatcherInterface $dispatcher);
 }

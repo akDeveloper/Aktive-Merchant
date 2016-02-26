@@ -12,14 +12,14 @@ class CountryCode
     protected $value;
 
     /**
-     * The format of current CuntryCode. 
-     * 
+     * The format of current CuntryCode.
+     *
      * @var string Values are alpha2, alpha3 or numeric
      */
     protected $format;
 
     /**
-     * @param string|integer The value of country code.Can be an alpha2, alpha3 
+     * @param string|integer The value of country code.Can be an alpha2, alpha3
      *                      or numeric value (ex. GR, GRC or 300)
      */
     public function __construct($value)
@@ -27,7 +27,7 @@ class CountryCode
         $this->value = strtoupper($value);
         $this->detect_format();
     }
-    
+
     /**
      * Getter for format value.
      *

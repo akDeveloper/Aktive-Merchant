@@ -10,7 +10,7 @@ use AktiveMerchant\Common\Options;
 use AktiveMerchant\Event\PreSendEvent;
 use AktiveMerchant\Event\PostSendEvent;
 use AktiveMerchant\Event\RequestEvents;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Request
@@ -270,8 +270,9 @@ class Request implements RequestInterface
     /**
      * Gets dispatcher.
      *
-     * @access public
-     * @return mixed
+     * @since Method available since Release 1.1.0
+     *
+     * @return EventDispatcherInterface
      */
     public function getDispatcher()
     {
@@ -281,11 +282,13 @@ class Request implements RequestInterface
     /**
      * Sets dispatcher.
      *
-     * @param mixed $dispatcher the value to set.
-     * @access public
+     * @param EventDispatcherInterface $dispatcher
+     *
+     * @since Method available since Release 1.1.0
+     *
      * @return void
      */
-    public function setDispatcher($dispatcher)
+    public function setDispatcher(EventDispatcherInterface $dispatcher)
     {
         $this->dispatcher = $dispatcher;
     }

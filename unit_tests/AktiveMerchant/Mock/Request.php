@@ -10,6 +10,7 @@ use AktiveMerchant\Event\PreSendEvent;
 use AktiveMerchant\Event\PostSendEvent;
 use AktiveMerchant\Event\RequestEvents;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Request Mock class
@@ -131,7 +132,7 @@ class Request implements RequestInterface
      * @access public
      * @return void
      */
-    public function setDispatcher($dispatcher)
+    public function setDispatcher(EventDispatcherInterface $dispatcher)
     {
         $this->dispatcher = $dispatcher;
     }
