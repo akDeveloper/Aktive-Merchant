@@ -20,20 +20,19 @@ class ePDQ extends Gateway implements Interfaces\Charge
     const TEST_URL = 'https://secure2.mde.epdq.co.uk:11500';
     const LIVE_URL = 'https://secure2.mde.epdq.co.uk:11500';
 
-    private $CARD_TYPE_MAPPINGS = array
-        (
+    private $CARD_TYPE_MAPPINGS = array(
         'visa' => 1,
         'master' => 2,
         'american_express' => 8,
         'discover' => 3,
     );
-    private $COUNTRY_CODE_MAPPINGS = array
-        (
+
+    private $COUNTRY_CODE_MAPPINGS = array(
         'GB' => 826,
         'US' => 840,
     );
-    private $CVV_RESPONSE_MAPPINGS = array
-        (
+
+    private $CVV_RESPONSE_MAPPINGS = array(
         '0' => 'X',
         '1' => 'M',
         '2' => 'N',
@@ -43,8 +42,8 @@ class ePDQ extends Gateway implements Interfaces\Charge
         '6' => 'I',
         '7' => 'U',
     );
-    private $TRANSACTION_STATUS_MAPPINGS = array
-        (
+
+    private $TRANSACTION_STATUS_MAPPINGS = array(
         'accepted' => "A",
         'declined' => "D",
         'fraud' => "F",
@@ -60,22 +59,31 @@ class ePDQ extends Gateway implements Interfaces\Charge
     const DECLINED_FRAUDULENT_REVIEW = 502;
     const CVV_FAILURE = 1055;
 
-    private $FRAUDULENT = array
-        (
+    private $FRAUDULENT = array(
         'DECLINED_FRAUDULENT',
         'DECLINED_FRAUDULENT_VOIDED',
         'DECLINED_FRAUDULENT_REVIEW',
         'CVV_FAILURE'
     );
+
     private $options = array();
+
     private $xml;
+
     private $payment_mode = "P"; #Production
+
     private $payment_mech_type = "CreditCard";
+
     public static $default_currency = 'GBP';
+
     public static $supported_countries = array('US', 'GB');
+
     public static $supported_cardtypes = array('visa', 'master', 'american_express', 'discover');
+
     public static $homepage_url = 'http://www.barclaycard.co.uk/';
+
     public static $display_name = 'ePDQ';
+
     public static $money_format = 'cents';
 
     /**
@@ -83,7 +91,7 @@ class ePDQ extends Gateway implements Interfaces\Charge
      */
     public function __construct($options = array())
     {
-      $this->required_options('login, password, client_id', $options);
+        $this->required_options('login, password, client_id', $options);
 
         if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
@@ -173,19 +181,19 @@ class ePDQ extends Gateway implements Interfaces\Charge
         $year = $this->cc_format($creditcard->year, 'two_digits');
 
         $this->xml .= <<<XML
-						<OrderFormDoc>
-							<Mode DataType="String">{$this->payment_mode}</Mode>
-							<Consumer>
-								<PaymentMech>
-									<Type DataType="String">{$this->payment_mech_type}</Type>
-									<CreditCard>
-										<Number DataType="String">{$creditcard->number}</Number>
-										<Expires DataType="ExpirationDate">{$month}/{$year}</Expires>
-										<Cvv2Val DataType="String">{$creditcard->verification_value}</Cvv2Val>
-										<Cvv2Indicator DataType="String">1</Cvv2Indicator>
-									</CreditCard>
-								</PaymentMech>
-							</Consumer>
+ <OrderFormDoc>
+ <Mode DataType="String">{$this->payment_mode}</Mode>
+ <Consumer>
+ <PaymentMech>
+ <Type DataType="String">{$this->payment_mech_type}</Type>
+ <CreditCard>
+ <Number DataType="String">{$creditcard->number}</Number>
+ <Expires DataType="ExpirationDate">{$month}/{$year}</Expires>
+ <Cvv2Val DataType="String">{$creditcard->verification_value}</Cvv2Val>
+ <Cvv2Indicator DataType="String">1</Cvv2Indicator>
+ </CreditCard>
+ </PaymentMech>
+ </Consumer>
 XML;
         $this->add_transaction_element($amount, $type, $options);
         $this->add_billing_address($options);
@@ -204,26 +212,26 @@ XML;
 
         if ($type == 'PreAuth' || $type == 'Auth') {
             $this->xml .= <<<XML
-							<Transaction>
-								<Type DataType="String">{$type}</Type>
-								<CurrentTotals>
-									<Totals>
-										<Total DataType="Money" Currency="{$this->currency_lookup(self::$default_currency)}">{$amount}</Total>
-									</Totals>
-								</CurrentTotals>
-							</Transaction>
+ <Transaction>
+ <Type DataType="String">{$type}</Type>
+ <CurrentTotals>
+ <Totals>
+ <Total DataType="Money" Currency="{$this->currency_lookup(self::$default_currency)}">{$amount}</Total>
+ </Totals>
+ </CurrentTotals>
+ </Transaction>
 XML;
         } elseif ($type == 'PostAuth' || $type == 'Void') {
             $this->xml .= <<<XML
-							<Transaction>
-								<Type DataType="String">{$type}</Type>
-								<Id DataType="String">{$options['authorization']}</Id>
-								<CurrentTotals>
-									<Totals>
-										<Total DataType="Money" Currency="{$this->currency_lookup(self::$default_currency)}">{$amount}</Total>
-									</Totals>
-								</CurrentTotals>
-							</Transaction>
+ <Transaction>
+ <Type DataType="String">{$type}</Type>
+ <Id DataType="String">{$options['authorization']}</Id>
+ <CurrentTotals>
+ <Totals>
+ <Total DataType="Money" Currency="{$this->currency_lookup(self::$default_currency)}">{$amount}</Total>
+ </Totals>
+ </CurrentTotals>
+ </Transaction>
 XML;
         }
     }
@@ -237,15 +245,15 @@ XML;
     {
         if (isset($options['billing_address'])) {
             $this->xml .= <<<XML
-							<BillTo>
-								<Location>
-									<Email DataType="String">{$options['email']}</Email>
+ <BillTo>
+ <Location>
+ <Email DataType="String">{$options['email']}</Email>
 XML;
             $this->add_address($options['billing_address']);
             $this->xml .= <<<XML
-									<TelVoice DataType="String">{$options['billing_address']['phone']}</TelVoice>
-								</Location>
-							</BillTo>
+ <TelVoice DataType="String">{$options['billing_address']['phone']}</TelVoice>
+ </Location>
+ </BillTo>
 XML;
         }
     }
@@ -259,15 +267,15 @@ XML;
     {
         if (isset($options['shipping_address'])) {
             $this->xml .= <<<XML
-							<ShipTo>
-								<Location>
-									<Email DataType="String">{$options['email']}</Email>
+ <ShipTo>
+ <Location>
+ <Email DataType="String">{$options['email']}</Email>
 XML;
             $this->add_address($options['shipping_address']);
             $this->xml .= <<<XML
-									<TelVoice DataType="String">{$options['shipping_address']['phone']}</TelVoice>
-								</Location>
-							</ShipTo>
+ <TelVoice DataType="String">{$options['shipping_address']['phone']}</TelVoice>
+ </Location>
+ </ShipTo>
 XML;
         }
     }
@@ -280,16 +288,16 @@ XML;
     private function add_address($options)
     {
         $this->xml .= <<<XML
-						<Address>
-							<Name DataType="String">{$options['name']}</Name>
-							<Company DataType="String">{$options['company']}</Company>
-							<Street1 DataType="String">{$options['address1']}</Street1>
-							<Street2 DataType="String">{$options['address2']}</Street2>
-							<City DataType="String" >{$options['city']}</City>
-							<StateProv DataType="String" >{$options['state']}</StateProv>
-							<Country DataType="String">{$this->COUNTRY_CODE_MAPPINGS[$options['country']]}</Country>
-							<PostalCode DataType="String">{$options['zip']}</PostalCode>
-						</Addresss>
+ <Address>
+     <Name DataType="String">{$options['name']}</Name>
+     <Company DataType="String">{$options['company']}</Company>
+     <Street1 DataType="String">{$options['address1']}</Street1>
+     <Street2 DataType="String">{$options['address2']}</Street2>
+     <City DataType="String" >{$options['city']}</City>
+     <StateProv DataType="String" >{$options['state']}</StateProv>
+     <Country DataType="String">{$this->COUNTRY_CODE_MAPPINGS[$options['country']]}</Country>
+     <PostalCode DataType="String">{$options['zip']}</PostalCode>
+     </Addresss>
 XML;
     }
 
@@ -299,19 +307,19 @@ XML;
     private function start_xml()
     {
         $this->xml = <<<XML
-						<?xml version="1.0" encoding="UTF-8"?>
-							<EngineDocList>
-								<DocVersion DataType="String">1.0</DocVersion>
-								<EngineDoc>
-									<ContentType DataType="String">OrderFormDoc</ContentType>
-									<User>
-										<Alias DataType="String">{$this->options['client_id']}</Alias>
-										<Name DataType="String">{$this->options['login']}</Name>
-										<Password DataType="String">{$this->options['password']}</Password>
-									</User>
-								<Instructions>
-									<Pipeline DataType="String">Payment</Pipeline>
-								</Instructions>
+     <?xml version="1.0" encoding="UTF-8"?>
+     <EngineDocList>
+     <DocVersion DataType="String">1.0</DocVersion>
+     <EngineDoc>
+     <ContentType DataType="String">OrderFormDoc</ContentType>
+     <User>
+     <Alias DataType="String">{$this->options['client_id']}</Alias>
+     <Name DataType="String">{$this->options['login']}</Name>
+     <Password DataType="String">{$this->options['password']}</Password>
+     </User>
+     <Instructions>
+     <Pipeline DataType="String">Payment</Pipeline>
+     </Instructions>
 XML;
     }
 
@@ -321,9 +329,9 @@ XML;
     private function end_xml()
     {
         $this->xml .= <<<XML
-								</OrderFormDoc>
-							</EngineDoc>
-						</EngineDocList>
+     </OrderFormDoc>
+     </EngineDoc>
+     </EngineDocList>
 XML;
     }
 
@@ -337,7 +345,12 @@ XML;
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
         $response = $this->parse($this->ssl_post($url, $this->xml));
 
-        return new Response($this->success_from($action, $response), $this->message_from($response), $response, $this->options_from($response));
+        return new Response(
+            $this->success_from($action, $response),
+            $this->message_from($response),
+            $response,
+            $this->options_from($response)
+        );
     }
 
     /**
@@ -360,8 +373,9 @@ XML;
          * Parse messages
          */
         if (!empty($messages)) {
-            if (isset($messages->MaxSev))
+            if (isset($messages->MaxSev)) {
                 $response['severity'] = (string) $messages->MaxSev;
+            }
 
             if (count($messages->Message) == 2) {
                 $message = $messages->Message[1];
@@ -369,57 +383,59 @@ XML;
                 $message = $messages->Message;
             }
 
-            if (isset($message->AdvisedAction))
+            if (isset($message->AdvisedAction)) {
                 $response['advised_action'] = (string) $message->AdvisedAction;
+            }
 
-            if (isset($message->Text))
+            if (isset($message->Text)) {
                 $response['error_message'] = (string) $message->Text;
+            }
         }
 
         /**
          * Parse overview
          */
         if (!empty($overview)) {
-            if (isset($overview->CcErrCode)) :
+            if (isset($overview->CcErrCode)) {
                 $response['return_code'] = (string) $overview->CcErrCode;
-            endif;
+            }
 
-            if (isset($overview->CcReturnMsg)) :
+            if (isset($overview->CcReturnMsg)) {
                 $response['return_message'] = (string) $overview->CcReturnMsg;
-            endif;
+            }
 
-            if (isset($overview->TransactionId)) :
+            if (isset($overview->TransactionId)) {
                 $response['transaction_id'] = (string) $overview->TransactionId;
-            endif;
+            }
 
-            if (isset($overview->AuthCode)) :
+            if (isset($overview->AuthCode)) {
                 $response['auth_code'] = (string) $overview->AuthCode;
-            endif;
+            }
 
-            if (isset($overview->TransactionStatus)) :
+            if (isset($overview->TransactionStatus)) {
                 $response['transaction_status'] = (string) $overview->TransactionStatus;
-            endif;
+            }
 
-            if (isset($overview->Mode)) :
+            if (isset($overview->Mode)) {
                 $response['mode'] = (string) $overview->Mode;
-            endif;
+            }
         }
 
         /**
          * Parse transaction
          */
         if (!empty($transaction->CardProcResp)) {
-            if (isset($transaction->CardProcResp->AvsRespCode)) :
+            if (isset($transaction->CardProcResp->AvsRespCode)) {
                 $response['avs_code'] = (string) $transaction->CardProcResp->AvsRespCode;
-            endif;
+            }
+        }
 
-            if (isset($transaction->CardProcResp->AvsDisplay)) :
-                $response['avs_display'] = (string) $transaction->CardProcResp->AvsDisplay;
-            endif;
+        if (isset($transaction->CardProcResp->AvsDisplay)) {
+            $response['avs_display'] = (string) $transaction->CardProcResp->AvsDisplay;
+        }
 
-            if (isset($transaction->CardProcResp->Cvv2Resp)) :
-                $response['cvv2_resp'] = (string) $transaction->CardProcResp->Cvv2Resp;
-            endif;
+        if (isset($transaction->CardProcResp->Cvv2Resp)) {
+            $response['cvv2_resp'] = (string) $transaction->CardProcResp->Cvv2Resp;
         }
 
         return $response;
@@ -452,7 +468,10 @@ XML;
      */
     private function success_from($action, $response)
     {
-        if ($action == 'authorize' || $action == 'purchase' || $action == 'capture') {
+        if ($action == 'authorize'
+            || $action == 'purchase'
+            || $action == 'capture'
+        ) {
             $transaction_status = $this->TRANSACTION_STATUS_MAPPINGS['accepted'];
         } elseif ($action == 'void') {
             $transaction_status = $this->TRANSACTION_STATUS_MAPPINGS['void'];
@@ -461,12 +480,12 @@ XML;
         }
 
         return
-        (
-        $response['return_code'] == self::APPROVED &&
-        $response['transaction_id'] != null &&
-        $response['auth_code'] != null &&
-        $response['transaction_status'] == $transaction_status
-        );
+            (
+                $response['return_code'] == self::APPROVED &&
+                $response['transaction_id'] != null &&
+                $response['auth_code'] != null &&
+                $response['transaction_status'] == $transaction_status
+            );
     }
 
     /**
@@ -488,8 +507,9 @@ XML;
      */
     private function avs_code_from($response)
     {
-        if (empty($response['avs_display']))
+        if (empty($response['avs_display'])) {
             return array('code' => 'U');
+        }
 
         switch ($response['avs_display']) {
             case 'YY':
@@ -519,5 +539,4 @@ XML;
 
         return array('code' => $code);
     }
-
 }

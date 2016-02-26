@@ -5,10 +5,11 @@ namespace AktiveMerchant\Billing\Gateways;
 use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\Response;
+use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Common\Country;
 
 /**
- * Description of \AktiveMerchant\Billing\HsbcSecureEpayments
+ * Description of HsbcSecureEpayments
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
@@ -20,8 +21,12 @@ class HsbcSecureEpayments extends Gateway implements Interfaces\Charge
     const LIVE_URL = 'https://www.secure-epayments.apixml.hsbc.com';
 
     private $CARD_TYPE_MAPPINGS = array(
-        'visa' => 1, 'master' => 2, 'american_express' => 8, 'solo' => 9,
-        'switch' => 10, 'maestro' => 14
+        'visa' => 1,
+        'master' => 2,
+        'american_express' => 8,
+        'solo' => 9,
+        'switch' => 10,
+        'maestro' => 14,
     );
 
     private $HSBC_CVV_RESPONSE_MAPPINGS = array(
@@ -41,7 +46,7 @@ class HsbcSecureEpayments extends Gateway implements Interfaces\Charge
         'fraud' => "F",
         'error' => "E",
         'void' => "V",
-        'reserved' => "U"
+        'reserved' => "U",
     );
 
     const APPROVED = 1;
@@ -54,38 +59,52 @@ class HsbcSecureEpayments extends Gateway implements Interfaces\Charge
     private $FRAUDULENT = array(
         'DECLINED_FRAUDULENT',
         'DECLINED_FRAUDULENT_VOIDED',
-        'DECLINED_FRAUDULENT_REVIEW', 'CVV_FAILURE');
+        'DECLINED_FRAUDULENT_REVIEW',
+        'CVV_FAILURE',
+    );
+
     private $options = array();
+
     private $xml;
+
     private $payment_mode = "Y"; #Test mode
+
     private $payment_mech_type = "CreditCard";
+
     public static $default_currency = 'EUR';
+
     public static $supported_countries = array('US', 'GB');
+
     public static $supported_cardtypes = array('visa', 'master', 'american_express', 'switch', 'solo', 'maestro');
+
     public static $homepage_url = 'http://www.hsbc.co.uk/1/2/business/cards-payments/secure-epayments';
+
     public static $display_name = 'HSBC Secure ePayments';
+
     public static $money_format = 'cents';
 
     public function __construct($options = array())
     {
-      $this->required_options('login, password, client_id', $options);
+        $this->required_options('login, password, client_id', $options);
 
-        if (isset($options['currency']))
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
+        }
 
         $this->options = $options;
 
-        if (!$this->isTest())
+        if (!$this->isTest()) {
             $this->payment_mode = 'P'; #Production mode
+        }
     }
 
-    public function authorize($amount, \AktiveMerchant\Billing\CreditCard $creditcard, $options = array())
+    public function authorize($amount, CreditCard $creditcard, $options = array())
     {
         $this->build_xml($amount, 'PreAuth', $creditcard, $options);
         return $this->commit(__FUNCTION__, $options);
     }
 
-    public function purchase($amount, \AktiveMerchant\Billing\CreditCard $creditcard, $options = array())
+    public function purchase($amount, CreditCard $creditcard, $options = array())
     {
         $this->build_xml($amount, 'Auth', $creditcard, $options);
         return $this->commit(__FUNCTION__, $options);
@@ -112,9 +131,9 @@ class HsbcSecureEpayments extends Gateway implements Interfaces\Charge
      */
     public function credit($money, $identification, $options = array())
     {
-        // $type = 'Credit'    
+        // $type = 'Credit'
     }
-    
+
     private function build_xml($amount, $type, $creditcard=null, $options=array())
     {
         $this->start_xml();
@@ -261,7 +280,7 @@ XML;
     private function add_address($options)
     {
         $country = Country::find($options['country'])->getCode('numeric');
-        
+
         $this->xml .= <<<XML
       <Address>
         <Name DataType="String">{$options['name']}</Name>
@@ -309,10 +328,11 @@ XML;
         $data = $this->ssl_post($url, $this->xml, $options);
         $response = $this->parse($data);
 
-        $r = new Response($this->success_from($action, $response),
-                $this->message_from($response),
-                $response,
-                $this->options_from($response)
+        $r = new Response(
+            $this->success_from($action, $response),
+            $this->message_from($response),
+            $response,
+            $this->options_from($response)
         );
 
         return $r;
@@ -332,9 +352,9 @@ XML;
          * Parse messages
          */
         if (!empty($messages)) {
-
-            if (isset($messages->MaxSev))
+            if (isset($messages->MaxSev)) {
                 $response['severity'] = (string) $messages->MaxSev;
+            }
 
             if (count($messages->Message) == 2) {
                 $message = $messages->Message[1];
@@ -342,49 +362,58 @@ XML;
                 $message = $messages->Message;
             }
 
-            if (isset($message->AdvisedAction))
+            if (isset($message->AdvisedAction)) {
                 $response['advised_action'] = (string) $message->AdvisedAction;
+            }
 
-            if (isset($message->Text))
+            if (isset($message->Text)) {
                 $response['error_message'] = (string) $message->Text;
+            }
         }
         /**
          * Parse overview
          */
         if (!empty($overview)) {
-
-            if (isset($overview->CcErrCode))
+            if (isset($overview->CcErrCode)) {
                 $response['return_code'] = (string) $overview->CcErrCode;
+            }
 
-            if (isset($overview->CcReturnMsg))
+            if (isset($overview->CcReturnMsg)) {
                 $response['return_message'] = (string) $overview->CcReturnMsg;
+            }
 
-            if (isset($overview->TransactionId))
+            if (isset($overview->TransactionId)) {
                 $response['transaction_id'] = (string) $overview->TransactionId;
+            }
 
-            if (isset($overview->AuthCode))
+            if (isset($overview->AuthCode)) {
                 $response['auth_code'] = (string) $overview->AuthCode;
+            }
 
-            if (isset($overview->TransactionStatus))
+            if (isset($overview->TransactionStatus)) {
                 $response['transaction_status'] = (string) $overview->TransactionStatus;
+            }
 
-            if (isset($overview->Mode))
+            if (isset($overview->Mode)) {
                 $response['mode'] = (string) $overview->Mode;
+            }
         }
 
         /**
          * Parse transaction
          */
         if (!empty($transaction->CardProcResp)) {
-
-            if (isset($transaction->CardProcResp->AvsRespCode))
+            if (isset($transaction->CardProcResp->AvsRespCode)) {
                 $response['avs_code'] = (string) $transaction->CardProcResp->AvsRespCode;
+            }
 
-            if (isset($transaction->CardProcResp->AvsDisplay))
+            if (isset($transaction->CardProcResp->AvsDisplay)){
                 $response['avs_display'] = (string) $transaction->CardProcResp->AvsDisplay;
+            }
 
-            if (isset($transaction->CardProcResp->Cvv2Resp))
+            if (isset($transaction->CardProcResp->Cvv2Resp)) {
                 $response['cvv2_resp'] = (string) $transaction->CardProcResp->Cvv2Resp;
+            }
         }
 
         return $response;
@@ -398,8 +427,9 @@ XML;
         $options['fraud_review'] = isset($response['return_code']) ? in_array($response['return_code'], $this->FRAUDULENT) : false;
 
         if (isset($response['cvv2_resp'])) {
-            if ( array_key_exists($response['cvv2_resp'], $this->HSBC_CVV_RESPONSE_MAPPINGS) )
+            if (array_key_exists($response['cvv2_resp'], $this->HSBC_CVV_RESPONSE_MAPPINGS)) {
                 $options['cvv_result'] = $this->HSBC_CVV_RESPONSE_MAPPINGS[$response['cvv2_resp']];
+            }
         }
         $options['avs_result'] = $this->avs_code_from($response);
 
@@ -429,8 +459,10 @@ XML;
 
     private function avs_code_from($response)
     {
-        if (empty($response['avs_display']))
+        if (empty($response['avs_display'])) {
             return array('code' => 'U');
+        }
+
         switch ($response['avs_display']) {
             case 'YY':
                 $code = "Y";
@@ -454,5 +486,4 @@ XML;
 
         return array('code' => $code);
     }
-
 }

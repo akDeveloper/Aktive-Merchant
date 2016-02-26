@@ -67,6 +67,8 @@ class ePDQTest extends \AktiveMerchant\TestCase
             $this->options
         );
 
+        print_r($response);
+
         $this->assert_success($response);
         $this->assertEquals(
             'This transaction has been approved.',
