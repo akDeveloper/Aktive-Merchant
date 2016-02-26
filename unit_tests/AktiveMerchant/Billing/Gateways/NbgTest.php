@@ -71,7 +71,6 @@ class NbgTest extends \AktiveMerchant\TestCase
         $this->mock_request($this->successTokenPurchaseResponse());
         $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
 
-        print_r($response);
         $this->assert_success($response);
         $this->assertTrue($response->test());
     }
@@ -115,7 +114,6 @@ class NbgTest extends \AktiveMerchant\TestCase
     {
         $response = $this->gateway->store($this->creditcard, $this->options);
 
-        print_r($response);
         $this->assert_success($response);
         $this->assertTrue($response->test());
     }
