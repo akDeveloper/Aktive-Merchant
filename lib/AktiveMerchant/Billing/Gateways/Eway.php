@@ -10,17 +10,13 @@ use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Options;
 
-
 /**
- * Description of Eway payment gateway
+ * Integration of Eway payment gateway
  *
- * @category Gateways
- * @package  Aktive-Merchant
- * @author   Andreas Kollaros
+ * @author Andreas Kollaros <andreas@larium.net>
  * @license  MIT License http://www.opensource.org/licenses/mit-license.php
- * @link     https://github.com/akDeveloper/Aktive-Merchant
  */
-class Eway extends Gateway implements 
+class Eway extends Gateway implements
     Interfaces\Charge,
     Interfaces\Credit
 {
@@ -123,7 +119,7 @@ class Eway extends Gateway implements
      *
      * @return Response
      */
-    public function authorize($money, CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options = array())
     {
         $this->required_options('address,order_id', $options);
 
@@ -136,13 +132,13 @@ class Eway extends Gateway implements
         $this->add_optional_data();
 
         $this->post['TotalAmount'] = $this->amount($money);
-        
+
         return $this->commit('xmlauth', $money, $options);
     }
 
     /**
      * Captures the given amount which was previously authorized
-     * 
+     *
      * Doesn't use authorization here for consistency with authorize (uses order_id instead)
      *
      * @param number     $money
@@ -151,7 +147,8 @@ class Eway extends Gateway implements
      *
      * @return Response
      */
-    public function capture($money, $authorization, $options = array()){
+    public function capture($money, $authorization, $options = array())
+    {
         $this->required_options("order_id", $options);
 
         $this->post = array(
@@ -174,7 +171,7 @@ class Eway extends Gateway implements
      *
      * @return Response
      */
-    public function purchase($money, CreditCard $creditcard, $options=array())
+    public function purchase($money, CreditCard $creditcard, $options = array())
     {
         $this->required_options('address', $options);
 
@@ -187,16 +184,15 @@ class Eway extends Gateway implements
         $this->add_optional_data();
 
         $this->post['TotalAmount'] = $this->amount($money);
-        
+
         return $this->commit('xmlpayment', $money, $options);
     }
 
-
     /**
      *
-     * @param  number $money
-     * @param  string $identification
-     * @param  array  $options
+     * @param number $money
+     * @param string $identification
+     * @param array  $options
      *
      * @return Response
      */
@@ -207,7 +203,7 @@ class Eway extends Gateway implements
         $this->post = array();
 
         $this->post['OriginalTrxnNumber'] = $identification;
-        
+
         $this->post['TotalAmount'] = $this->amount($money);
 
         $this->post['RefundPassword'] = $options['password'];
@@ -215,7 +211,9 @@ class Eway extends Gateway implements
         return $this->commit('xmlpaymentrefund', $money);
     }
 
-    public function void($authorization, $options = array()){}
+    public function void($authorization, $options = array())
+    {
+    }
 
     // Private methods
 
@@ -315,20 +313,19 @@ class Eway extends Gateway implements
         $response = array();
         $xml = new \SimpleXMLElement($body);
 
-        foreach ($xml as $name=>$value) {
-            $k = str_replace('eway', '',$name);
+        foreach ($xml as $name => $value) {
+            $k = str_replace('eway', '', $name);
             $response[$k] = (string) $value;
         }
 
-        #print_r($response);
         return $response;
     }
 
     /**
      *
-     * @param  string $action
-     * @param  number $money
-     * @param  array  $parameters
+     * @param string $action
+     * @param number $money
+     * @param array  $parameters
      *
      * @return Response
      */
@@ -337,7 +334,7 @@ class Eway extends Gateway implements
         $cvn = isset($this->post['CVN']) ? $this->post['CVN'] : false;
 
         $url = $this->get_gateway_url($action, $cvn, $this->isTest());
-        
+
         $data = $this->ssl_post($url, $this->post_data($parameters));
 
         $response = $this->parse($data);
@@ -424,21 +421,22 @@ class Eway extends Gateway implements
             $xml->addChild("eway$name", $value);
         }
 
-        return $xml->asXML(); 
+        return $xml->asXML();
     }
 
 
     /**
      * This takes a live endpoint and writes it to a working test endpoint
      */
-    private function test_gateway_alias($live_endpoint) {
+    private function test_gateway_alias($live_endpoint)
+    {
         $lookup = array(
             "xmlauth" => "authtestpage",
             "xmlauthcomplete" => "authcompletetestpage",
             "xmlauthvoid" => "authvoidetestpage"
         );
 
-        if(isset($lookup[$live_endpoint])) {
+        if (isset($lookup[$live_endpoint])) {
             return $lookup[$live_endpoint];
         } else {
             return "testpage";
@@ -458,14 +456,9 @@ class Eway extends Gateway implements
                 $url = sprintf(self::TEST_URL, $this->test_gateway_alias($action));
             } else {
                 $url = sprintf(self::LIVE_URL, $action);
-            } 
+            }
         }
 
         return $url;
     }
-
-
-
 }
-
-

@@ -11,20 +11,15 @@ use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Options;
 
 /**
- * Description of Mercury gateway
+ * Integration of Mercury gateway.
  *
  * If your Mercury account has tokenization turned off you should pass the
  * option argument 'tokenization' => false when creating the gateway.
  * In this case you have to pass the credit card again for the actions capture/credit
  * and void.
  *
- *
- *
- * @category Gateways
- * @package  Aktive-Merchant
- * @author   Andreas Kollaros <andreaskollaros@ymail.com>
- * @license  MIT License http://www.opensource.org/licenses/mit-license.php
- * @link     https://github.com/akDeveloper/Aktive-Merchant
+ * @author Andreas Kollaros <andreas@larium.net>
+ * @license MIT License http://www.opensource.org/licenses/mit-license.php
  */
 class Mercury extends Gateway implements
     Interfaces\Charge,

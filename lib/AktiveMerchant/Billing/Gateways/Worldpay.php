@@ -9,9 +9,10 @@ use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Billing\Gateways\Worldpay\XmlNormalizer;
 
 /**
- * WorldPay
+ * Integration of WorldPay gateway
  *
- * @package Aktive-Merchant
+ * @author Tom Maguire
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Worldpay extends Gateway
 {
@@ -73,7 +74,7 @@ class Worldpay extends Gateway
     public function build_authorization_request($money, $creditcard, $options, $testingXmlGeneration = false)
     {
         $this->xml = $this->createXmlBuilder();
-        
+
         $this->xml->load(array(
             'merchantCode' => $this->options['login'],
             'version' => '1.4',
@@ -106,14 +107,14 @@ class Worldpay extends Gateway
     {
         $xml = new \Thapp\XmlBuilder\XmlBuilder('paymentService', new XmlNormalizer);
         $xml->setDocType(
-            'paymentService', 
-            '-//WorldPay//DTD WorldPay PaymentService v1//EN', 
+            'paymentService',
+            '-//WorldPay//DTD WorldPay PaymentService v1//EN',
             'http://dtd.worldpay.com/paymentService_v1.dtd'
         );
 
         $xml->setRenderTypeAttributes(false);
         $xml->setAttributeMapp(array('paymentService' => array('merchantCode', 'version')));
-        
+
         return $xml;
     }
 
@@ -248,9 +249,9 @@ class Worldpay extends Gateway
         $response = $this->parse($this->ssl_post($url, $this->xml->createXML(true), $options));
         $success = $this->success_from($response, $successCriteria);
         return new Response(
-            $success, 
-            $this->message_from($success, $response, $successCriteria), 
-            $this->params_from($response), 
+            $success,
+            $this->message_from($success, $response, $successCriteria),
+            $this->params_from($response),
             $this->options_from($response)
         );
     }
@@ -267,7 +268,7 @@ class Worldpay extends Gateway
         if ($successCriteria == 'ok') {
             return isset($response['paymentService']['reply']['ok']);
         }
-            
+
         if (isset($response['paymentService']['reply']['orderStatus'])) {
             return $response['paymentService']['reply']['orderStatus']['payment']['lastEvent'] == $successCriteria;
         }

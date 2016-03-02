@@ -14,8 +14,7 @@ use AktiveMerchant\Common\XmlBuilder;
 /**
  * National Bank of Greece DataCash gateway implementation.
  *
- * @package  Aktive-Merchant
- * @author   Andreas Kollaros
+ * @author Andreas Kollaros <andreas@larium.net>
  * @license  MIT License http://www.opensource.org/licenses/mit-license.php
  */
 class DataCash extends Gateway implements

@@ -14,13 +14,10 @@ use AktiveMerchant\Common\Address;
 use AktiveMerchant\Billing\Gateways\Worldpay\XmlNormalizer;
 
 /**
- * Description of Example
+ * Integration of BridgePay gateway.
  *
- * @category Gateways
- * @package  Aktive-Merchant
- * @author   Dimitris Giannakakis <Dim.Giannakakis@yahoo.com>
- * @license  MIT License http://www.opensource.org/licenses/mit-license.php
- * @link     https://github.com/akDeveloper/Aktive-Merchant
+ * @author Dimitris Giannakakis <Dim.Giannakakis@yahoo.com>
+ * @license MIT License http://www.opensource.org/licenses/mit-license.php
  */
 class BridgePay extends Gateway implements
     Interfaces\Charge,
@@ -364,13 +361,12 @@ class BridgePay extends Gateway implements
      */
     private function parse($body)
     {
-       $xmlbuilder = new XmlBuilder();
+        $xmlbuilder = new XmlBuilder();
 
-       $xml = $xmlbuilder->loadXML($body, true);
+        $xml = $xmlbuilder->loadXML($body, true);
 
-       $request = $xmlbuilder->toArray($xml);
+        $request = $xmlbuilder->toArray($xml);
 
-       return $request['Response'];
+        return $request['Response'];
     }
-
 }

@@ -13,10 +13,8 @@ use AktiveMerchant\Billing\Response;
 /**
  * Merchant driver for {link http://www.psigate.com/ PSiGate}.
  *
- * @package Aktive-Merchant
- * @author  Scott Gifford
+ * @author Scott Gifford
  * @license http://www.opensource.org/licenses/mit-license.php
- * @see http://www.psigate.com/
  */
 class Psigate extends Gateway implements
     Interfaces\Charge,

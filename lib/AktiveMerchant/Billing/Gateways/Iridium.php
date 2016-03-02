@@ -14,6 +14,12 @@ use AktiveMerchant\Common\Address;
 use AktiveMerchant\Billing\Gateways\Worldpay\XmlNormalizer;
 use AktiveMerchant\Common\Country;
 
+/**
+ * Integration of Iridium gateway.
+ *
+ * @author Dimitris Giannakakis <Dim.Giannakakis@yahoo.com>
+ * @license MIT License http://www.opensource.org/licenses/mit-license.php
+ */
 class Iridium extends Gateway implements
     Interfaces\Charge,
     Interfaces\Credit
@@ -82,8 +88,9 @@ class Iridium extends Gateway implements
     {
         $this->required_options('merchant_id, password', $options);
 
-        if (isset($options['currency']))
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
+        }
 
         $this->options = $options;
 
@@ -96,12 +103,9 @@ class Iridium extends Gateway implements
         $this->setup_address_hash($options);
 
         if (isset($creditcard->number)) {
-
-           return $this->commit($this->build_purchase_request('PREAUTH', $money, $creditcard, $options), $options);
-
+            return $this->commit($this->build_purchase_request('PREAUTH', $money, $creditcard, $options), $options);
         } else {
-
-           return $this->commit($this->build_reference_request('PREAUTH', $money, $creditcard, $options), $options);
+            return $this->commit($this->build_reference_request('PREAUTH', $money, $creditcard, $options), $options);
         }
     }
 
@@ -112,18 +116,14 @@ class Iridium extends Gateway implements
         $this->setup_address_hash($options);
 
         if (isset($creditcard->number)) {
-
-           return $this->commit($this->build_purchase_request('SALE', $money, $creditcard, $options),$options);
-
+            return $this->commit($this->build_purchase_request('SALE', $money, $creditcard, $options),$options);
         } else {
-
-           return $this->commit($this->build_reference_request('SALE', $money, $creditcard, $options), $options);
+            return $this->commit($this->build_reference_request('SALE', $money, $creditcard, $options), $options);
         }
     }
 
     public function capture($money, $authorization, $options = array())
     {
-
         $options = new Options($options);
 
         return $this->commit($this->build_reference_request('COLLECTION', $money, $authorization, $options), $options);
@@ -177,16 +177,11 @@ class Iridium extends Gateway implements
 
     private function setup_address_hash(Options $options)
     {
-        if($options->billing_address) {
-
+        if ($options->billing_address) {
             $adr = $options->billing_address;
-
-        } else if($options->address) {
-
+        } elseif ($options->address) {
             $adr = $options->address;
-
         } else {
-
             $adr = null;
         }
 
@@ -212,7 +207,7 @@ class Iridium extends Gateway implements
         $money,
         $authorization,
         $options
-    ){
+    ) {
 
         $options->action ='CrossReferenceTransaction';
 
@@ -226,7 +221,7 @@ class Iridium extends Gateway implements
         $money,
         $type,
         $payment_source
-    ){
+    ) {
 
         $this->required_options('action', $options);
 
@@ -235,12 +230,9 @@ class Iridium extends Gateway implements
         $credit_data = isset($payment_source->number) ? $this->add_creditcard($payment_source, $options) : array();
         $customer_details = isset($payment_source->number) ? $this->add_customer_details($payment_source, $options) : array();
 
-        if(!$purchase_data) {
-
+        if (!$purchase_data) {
             $reference = $this->reference_details( $options, $money, $type, $payment_source);
-
         } else {
-
             $reference  = array();
         }
 
@@ -395,9 +387,7 @@ class Iridium extends Gateway implements
                     'OrderID' => ($options->order_id) ? $options->order_id : $author['order_id'],
                 )
             );
-
         } else {
-
             $details =array(
                 'TransactionDetails' => array(
                     '@attributes' => array(
@@ -438,7 +428,9 @@ class Iridium extends Gateway implements
 
     private function parse_element($child, $value)
     {
-        if (($child == 'CardDetailsTransactionResult'  ) || ($child == 'CrossReferenceTransactionResult')) {
+        if (($child == 'CardDetailsTransactionResult'  )
+            || ($child == 'CrossReferenceTransactionResult')
+        ) {
             $attributes = $value->attributes();
 
             if (isset($attributes)) {
@@ -463,14 +455,12 @@ class Iridium extends Gateway implements
                 }
             }
 
-            foreach ($value as $child_node => $child_value ) {
-
+            foreach ($value as $child_node => $child_value) {
                 if ($child_node == 'GatewayEntryPoints') {
 
                     $index = 0;
 
                     foreach ($child_value as $key => $att) {
-
                         $attributes = $att->attributes();
 
                         if (isset($attributes)) {
@@ -487,17 +477,15 @@ class Iridium extends Gateway implements
                 $this->reply['transaction_output_data'][$child_node] = (string) $child_value;
             }
         }
-
     }
 
     private function substring_between($haystack, $start, $end)
     {
-        if (strpos($haystack, $start) === false || strpos($haystack, $end) === false) {
-
+        if (strpos($haystack, $start) === false
+            || strpos($haystack, $end) === false
+        ) {
             return false;
-
         } else {
-
             $start_position = strpos($haystack, $start) + strlen($start);
 
             $end_position = strpos($haystack, $end);
@@ -508,17 +496,19 @@ class Iridium extends Gateway implements
 
     private function authorization_from(Options $options)
     {
-        if ($this->success) :
+        if ($this->success) {
+            $auth_code = isset($this->reply['transaction_output_data']['AuthCode'])
+                ? $this->reply['transaction_output_data']['AuthCode']
+                : null ;
+            $auth =  $options->order_id
+                .';'
+                .$this->reply['transaction_output_data']['CrossReference']
+                .';'
+                .$auth_code;
 
-            $auth_code = isset($this->reply['transaction_output_data']['AuthCode']) ? $this->reply['transaction_output_data']['AuthCode'] : null ;
-            $auth =  $options->order_id.';'.$this->reply['transaction_output_data']['CrossReference'].
-            ';'.$auth_code;
-
-        else :
-
+        } else {
             $auth = null;
-
-        endif;
+        }
 
         return $auth;
     }

@@ -10,13 +10,15 @@ use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
 
 /**
- * Description of Eurobank gateway
+ * Integration of Eurobank ProxyPay gateway.
  *
- * @package Aktive-Merchant
- * @author  Andreas Kollaros
+ * ProxyPay is deprecated by Eurobank.
+ * Current active implementation is Cardlink gateway.
+ *
+ * @author Andreas Kollaros <andreas@larium.net>
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Eurobank extends Gateway implements 
+class Eurobank extends Gateway implements
     Interfaces\Charge,
     Interfaces\Credit
 {
@@ -66,9 +68,9 @@ class Eurobank extends Gateway implements
 
     public function purchase($money, CreditCard $creditcard, $options = array())
     {
-        
+
     }
-    
+
     /**
      *
      * @param number $money
@@ -137,9 +139,9 @@ class Eurobank extends Gateway implements
          */
 
         return new Response(
-            $this->success_from($response), 
-            $this->message_from($response), 
-            $response, 
+            $this->success_from($response),
+            $this->message_from($response),
+            $response,
             $this->options_from($response)
         );
     }
@@ -225,10 +227,10 @@ XML;
      * @param array      $options
      */
     private function build_xml(
-        $money, 
-        $type, 
-        CreditCard $creditcard = null, 
-        $options=array()
+        $money,
+        $type,
+        CreditCard $creditcard = null,
+        $options = array()
     ) {
         $merchant_desc = isset($options['merchant_desc']) ? $options['merchant_desc'] : null;
         $merchant_ref = isset($options['authorization']) ? $options['authorization'] : "REF " . date("YmdH:i:s", time());
@@ -260,14 +262,12 @@ XML;
         <Var9 />
         </OrderInfo>
 XML;
-        if ($creditcard != null)
+        if ($creditcard != null) {
             $this->build_payment_info($creditcard);
+        }
         $this->xml .= <<<XML
         </Message>
         </JProxyPayLink>
 XML;
     }
-
 }
-
-?>

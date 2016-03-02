@@ -1,6 +1,39 @@
 <?php
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
+/*
+ * For more information on the Realex Payment Gateway visit their site http://realexpayments.com.
+ * Realex is the leading gateway in Ireland
+ *
+ * === Merchant ID and Password
+ *
+ * To be able to use this library you will need to obtain an account from Realex, you can find contact them
+ * via their website.
+ *
+ * === Caveats
+ *
+ * Realex requires that you specify the account to which your transactions are made.
+ *
+ * If you wish to accept multiple currencies, you need to create an account per currency.
+ * This you would need to handle within your application logic.
+ * Again, contact Realex for more information.
+ *
+ * They also require accepting payment from a Diners card (Mastercard) go through a different account.
+ *
+ * Realex also requires that you send several (extra) required identifiers with credit and void methods
+ *
+ *  - order_id
+ *  - pasref
+ *  - authorization
+ *
+ * The pasref can be accessed from the response params. i.e.
+ * $response->params['pasref']
+ *
+ * === Testing
+ *
+ * Realex provide test card numbers on a per-account basis, you will need to request these.
+ */
 namespace AktiveMerchant\Billing\Gateways;
 
 use AktiveMerchant\Billing\Interfaces as Interfaces;
@@ -11,10 +44,10 @@ use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Options;
 
 /**
- * Realex
+ * Integration of Realex gateway.
  *
- * @package Aktive-Merchant
- * @author  Simon Hamilton
+ * @author Simon Hamilton
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Realex extends Gateway implements
     Interfaces\Charge,
@@ -22,39 +55,6 @@ class Realex extends Gateway implements
     Interfaces\Recurring,
     Interfaces\Store
 {
-    /*
-     * For more information on the Realex Payment Gateway visit their site http://realexpayments.com.
-     * Realex is the leading gateway in Ireland
-     *
-     * === Merchant ID and Password
-     *
-     * To be able to use this library you will need to obtain an account from Realex, you can find contact them
-     * via their website.
-     *
-     * === Caveats
-     *
-     * Realex requires that you specify the account to which your transactions are made.
-     *
-     * If you wish to accept multiple currencies, you need to create an account per currency.
-     * This you would need to handle within your application logic.
-     * Again, contact Realex for more information.
-     *
-     * They also require accepting payment from a Diners card (Mastercard) go through a different account.
-     *
-     * Realex also requires that you send several (extra) required identifiers with credit and void methods
-     *
-     *  - order_id
-     *  - pasref
-     *  - authorization
-     *
-     * The pasref can be accessed from the response params. i.e.
-     * $response->params['pasref']
-     *
-     * === Testing
-     *
-     * Realex provide test card numbers on a per-account basis, you will need to request these.
-     */
-
     const URL = 'https://epage.payandshop.com/epage-remote.cgi';
     const RECURRING_URL = 'https://epage.payandshop.com/epage-remote-plugins.cgi';
 
@@ -98,8 +98,7 @@ class Realex extends Gateway implements
     /**
      * Contructor
      *
-     * @param string $options
-     * @author Simon Hamilton
+     * @param array $options
      */
     public function __construct($options)
     {
@@ -121,8 +120,8 @@ class Realex extends Gateway implements
      * @param string $money The amount to be authorized. Either an Integer value in cents or a Money object.
      * @param CreditCard $creditcard The CreditCard details for the transaction.
      * @param array $options Optional parameters.
+     *
      * @return Response
-     * @author Simon Hamilton
      */
     public function authorize($money, CreditCard $creditcard, $options = array())
     {
@@ -138,8 +137,8 @@ class Realex extends Gateway implements
      * @param string $money The amount to be authorized. Either an Integer value in cents or a Money object.
      * @param CreditCard $creditcard The CreditCard details for the transaction.
      * @param array $options Optional parameters.
+     *
      * @return Response
-     * @author Simon Hamilton
      */
     public function purchase($money, CreditCard $creditcard, $options = array())
     {
@@ -155,8 +154,8 @@ class Realex extends Gateway implements
      * @param string $money The amount to be authorized. Either an Integer value in cents or a Money object.
      * @param string $authorization The authorization returned from the previous authorize request.
      * @param array $options Optional parameters.
+     *
      * @return Response
-     * @author Simon Hamilton
      */
     public function capture($money, $authorization, $options = array())
     {
@@ -175,8 +174,8 @@ class Realex extends Gateway implements
      * @param string $money The amount to be rebated. Either an Integer value in cents or a Money object.
      * @param string $authorization The authorization returned from the previous authorize request.
      * @param array $options Optional parameters.
+     * `
      * @return Response
-     * @author Simon Hamilton
      */
     public function credit($money, $authorization, $options = array())
     {
@@ -191,8 +190,8 @@ class Realex extends Gateway implements
      *
      * @param string $authorization The authorization returned from the previous authorize request.
      * @param array $options Optional parameters.
+     *
      * @return Response
-     * @author Simon Hamilton
      */
     public function void($authorization, $options = array())
     {
@@ -211,8 +210,8 @@ class Realex extends Gateway implements
      *
      * @param string $money The amount to be authorized. Either an Integer value in cents or a Money object.
      * @param array $options Optional parameters.
+     *
      * @return Response
-     * @author Simon Hamilton
      */
     public function recurring($money, CreditCard $creditcard, $options = array())
     {
@@ -235,8 +234,8 @@ class Realex extends Gateway implements
      *
      * @param CreditCard $creditcard The CreditCard details for the transaction.
      * @param array $options Optional parameters.
+     *
      * @return Response
-     * @author Simon Hamilton
      */
     public function store(CreditCard $creditcard, $options = array())
     {
@@ -250,8 +249,8 @@ class Realex extends Gateway implements
      *
      * @param CreditCard $creditcard The CreditCard details for the transaction.
      * @param array $options Optional parameters.
+     *
      * @return Response
-     * @author Simon Hamilton
      */
     public function unstore($reference, $options = array())
     {
@@ -264,8 +263,8 @@ class Realex extends Gateway implements
      * Store User information in the Realex RealVault
      *
      * @param array $options Parameters.
+     *
      * @return Response
-     * @author Simon Hamilton
      */
     public function storeUser($options)
     {
@@ -303,8 +302,8 @@ class Realex extends Gateway implements
      * </response>
      *
      * @param string $endpoint
+     *
      * @return Response
-     * @author Simon Hamilton
      */
     private function commit($endpoint = 'default')
     {
@@ -711,8 +710,8 @@ class Realex extends Gateway implements
      * Parse the message from the response
      *
      * @param string $response
+     *
      * @return void
-     * @author Simon Hamilton
      */
     private function messageFrom($response)
     {
@@ -790,8 +789,8 @@ class Realex extends Gateway implements
      * )
      *
      * @param string $response_xml
+     *
      * @return SimpleXMLElement Object
-     * @author Simon Hamilton
      */
     private function parse($response_xml)
     {
@@ -803,8 +802,8 @@ class Realex extends Gateway implements
      * get the params from the XML response
      *
      * @param SimpleXMLElement Object
+     *
      * @return array
-     * @author Simon Hamilton
      */
     private function paramsFrom($response)
     {
@@ -825,8 +824,8 @@ class Realex extends Gateway implements
      * get the options from the XML response
      *
      * @param SimpleXMLElement Object
+     *
      * @return array
-     * @author Simon Hamilton
      */
     private function optionsFrom($response)
     {

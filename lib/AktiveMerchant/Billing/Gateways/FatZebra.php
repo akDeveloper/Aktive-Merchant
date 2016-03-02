@@ -13,13 +13,10 @@ use AktiveMerchant\Common\Address;
 use AktiveMerchant\Http\RequestInterface;
 
 /**
- * Description of Fat Zebra payment gateway
+ * Integration of Fat Zebra payment gateway.
  *
- * @category Gateways
- * @package  Aktive-Merchant
- * @author   Andreas Kollaros
- * @license  MIT License http://www.opensource.org/licenses/mit-license.php
- * @link     https://github.com/akDeveloper/Aktive-Merchant
+ * @author Andreas Kollaros <andreas@larium.net>
+ * @license MIT License http://www.opensource.org/licenses/mit-license.php
  */
 class FatZebra extends Gateway
 {
@@ -49,7 +46,7 @@ class FatZebra extends Gateway
     /**
      * {@inheritdoc}
      */
-    public static $homepage_url = 'https://www.balancedpayments.com/';
+    public static $homepage_url = 'https://www.fatzebra.com.au/';
 
     /**
      * {@inheritdoc}
@@ -88,8 +85,9 @@ class FatZebra extends Gateway
     {
         Options::required('username, token', $options);
 
-        if (isset($options['currency']))
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
+        }
 
         $this->options = new Options($options);
     }
@@ -466,12 +464,14 @@ class FatZebra extends Gateway
         $response->test = isset($data->test) ? $data->test : $respose->test;
 
         if ($data->successful == true) {
-            if (   (isset($response->authorized)
+            if ((isset($response->authorized)
                 && $response->authorized == true)
                 || (isset($response->id)
                 && $response->id !== null)
             ) {
-                $response->authorization_id = isset($response->id) ? $response->id : $response->token;
+                $response->authorization_id = isset($response->id)
+                    ? $response->id
+                    : $response->token;
             } else {
                 $response->authorization_id = null;
             }
@@ -524,7 +524,7 @@ class FatZebra extends Gateway
                 'avs_result' => null,
                 'cvv_result' => null
             )
-	    );
+        );
     }
 
     /**
@@ -549,7 +549,7 @@ class FatZebra extends Gateway
     private function message_from($response)
     {
         return is_array($response['message'])
-            ? implode(', ',$response['message'])
+            ? implode(', ', $response['message'])
             : $response['message'];
     }
 }

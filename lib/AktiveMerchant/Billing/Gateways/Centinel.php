@@ -11,10 +11,9 @@ use AktiveMerchant\Common\Options;
 use AktiveMerchant\Common\XmlBuilder;
 
 /**
- * Description of Centinel gateway
+ * Integration of Centinel gateway
  *
- * @package Aktive-Merchant
- * @author  Andreas Kollaros
+ * @author Andreas Kollaros <andreas@larium.net>
  * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Centinel extends Gateway

@@ -6,6 +6,12 @@ use AktiveMerchant\Billing\Gateways\Payflow\PayflowCommon;
 use AktiveMerchant\Billing\Gateways\Payflow\PayflowResponse;
 use AktiveMerchant\Billing\Interfaces as Interfaces;
 
+/**
+ * Integration of Payflow gateway
+ *
+ * @author Tom Maguire
+ * @license http://www.opensource.org/licenses/mit-license.php
+ */
 class Payflow extends PayflowCommon
 {
     public static $supported_cardtypes = array('add', 'modify', 'cancel', 'inquiry', 'reactivate', 'payment');
@@ -27,7 +33,7 @@ class Payflow extends PayflowCommon
     function purchase($money, $credit_card_or_reference, $options = array())
     {
         $this->build_sale_or_authorization_request(
-            'Sale', 
+            'Sale',
             $money,
             $credit_card_or_reference,
             $options

@@ -14,11 +14,8 @@ use AktiveMerchant\Common\Inflect;
 /**
  * Description of Exact gateway
  *
- * @category Gateways
- * @package  Aktive-Merchant
- * @author   Andreas Kollaros <andreaskollaros@ymail.com>
- * @license  MIT License http://www.opensource.org/licenses/mit-license.php
- * @link     https://github.com/akDeveloper/Aktive-Merchant
+ * @author Andreas Kollaros <andreas@larium.net>
+ * @license MIT License http://www.opensource.org/licenses/mit-license.php
  */
 class Exact extends Gateway implements Interfaces\Charge
 {

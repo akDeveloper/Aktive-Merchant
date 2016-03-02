@@ -12,8 +12,7 @@ use AktiveMerchant\Common\XmlBuilder;
 /**
  * Support 3D Secure implementation for DataCash gateway.
  *
- * @package Aktive-Merchant
- * @author  Andreas Kollaros
+ * @author Andreas Kollaros <andreas@larium.net>
  * @license MIT License http://www.opensource.org/licenses/mit-license.php
  */
 class DataCashMpi extends DataCash

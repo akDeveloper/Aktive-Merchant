@@ -12,7 +12,7 @@ use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Options;
 
 /**
- * Description of Moneris gateway
+ * Integration of Moneris gateway
  *
  * Supported Methods
  * - authorize ( Verifies and locks funds on the customer' s credit card )
@@ -30,9 +30,8 @@ use AktiveMerchant\Common\Options;
  * - $options['crypt_type'] element with value according to MonerisMpi response.
  *
  *
- * @package Aktive-Merchant
- * @author  Andreas Kollaros
- * @license MIT {@link http://opensource.org/licenses/mit-license.php}
+ * @author Andreas Kollaros <andreas@larium.net
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Moneris extends Gateway
 {

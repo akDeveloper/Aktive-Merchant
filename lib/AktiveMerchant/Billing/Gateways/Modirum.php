@@ -12,6 +12,14 @@ use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Options;
 use AktiveMerchant\Common\XmlBuilder;
 
+/**
+ * Abstract instegration of Modirum gateway.
+ *
+ * This gateway is used from Cardlink (Eurobank) and Alphababank integrations.
+ *
+ * @author Andreas Kollaros <andreas@larium.net>
+ * @license http://www.opensource.org/licenses/mit-license.php
+ */
 abstract class Modirum extends Gateway implements
     Interfaces\Charge,
     Interfaces\Credit

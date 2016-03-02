@@ -9,10 +9,9 @@ use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Common\Country;
 
 /**
- * Description of HsbcSecureEpayments
+ * Integration of HsbcSecureEpayments
  *
- * @package Aktive-Merchant
- * @author  Andreas Kollaros
+ * @author Andreas Kollaros <andreas@larium.net>
  * @license http://www.opensource.org/licenses/mit-license.php
  */
 class HsbcSecureEpayments extends Gateway implements Interfaces\Charge

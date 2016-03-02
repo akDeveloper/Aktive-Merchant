@@ -5,13 +5,10 @@
 namespace AktiveMerchant\Billing\Gateways;
 
 /**
- * Description of Cardlink gateway.
+ * Integration of Cardlink gateway.
  *
- * @category Gateways
- * @package  Aktive-Merchant
- * @author   Your name <your@email.com>
+ * @author Andreas Kollaros <andreas@larium.net>
  * @license  MIT License http://www.opensource.org/licenses/mit-license.php
- * @link     https://github.com/akDeveloper/Aktive-Merchant
  */
 class Cardlink extends Modirum
 {
