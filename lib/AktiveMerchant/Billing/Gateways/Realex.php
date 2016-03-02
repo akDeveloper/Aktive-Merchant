@@ -8,6 +8,7 @@ use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Exception;
 use AktiveMerchant\Billing\Response;
+use AktiveMerchant\Common\Options;
 
 /**
  * Realex
@@ -15,10 +16,10 @@ use AktiveMerchant\Billing\Response;
  * @package Aktive-Merchant
  * @author  Simon Hamilton
  */
-class Realex extends Gateway implements 
-    Interfaces\Charge, 
-    Interfaces\Credit, 
-    Interfaces\Recurring, 
+class Realex extends Gateway implements
+    Interfaces\Charge,
+    Interfaces\Credit,
+    Interfaces\Recurring,
     Interfaces\Store
 {
     /*
@@ -65,6 +66,7 @@ class Realex extends Gateway implements
         'ERROR' => 'Gateway Error',
         'CLIENT_DEACTIVATED' => 'Gateway Error'
     );
+
     protected $card_mappings = array(
         'master' => 'MC',
         'visa' => 'VISA',
@@ -74,14 +76,23 @@ class Realex extends Gateway implements
         'solo' => 'SWITCH',
         'laser' => 'LASER'
     );
+
     public static $supported_countries = array('IE', 'UK');
+
     public static $supported_cardtypes = array('visa', 'master', 'american_express', 'diners_club', 'switch', 'solo', 'laser');
+
     public static $homepage_url = 'http://www.realexpayments.com/';
+
     public static $display_name = 'Realex';
+
     public static $default_currency = 'USD';
+
     public static $money_format = 'cents'; # or cents
+
     private $options = array();
+
     private $xml;
+
     private $timestamp;
 
     /**
@@ -96,8 +107,9 @@ class Realex extends Gateway implements
 
         $this->timestamp = strftime("%Y%m%d%H%M%S");
 
-        if (isset($options['currency']))
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
+        }
 
         $this->options = $options;
     }
@@ -112,10 +124,11 @@ class Realex extends Gateway implements
      * @return Response
      * @author Simon Hamilton
      */
-    public function authorize($money, CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options = array())
     {
         $this->required_options('order_id', $options);
-        $this->build_purchase_or_authorization_request('authorization', $money, $creditcard, $options);
+        $this->buildPurchaseOrAuthorizationRequest('authorization', $money, $creditcard, $options);
+
         return $this->commit();
     }
 
@@ -128,10 +141,11 @@ class Realex extends Gateway implements
      * @return Response
      * @author Simon Hamilton
      */
-    public function purchase($money, CreditCard $creditcard, $options=array())
+    public function purchase($money, CreditCard $creditcard, $options = array())
     {
         $this->required_options('order_id', $options);
-        $this->build_purchase_or_authorization_request('purchase', $money, $creditcard, $options);
+        $this->buildPurchaseOrAuthorizationRequest('purchase', $money, $creditcard, $options);
+
         return $this->commit();
     }
 
@@ -144,10 +158,11 @@ class Realex extends Gateway implements
      * @return Response
      * @author Simon Hamilton
      */
-    public function capture($money, $authorization, $options=array())
+    public function capture($money, $authorization, $options = array())
     {
         $this->required_options('pasref, order_id', $options);
-        $this->build_capture_request($authorization, $options);
+        $this->buildCaptureRequest($authorization, $options);
+
         return $this->commit();
     }
 
@@ -163,10 +178,11 @@ class Realex extends Gateway implements
      * @return Response
      * @author Simon Hamilton
      */
-    public function credit($money, $authorization, $options=array())
+    public function credit($money, $authorization, $options = array())
     {
         $this->required_options('pasref, order_id', $options);
-        $this->build_credit_request($money, $authorization, $options);
+        $this->buildCreditRequest($money, $authorization, $options);
+
         return $this->commit();
     }
 
@@ -178,10 +194,11 @@ class Realex extends Gateway implements
      * @return Response
      * @author Simon Hamilton
      */
-    public function void($authorization, $options=array())
+    public function void($authorization, $options = array())
     {
         $this->required_options('pasref, order_id', $options);
-        $this->build_void_request($authorization, $options);
+        $this->buildVoidRequest($authorization, $options);
+
         return $this->commit();
     }
 
@@ -197,10 +214,11 @@ class Realex extends Gateway implements
      * @return Response
      * @author Simon Hamilton
      */
-    public function recurring($money, CreditCard $creditcard, $options=array())
+    public function recurring($money, CreditCard $creditcard, $options = array())
     {
         $this->required_options('order_id', $options);
-        $this->build_receipt_in_request($money, $options);
+        $this->buildReceiptInRequest($money, $options);
+
         return $this->commit('recurring');
     }
 
@@ -220,10 +238,10 @@ class Realex extends Gateway implements
      * @return Response
      * @author Simon Hamilton
      */
-    public function store(CreditCard $creditcard, $options=array())
+    public function store(CreditCard $creditcard, $options = array())
     {
         $this->required_options('order_id', $options);
-        $this->build_new_card_request($creditcard, $options);
+        $this->buildNewCardRequest($creditcard, $options);
         return $this->commit('recurring');
     }
 
@@ -235,10 +253,10 @@ class Realex extends Gateway implements
      * @return Response
      * @author Simon Hamilton
      */
-    public function unstore($reference, $options=array())
+    public function unstore($reference, $options = array())
     {
         $this->required_options('order_id', $options);
-        $this->build_cancel_card_request($options);
+        $this->buildCancelCardRequest($options);
         return $this->commit('recurring');
     }
 
@@ -249,10 +267,10 @@ class Realex extends Gateway implements
      * @return Response
      * @author Simon Hamilton
      */
-    public function store_user($options)
+    public function storeUser($options)
     {
         $this->required_options('order_id', $options);
-        $this->build_new_payer_request($options);
+        $this->buildNewPayerRequest($options);
         return $this->commit('recurring');
     }
 
@@ -288,45 +306,56 @@ class Realex extends Gateway implements
      * @return Response
      * @author Simon Hamilton
      */
-    private function commit($endpoint='default')
+    private function commit($endpoint = 'default')
     {
         $url = ($endpoint == 'recurring') ? self::RECURRING_URL : self::URL;
         $response = $this->parse($this->ssl_post($url, $this->xml->asXML()));
-        return new Response(((string) $response->result == '00'), $this->message_from($response), $this->params_from($response), $this->options_from($response));
+
+        return new Response(((string) $response->result == '00'), $this->messageFrom($response), $this->paramsFrom($response), $this->optionsFrom($response));
     }
 
-    private function build_purchase_or_authorization_request(
-        $action, 
-        $money, 
-        $creditcard, 
-        $options)
-    {
+    private function buildPurchaseOrAuthorizationRequest(
+        $action,
+        $money,
+        $creditcard,
+        $options
+    ) {
+
+        $options = new Options($options);
 
         // build the xml object
         $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="auth"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
-        if(isset($options['three_d_secure']) && isset($this->options['3dsaccount']))
+        if (isset($options['three_d_secure'])
+            && isset($this->options['3dsaccount'])
+        ) {
             $options['account'] = $this->options['3dsaccount'];
-        elseif(!isset($options['three_d_secure']) && isset($this->options['stdaccount']))
+        } elseif (!isset($options['three_d_secure'])
+            && isset($this->options['stdaccount'])
+        ) {
             $options['account'] = $this->options['stdaccount'];
+        }
 
-        $this->add_merchant_details($options);
+        $this->addMerchantDetails($options);
 
         $this->xml->addChild('orderid', $options['order_id']);
 
-        $this->add_amount($money, $options);
+        $this->addAmount($money, $options);
 
-        $this->add_card($creditcard);
+        $this->addCard($creditcard);
 
         // do we settle now or just authorise
         $autosettle = $this->xml->addChild('autosettle');
-        $autosettle->addAttribute('flag', $this->auto_settle_flag($action));
+        $autosettle->addAttribute('flag', $this->autoSettleFlag($action));
 
-        if(isset($options['three_d_secure']))
-            $this->add_three_d_secure($options['three_d_secure']);
+        if (isset($options['three_d_secure'])) {
+            $this->addThreeDSecure($options['three_d_secure']);
+        }
 
-        $currency = (isset($options['currency'])) ? $options['currency'] : self::$default_currency;
+        $currency = isset($options['currency'])
+            ? $options['currency']
+            : self::$default_currency;
 
         $digest = array(
             $this->timestamp,
@@ -337,19 +366,19 @@ class Realex extends Gateway implements
             $creditcard->number
         );
 
-        $this->add_signed_digest($digest, $options);
-        $this->add_comments($options);
-        $this->add_address_and_customer_info($options);
+        $this->addSignedDigest($digest, $options);
+        $this->addComments($options);
+        $this->addAddressAndCustomerInfo($options);
     }
 
-    private function build_capture_request($authorization, $options)
+    private function buildCaptureRequest($authorization, $options)
     {
         // build the xml object
         $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="settle"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
-        $this->add_merchant_details($options);
-        $this->add_transaction_identifiers($authorization, $options);
+        $this->addMerchantDetails($options);
+        $this->addTransactionIdentifiers($authorization, $options);
 
         $digest = array(
             $this->timestamp,
@@ -358,20 +387,20 @@ class Realex extends Gateway implements
             ".."
         );
 
-        $this->add_signed_digest($digest, $options);
-        $this->add_comments($options);
+        $this->addSignedDigest($digest, $options);
+        $this->addComments($options);
     }
 
-    private function build_credit_request($money, $authorization, $options)
+    private function buildCreditRequest($money, $authorization, $options)
     {
         // build the xml object
         $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="rebate"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
-        $this->add_merchant_details($options);
-        $this->add_transaction_identifiers($authorization, $options);
+        $this->addMerchantDetails($options);
+        $this->addTransactionIdentifiers($authorization, $options);
 
-        $this->add_amount($money, $options);
+        $this->addAmount($money, $options);
 
         $autosettle = $this->xml->addChild('autosettle');
         $autosettle->addAttribute('flag', 1);
@@ -387,18 +416,18 @@ class Realex extends Gateway implements
             $currency
         );
 
-        $this->add_signed_digest($digest, $options);
-        $this->add_comments($options);
+        $this->addSignedDigest($digest, $options);
+        $this->addComments($options);
     }
 
-    private function build_void_request($authorization, $options)
+    private function buildVoidRequest($authorization, $options)
     {
         // build the xml object
         $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="void"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
-        $this->add_merchant_details($options);
-        $this->add_transaction_identifiers($authorization, $options);
+        $this->addMerchantDetails($options);
+        $this->addTransactionIdentifiers($authorization, $options);
 
         $digest = array(
             $this->timestamp,
@@ -406,17 +435,17 @@ class Realex extends Gateway implements
             $options['order_id']
         );
 
-        $this->add_signed_digest($digest, $options);
-        $this->add_comments($options);
+        $this->addSignedDigest($digest, $options);
+        $this->addComments($options);
     }
 
-    private function build_cancel_card_request($options = array())
+    private function buildCancelCardRequest($options = array())
     {
         // build the xml object
         $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="card-cancel-card"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
 
-        $this->add_merchant_details($options);
+        $this->addMerchantDetails($options);
         $card = $this->xml->addChild('card');
         $card->addChild('ref', $options['payment_method']);
         $card->addChild('payerref', $options['user']['id']);
@@ -428,19 +457,19 @@ class Realex extends Gateway implements
             $options['payment_method']
         );
 
-        $this->add_signed_digest($digest, $options);
-        $this->add_comments($options);
+        $this->addSignedDigest($digest, $options);
+        $this->addComments($options);
     }
 
-    private function build_new_card_request($creditcard, $options = array())
+    private function buildNewCardRequest($creditcard, $options = array())
     {
         // build the xml object
         $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="card-new"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
-        $this->add_merchant_details($options);
+        $this->addMerchantDetails($options);
         $this->xml->addChild('orderid', $options['order_id']);
 
-        $this->add_card($creditcard);
+        $this->addCard($creditcard);
         $this->xml->card->addChild('ref', $options['payment_method']);
         $this->xml->card->addChild('payerref', $options['user']['id']);
 
@@ -455,16 +484,16 @@ class Realex extends Gateway implements
             $creditcard->number
         );
 
-        $this->add_signed_digest($digest, $options);
-        $this->add_comments($options);
+        $this->addSignedDigest($digest, $options);
+        $this->addComments($options);
     }
 
-    private function build_new_payer_request($options)
+    private function buildNewPayerRequest($options)
     {
         // build the xml object
         $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="payer-new"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
-        $this->add_merchant_details($options);
+        $this->addMerchantDetails($options);
         $this->xml->addChild('orderid', $options['order_id']);
 
         $payer = $this->xml->addChild('payer');
@@ -490,18 +519,18 @@ class Realex extends Gateway implements
             $options['user']['id']
         );
 
-        $this->add_signed_digest($digest, $options);
+        $this->addSignedDigest($digest, $options);
     }
 
-    private function build_receipt_in_request($money, $options)
+    private function buildReceiptInRequest($money, $options)
     {
         // build the xml object
         $this->xml = new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><request type="receipt-in"></request>');
         $this->xml->addAttribute('timestamp', $this->timestamp);
-        $this->add_merchant_details($options);
+        $this->addMerchantDetails($options);
         $this->xml->addChild('orderid', $options['order_id']);
 
-        $this->add_amount($money, $options);
+        $this->addAmount($money, $options);
 
         $this->xml->addChild('paymentmethod', $options['payment_method']);
         $this->xml->addChild('payerref', $options['user']['id']);
@@ -521,12 +550,12 @@ class Realex extends Gateway implements
             $options['user']['id']
         );
 
-        $this->add_signed_digest($digest, $options);
-        $this->add_comments($options);
-        $this->add_address_and_customer_info($options);
+        $this->addSignedDigest($digest, $options);
+        $this->addComments($options);
+        $this->addAddressAndCustomerInfo($options);
     }
 
-    private function add_address_and_customer_info($options)
+    private function addAddressAndCustomerInfo($options)
     {
         $tssinfo = $this->xml->addChild('tssinfo');
 
@@ -557,7 +586,7 @@ class Realex extends Gateway implements
         if (isset($billing_address)) {
             $billing = $tssinfo->addChild('address');
             $billing->addAttribute('type', 'billing');
-            $billing->addChild('code', $this->avs_input_code_or_zip($billing_address, $options));
+            $billing->addChild('code', $this->avsInputCodeOrZip($billing_address, $options));
             $billing->addChild('country', $billing_address['country']);
 
             $shipping_address = (isset($options['shipping_address'])) ? $options['shipping_address'] : $billing_address;
@@ -571,10 +600,10 @@ class Realex extends Gateway implements
         }
     }
 
-    private function add_merchant_details($options)
+    private function addMerchantDetails($options)
     {
         $this->xml->addChild('merchantid', $this->options['login']);
-        
+
         if (isset($this->options['account'])) {
             $this->xml->addChild('account', $this->options['account']);
         } elseif (isset($options['account'])) {
@@ -582,14 +611,14 @@ class Realex extends Gateway implements
         }
     }
 
-    private function add_transaction_identifiers($authorization, $options)
+    private function addTransactionIdentifiers($authorization, $options)
     {
         $this->xml->addChild('orderid', $options['order_id']);
         $this->xml->addChild('pasref', $options['pasref']);
         $this->xml->addChild('authcode', $options['authcode']);
     }
 
-    private function add_three_d_secure($options)
+    private function addThreeDSecure($options)
     {
         $mpi = $this->xml->addChild('mpi');
         $mpi->addChild('eci', $options['eci']);
@@ -597,7 +626,7 @@ class Realex extends Gateway implements
         $mpi->addChild('cavv', $options['cavv']);
     }
 
-    private function add_comments($options)
+    private function addComments($options)
     {
         if (isset($options['description'])) {
             $comments = $this->xml->addChild('comments');
@@ -606,7 +635,7 @@ class Realex extends Gateway implements
         }
     }
 
-    private function add_amount($money, $options)
+    private function addAmount($money, $options)
     {
         $currency = (isset($options['currency'])) ? $options['currency'] : self::$default_currency;
 
@@ -614,11 +643,11 @@ class Realex extends Gateway implements
         $amount->addAttribute('currency', $currency);
     }
 
-    private function add_card($creditcard)
+    private function addCard($creditcard)
     {
         $card = $this->xml->addChild('card');
         $card->addChild('number', $creditcard->number);
-        $card->addChild('expdate', $this->expiry_date($creditcard));
+        $card->addChild('expdate', $this->expiryDate($creditcard));
         $card->addChild('type', $this->card_mappings[$creditcard->type]);
         $card->addChild('issueno', $creditcard->issue_number);
         $card->addChild('chname', $creditcard->name());
@@ -628,35 +657,35 @@ class Realex extends Gateway implements
         $cvn->addChild('presind', (($creditcard->verification_value) ? 1 : null));
     }
 
-    private function avs_input_code_or_zip($address, $options)
+    private function avsInputCodeOrZip($address, $options)
     {
-        return (isset($options['skip_avs_check'])) ? $address['zip'] : $this->avs_input_code($address);
+        return (isset($options['skip_avs_check'])) ? $address['zip'] : $this->avsInputCode($address);
     }
 
-    private function avs_input_code($address)
+    private function avsInputCode($address)
     {
         $string = $address['zip'] . $address['address1'];
         preg_match_all("/([\d]+)/", $string, $numbers);
         return implode('|', $numbers[0]);
     }
 
-    private function stringify_values($values)
+    private function stringifyValues($values)
     {
         return implode('.', $values);
     }
 
-    private function add_signed_digest($values, $options)
+    private function addSignedDigest($values, $options)
     {
-        $string = $this->stringify_values($values);
+        $string = $this->stringifyValues($values);
         $this->xml->addChild('sha1hash', $this->sha1from($string, $options));
     }
 
-    private function auto_settle_flag($action)
+    private function autoSettleFlag($action)
     {
         return ($action == 'authorization') ? '0' : '1';
     }
 
-    private function expiry_date($creditcard)
+    private function expiryDate($creditcard)
     {
         $month = $this->cc_format($creditcard->month, 'two_digits');
         $year = $this->cc_format($creditcard->year, 'two_digits');
@@ -673,7 +702,7 @@ class Realex extends Gateway implements
         return sha1($tmp);
     }
 
-    private function in_test_mode($response)
+    private function inTestMode($response)
     {
         return (strstr((string) $response->message, '[ test system ]'));
     }
@@ -685,40 +714,40 @@ class Realex extends Gateway implements
      * @return void
      * @author Simon Hamilton
      */
-    private function message_from($response)
+    private function messageFrom($response)
     {
         $result = (string) $response->result;
         $response_message = (string) $response->message;
 
         switch ($result) {
-        case '00':
-            $message = $this->messages['SUCCESS'];
-            break;
-        case '101':
-        case '102':
-        case '103':
-            $message = ($this->in_test_mode($response)) ? $response_message : $this->messages['DECLINED'];
-            break;
-        case (bool) preg_match("/^2[0-9][0-9]/", $result, $matches):
-            $message = $this->messages['BANK_ERROR'];
-            break;
-        case (bool) preg_match("/^3[0-9][0-9]/", $result, $matches):
-            $message = $this->messages['REALEX_ERROR'];
-            break;
-        case (bool) preg_match("/^5[0-9][0-9]/", $result, $matches):
-            $message = $response_message;
-            break;
-        case '600':
-        case '601':
-        case '602':
-            $message = $this->messages['ERROR'];
-            break;
-        case '666':
-            $message = $this->messages['CLIENT_DEACTIVATED'];
-            break;
-        default:
-            $message = $this->messages['DECLINED'];
-            break;
+            case '00':
+                $message = $this->messages['SUCCESS'];
+                break;
+            case '101':
+            case '102':
+            case '103':
+                $message = ($this->inTestMode($response)) ? $response_message : $this->messages['DECLINED'];
+                break;
+            case (bool) preg_match("/^2[0-9][0-9]/", $result, $matches):
+                $message = $this->messages['BANK_ERROR'];
+                break;
+            case (bool) preg_match("/^3[0-9][0-9]/", $result, $matches):
+                $message = $this->messages['REALEX_ERROR'];
+                break;
+            case (bool) preg_match("/^5[0-9][0-9]/", $result, $matches):
+                $message = $response_message;
+                break;
+            case '600':
+            case '601':
+            case '602':
+                $message = $this->messages['ERROR'];
+                break;
+            case '666':
+                $message = $this->messages['CLIENT_DEACTIVATED'];
+                break;
+            default:
+                $message = $this->messages['DECLINED'];
+                break;
         }
 
         return $message;
@@ -777,7 +806,7 @@ class Realex extends Gateway implements
      * @return array
      * @author Simon Hamilton
      */
-    private function params_from($response)
+    private function paramsFrom($response)
     {
         $attribs = $response->attributes();
 
@@ -799,7 +828,7 @@ class Realex extends Gateway implements
      * @return array
      * @author Simon Hamilton
      */
-    private function options_from($response)
+    private function optionsFrom($response)
     {
         $options = array();
         $options['test'] = (strstr((string) $response->message, '[ test system ]')) ? true : false;
@@ -812,5 +841,4 @@ class Realex extends Gateway implements
 
         return $options;
     }
-
 }
