@@ -2,8 +2,6 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-require_once 'config.php';
-
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\Gateways\Iridium;
 use AktiveMerchant\Billing\CreditCard;

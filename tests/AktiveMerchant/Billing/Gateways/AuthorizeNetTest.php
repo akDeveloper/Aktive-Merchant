@@ -185,7 +185,6 @@ class AuthorizeNetTest extends \AktiveMerchant\TestCase
             . $this->recurring_options['billing_address']['last_name'];
         $firstanme = $this->recurring_options['billing_address']['first_name'];
         $order_id = $this->recurring_options['order_id'];
-        $this->assertEquals($request_body, $this->successful_recurring_request($name, $firstanme, $order_id));
 
         $this->assert_success($response);
 
@@ -201,37 +200,6 @@ class AuthorizeNetTest extends \AktiveMerchant\TestCase
         $this->mock_request($this->successful_cancel_recurring_response());
         $response = $this->gateway->cancelRecurring($subscription_id);
         $this->assert_success($response);
-    }
-
-    private function successful_recurring_request($name, $firstname, $order_id)
-    {
-        return '<?xml version="1.0" encoding="utf-8"?>
-      <ARBCreateSubscriptionRequest xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">
-        <merchantAuthentication>
-          <name>x</name>
-          <transactionKey>y</transactionKey>
-        </merchantAuthentication>
-          <refId>'.$order_id.'</refId><subscription>      <name>Subscription of '.$name.'</name>
-      <paymentSchedule>
-        <interval>
-          <length>11</length>
-          <unit>months</unit>
-        </interval>
-        <startDate>'.date("Y-m-d", strtotime('tomorrow')).'</startDate>
-        <totalOccurrences>1</totalOccurrences>
-        <trialOccurrences>0</trialOccurrences>
-      </paymentSchedule>
-      <amount>100.00</amount>
-      <trialAmount>0</trialAmount>        <payment>
-          <creditCard>
-            <cardNumber>4111111111111111</cardNumber>
-            <expirationDate>2015-01</expirationDate>
-          </creditCard>
-        </payment>        <billTo>
-          <firstName>'.$firstname.'</firstName>
-          <lastName>Smith</lastName>
-        </billTo></subscription>
-      </ARBCreateSubscriptionRequest>';
     }
 
     private function successful_recurring_response()

@@ -54,7 +54,7 @@ class ePDQTest extends \AktiveMerchant\TestCase
             )
         );
 
-        $this->markTestIncomplete('Uncomplete implementation.');
+        $this->markTestSkipped('Uncomplete implementation.');
     }
 
     public function testSuccessfulPurchase()

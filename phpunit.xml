@@ -6,5 +6,5 @@
     backupStaticAttributes      = "false"
     colors                      = "true"
     verbose                     = "true"
-    bootstrap                   = "config.php">
+    bootstrap                   = "vendor/autoload.php">
 </phpunit>

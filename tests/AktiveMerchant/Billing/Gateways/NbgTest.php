@@ -112,6 +112,7 @@ class NbgTest extends \AktiveMerchant\TestCase
 
     public function testStore()
     {
+        $this->mock_request($this->successTokenPurchaseResponse());
         $response = $this->gateway->store($this->creditcard, $this->options);
 
         $this->assert_success($response);
@@ -145,6 +146,7 @@ class NbgTest extends \AktiveMerchant\TestCase
     public function testQuery()
     {
         $authorization = "3100900013661334";
+        $this->mock_request($this->successPurchaseResponse());
         $response = $this->gateway->query($authorization);
 
         $this->assert_success($response);

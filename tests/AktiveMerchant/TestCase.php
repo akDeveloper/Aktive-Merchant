@@ -9,7 +9,7 @@ class TestCase extends \PHPUnit_Framework_TestCase
 
     public function getFixtures()
     {
-        $ini = parse_ini_file("fixtures.ini", true);
+        $ini = parse_ini_file(__DIR__ . "/../fixtures.ini", true);
         return new \ArrayIterator($ini);
     }
 

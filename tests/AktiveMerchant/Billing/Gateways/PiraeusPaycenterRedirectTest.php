@@ -24,7 +24,7 @@ class PiraeusPaycenterRedirectTest extends \AktiveMerchant\TestCase
             'order_id' => 'REF' . $this->gateway->generateUniqueId()
         );
 
-        $this->markTestIncomplete('Uncomplete implementation.');
+        $this->markTestSkipped('Uncomplete implementation.');
     }
 
     public function testTicket()
