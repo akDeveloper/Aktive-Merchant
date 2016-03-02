@@ -27,7 +27,7 @@ class TestCase extends \PHPUnit_Framework_TestCase
     {
 
         $this->request = $this->getMock(
-            'AktiveMerchant\\Mock\\Request', 
+            'AktiveMerchant\\Mock\\Request',
             array('getResponseBody')
         );
 
@@ -35,21 +35,21 @@ class TestCase extends \PHPUnit_Framework_TestCase
             ->method('getResponseBody')
             ->will($this->returnValue($answer));
 
-        $this->gateway->setRequest($this->request); 
+        $this->gateway->setRequest($this->request);
     }
 
     protected function assertImplementation(array $billing_interfaces)
     {
         $this->assertInstanceOf(
-            '\\AktiveMerchant\\Billing\\Gateway', 
+            '\\AktiveMerchant\\Billing\\Gateway',
             $this->gateway
         );
-        
+
         foreach ($billing_interfaces as $b) {
             $this->assertInstanceOf(
-                "\\AktiveMerchant\\Billing\\Interfaces\\$b", 
+                "\\AktiveMerchant\\Billing\\Interfaces\\$b",
                 $this->gateway
-            ); 
+            );
         }
     }
 }

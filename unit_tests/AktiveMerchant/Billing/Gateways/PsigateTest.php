@@ -56,32 +56,33 @@ class PsigateTest extends \AktiveMerchant\TestCase
     {
         $this->login_info = $this->getFixtures()->offsetGet('psigate');
 
-        $this->gateway = new TestPsigate($this->login_info);
+        $this->gateway = new Psigate($this->login_info);
 
         Base::mode('test');
         $this->gateway->test_mode(Psigate::TEST_MODE_ALWAYS_AUTH);
 
-        $this->creditcard = new CreditCard(array(
-            "first_name" => "John",
-            "last_name" => "Doe",
-            "number" => "4111111111111111",
-            "month" => "01",
-            "year" => "2015",
-            "verification_value" => "000"
-        )
-    );
+        $this->creditcard = new CreditCard(
+            array(
+                "first_name" => "John",
+                "last_name" => "Doe",
+                "number" => "4111111111111111",
+                "month" => "01",
+                "year" => date('Y') + 3,
+                "verification_value" => "123"
+            )
+        );
 
         $this->options = array(
             'description' => 'Psigate Test Transaction',
             'address' => array(
-                'address1' => '1234 Street',
+                'address1' => '123 Any Street',
                 'zip' => '98004',
-                'state' => 'WA'
+                'city' => 'Battle Ground'
             )
         );
 
         $this->ordername = $this->gateway->generateUniqueId();
-        $this->base_amount = rand(1,100);
+        $this->base_amount = rand(1, 100);
     }
 
     private function next_order() {
@@ -96,11 +97,8 @@ class PsigateTest extends \AktiveMerchant\TestCase
 
     public function testInitialization()
     {
-
         $this->assertNotNull($this->gateway);
-
         $this->assertNotNull($this->creditcard);
-
         $this->assertImplementation(
             array(
                 'Charge',
@@ -129,20 +127,22 @@ class PsigateTest extends \AktiveMerchant\TestCase
         $this->assertEquals('Success', $response->message());
     }
 
-/*
     public function testAuthorizationAndCapture()
     {
         $this->next_order();
+        $this->mock_request($this->successful_authorize_for_capture_response());
         $response = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
         $this->assert_success($response);
 
         $authorization = $response->authorization();
 
+        $this->mock_request($this->successful_capture_response());
         $capture = $this->gateway->capture($this->amount, $authorization, $this->options);
         $this->assert_success($capture);
         $this->assertEquals('Success', $capture->message());
     }
 
+/*
     public function testVoid()
     {
         $this->next_order();
@@ -322,6 +322,68 @@ RESPONSE;
   <IPCountry>UN</IPCountry>
   <IPRegion>UNKNOWN</IPRegion>
   <IPCity>UNKNOWN</IPCity>
+</Result>
+RESPONSE;
+    }
+
+    private function successful_authorize_for_capture_response()
+    {
+        return <<<RESPONSE
+<?xml version="1.0" encoding="UTF-8"?>
+<Result>
+<TransTime>Fri Feb 26 16:25:15 EST 2016</TransTime>
+<OrderID>2594122715.1</OrderID>
+<TransactionType>PREAUTH</TransactionType>
+<Approved>APPROVED</Approved>
+<ReturnCode>Y:TEST:TESTTRANS:M:X:NNN</ReturnCode>
+<ErrMsg></ErrMsg>
+<TaxTotal>0.00</TaxTotal>
+<ShipTotal>0.00</ShipTotal>
+<SubTotal>17.01</SubTotal>
+<FullTotal>17.01</FullTotal>
+<PaymentType>CC</PaymentType>
+<CardNumber>......1111</CardNumber>
+<TransRefNumber>1bfa59e35cd32142</TransRefNumber>
+<CardIDResult>M</CardIDResult>
+<AVSResult>X</AVSResult>
+<CardAuthNumber>TEST</CardAuthNumber>
+<CardRefNumber>TESTTRANS</CardRefNumber>
+<CardType>VISA</CardType>
+<IPResult>NNN</IPResult>
+<IPCountry>UN</IPCountry>
+<IPRegion>UNKNOWN</IPRegion>
+<IPCity>UNKNOWN</IPCity>
+</Result>
+RESPONSE;
+    }
+
+    private function successful_capture_response()
+    {
+        return <<<RESPONSE
+<?xml version="1.0" encoding="UTF-8"?>
+<Result>
+<TransTime>Fri Feb 26 16:25:16 EST 2016</TransTime>
+<OrderID>2594122715.1</OrderID>
+<TransactionType>POSTAUTH</TransactionType>
+<Approved>APPROVED</Approved>
+<ReturnCode>Y:TEST:TESTTRANS:M:X:NNN</ReturnCode>
+<ErrMsg></ErrMsg>
+<TaxTotal>0.00</TaxTotal>
+<ShipTotal>0.00</ShipTotal>
+<SubTotal>17.01</SubTotal>
+<FullTotal>17.01</FullTotal>
+<PaymentType>CC</PaymentType>
+<CardNumber>......1111</CardNumber>
+<TransRefNumber>1bfa59e35cd4a7e3</TransRefNumber>
+<CardIDResult>M</CardIDResult>
+<AVSResult>X</AVSResult>
+<CardAuthNumber>TEST</CardAuthNumber>
+<CardRefNumber>TESTTRANS</CardRefNumber>
+<CardType>VISA</CardType>
+<IPResult>NNN</IPResult>
+<IPCountry>UN</IPCountry>
+<IPRegion>UNKNOWN</IPRegion>
+<IPCity>UNKNOWN</IPCity>
 </Result>
 RESPONSE;
     }
