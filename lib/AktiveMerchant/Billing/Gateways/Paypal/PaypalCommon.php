@@ -46,7 +46,7 @@ class PaypalCommon extends Gateway
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
         $response = $this->parse(
-            $this->ssl_post($url, $this->post_data($action))
+            $this->ssl_post($url, $this->postData($action))
         );
 
         $options = array();
@@ -56,7 +56,7 @@ class PaypalCommon extends Gateway
         $options['avs_result'] = $this->avsResultFrom($response);
         $options['cvv_result'] = isset($response['CVV2MATCH']) ? $response['CVV2MATCH'] : null;
 
-        return $this->build_response(
+        return $this->buildResponse(
             $this->successFrom($response),
             $this->messageFrom($response),
             $response,
