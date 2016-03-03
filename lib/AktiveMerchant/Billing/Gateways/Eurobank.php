@@ -43,6 +43,8 @@ class Eurobank extends Gateway implements
      */
     public function __construct($options)
     {
+        trigger_error('Eurobank gateway is deprecated. Use Cardlink gateway instead.');
+
         $this->required_options('login, password', $options);
 
         if (isset($options['currency'])) {
