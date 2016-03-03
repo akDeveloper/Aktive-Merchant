@@ -12,7 +12,31 @@ use AktiveMerchant\Common\Options;
 use AktiveMerchant\Http\RequestInterface;
 
 /**
- * Integration of Pin Payment gateway
+ * Integration of Pin Payment gateway.
+ *
+ * Basic usage:
+ *
+ *  use AktiveMerchant\Billing\CreditCard;
+ *
+ *  $options = ['secret_key' => <yoursecretkey>];
+ *  $gateway = AktiveMerchant\Billing\Base::gateway('pin', $options);
+ *  // Setup customer token or card token or card data.
+ *  $card = new CreditCard(['token' => 'cus_xxxxxxx']); // Customer token
+ *  $card = new CreditCard(['token' => 'card_xxxxxxx']); // Card token
+ *  $card = new CreditCard([
+ *        "first_name" => "John",
+ *        "last_name" => "Doe",
+ *        "number" => "4200000000000000",
+ *        "month" => "01",
+ *        "year" => "17",
+ *        "verification_value" => "123"
+ *  ]); // Card data
+ *
+ *  // Complete purchase
+ *  $response = $gateway->purchase(1000, $card);
+ *
+ *  // Get unique reference from transaction for future use.
+ *  $authorization = $response->authorization();
  *
  * @author Andreas Kollaros <andreas@larium.net>
  * @license MIT License http://www.opensource.org/licenses/mit-license.php
