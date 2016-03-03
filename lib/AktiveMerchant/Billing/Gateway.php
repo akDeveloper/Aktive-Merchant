@@ -95,6 +95,16 @@ abstract class Gateway
 
     private $dispatcher;
 
+    public function __construct($options = array())
+    {
+        $options = new Options($options);
+
+        static::$default_currency = $options['currency']
+            ?: static::$default_currency;
+
+        $this->options = $options;
+    }
+
     public function money_format()
     {
         $class = get_class($this);
@@ -153,7 +163,7 @@ abstract class Gateway
     }
 
     /**
-     * Accepts the anount of money in base unit and returns cants or base unit
+     * Accepts the amount of money in base unit and returns cents or base unit
      * amount according to the @see $money_format propery.
      *
      * @param $money The amount of money in base unit, not in cents.
@@ -305,7 +315,7 @@ abstract class Gateway
     /**
      * Returns a unique identifier.
      *
-     * @since  Method available since Release 1.0.0
+     * @since Method available since Release 1.0.0
      *
      * @return string
      */
