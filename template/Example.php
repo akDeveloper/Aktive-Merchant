@@ -96,10 +96,10 @@ class Example extends Gateway implements
      */
     public function authorize($money, CreditCard $creditcard, $options = array())
     {
-        $this->add_invoice($options);
-        $this->add_creditcard($creditcard);
-        $this->add_address($options);
-        $this->add_customer_data($options);
+        $this->addInvoice($options);
+        $this->addCreditCard($creditcard);
+        $this->addAddress($options);
+        $this->addCustomerData($options);
 
         return $this->commit('authonly', $money);
     }
@@ -109,10 +109,10 @@ class Example extends Gateway implements
      */
     public function purchase($money, CreditCard $creditcard, $options = array())
     {
-        $this->add_invoice($options);
-        $this->add_creditcard($creditcard);
-        $this->add_address($options);
-        $this->add_customer_data($options);
+        $this->addInvoice($options);
+        $this->addCreditcard($creditcard);
+        $this->addAddress($options);
+        $this->addCustomerData($options);
 
         return $this->commit('sale', $money);
     }
@@ -123,7 +123,7 @@ class Example extends Gateway implements
     public function capture($money, $authorization, $options = array())
     {
         $this->post = array('authorization_id' => $authorization);
-        $this->add_customer_data($options);
+        $this->addCustomerData($options);
 
         return $this->commit('capture', $money);
     }
@@ -138,18 +138,13 @@ class Example extends Gateway implements
     }
 
     /**
-     *
-     * @param number $money
-     * @param string $identification
-     * @param array  $options
-     *
-     * @return Response
+     * {@inheritdoc}
      */
     public function credit($money, $identification, $options = array())
     {
         $this->post = array('authorization' => $identification);
 
-        $this->add_invoice($options);
+        $this->addInvoice($options);
         return $this->commit('credit', $money);
     }
 
@@ -246,8 +241,8 @@ class Example extends Gateway implements
         $test_mode = $this->isTest();
 
         return new Response(
-            $this->success_from($response),
-            $this->message_from($response),
+            $this->successFrom($response),
+            $this->messageFrom($response),
             $response,
             array(
                 'test' => $test_mode,
