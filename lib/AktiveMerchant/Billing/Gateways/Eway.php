@@ -156,7 +156,7 @@ class Eway extends Gateway implements
             "TotalAmount" => $this->amount($money)
         );
 
-        $cc = new CreditCard(new Options(array()));
+        $cc = new CreditCard([]);
         $this->add_creditcard($cc);
         #$this->add_invoice($options);
         $this->add_optional_data();
