@@ -91,6 +91,8 @@ class ePDQ extends Gateway implements Interfaces\Charge
      */
     public function __construct($options = array())
     {
+        trigger_error('ePDQ gateway is deprecated. An integration of Epdq DirectLink should be implemented.');
+
         $this->required_options('login, password, client_id', $options);
 
         if (isset($options['currency'])) {
