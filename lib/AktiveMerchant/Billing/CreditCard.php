@@ -53,7 +53,6 @@ namespace AktiveMerchant\Billing;
 
 class CreditCard extends CreditCardMethods
 {
-
     /**
      * Card holder first name
      *
@@ -72,17 +71,32 @@ class CreditCard extends CreditCardMethods
     public $type;
     public $number;
     public $verification_value;
+    public $token;
+
     /**
      * Required for Switch / Solo cards
      */
     public $start_month;
     public $start_year;
     public $issue_number;
-    private $errors;
+
     public $require_verification_value = true;
+
+    private $errors;
+
 
     public function __construct($options)
     {
+        $defaults = array(
+            'first_name' => null,
+            'last_name' => null,
+            'month' => null,
+            'year' => null,
+            'number' => null,
+            'token' => null,
+        );
+
+        $options = array_merge($defaults, $options);
 
         $this->first_name = $options['first_name'];
         $this->last_name = $options['last_name'];
@@ -154,6 +168,10 @@ class CreditCard extends CreditCardMethods
 
     private function validate()
     {
+        if ($this->token !== null) {
+            return true;
+        }
+
         $this->validate_essential_attributes();
 
         // Skip test if gateway is Bogus
