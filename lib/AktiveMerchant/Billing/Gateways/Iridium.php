@@ -100,12 +100,12 @@ class Iridium extends Gateway implements
     {
         $options = new Options($options);
 
-        $this->setup_address_hash($options);
+        $this->setupAddressHash($options);
 
         if (isset($creditcard->number)) {
-            return $this->commit($this->build_purchase_request('PREAUTH', $money, $creditcard, $options), $options);
+            return $this->commit($this->buildPurchaseRequest('PREAUTH', $money, $creditcard, $options), $options);
         } else {
-            return $this->commit($this->build_reference_request('PREAUTH', $money, $creditcard, $options), $options);
+            return $this->commit($this->buildReferenceRequest('PREAUTH', $money, $creditcard, $options), $options);
         }
     }
 
@@ -113,12 +113,12 @@ class Iridium extends Gateway implements
     {
         $options = new Options($options);
 
-        $this->setup_address_hash($options);
+        $this->setupAddressHash($options);
 
         if (isset($creditcard->number)) {
-            return $this->commit($this->build_purchase_request('SALE', $money, $creditcard, $options),$options);
+            return $this->commit($this->buildPurchaseRequest('SALE', $money, $creditcard, $options), $options);
         } else {
-            return $this->commit($this->build_reference_request('SALE', $money, $creditcard, $options), $options);
+            return $this->commit($this->buildReferenceRequest('SALE', $money, $creditcard, $options), $options);
         }
     }
 
@@ -126,21 +126,21 @@ class Iridium extends Gateway implements
     {
         $options = new Options($options);
 
-        return $this->commit($this->build_reference_request('COLLECTION', $money, $authorization, $options), $options);
+        return $this->commit($this->buildReferenceRequest('COLLECTION', $money, $authorization, $options), $options);
     }
 
     public function credit($money, $authorization, $options = array())
     {
         $options = new Options($options);
 
-        return $this->commit($this->build_reference_request('REFUND', $money, $authorization, $options), $options);
+        return $this->commit($this->buildReferenceRequest('REFUND', $money, $authorization, $options), $options);
     }
 
     public function void($authorization, $options = array())
     {
         $options = new Options($options);
 
-        return $this->commit($this->build_reference_request('VOID', null, $authorization, $options), $options);
+        return $this->commit($this->buildReferenceRequest('VOID', null, $authorization, $options), $options);
     }
 
     private function commit($request, $options)
@@ -170,12 +170,12 @@ class Iridium extends Gateway implements
             array(
 
                 'test' => $test_mode,
-                'authorization' => $this->authorization_from($options),
+                'authorization' => $this->authorizationFrom($options),
             )
         );
     }
 
-    private function setup_address_hash(Options $options)
+    private function setupAddressHash(Options $options)
     {
         if ($options->billing_address) {
             $adr = $options->billing_address;
@@ -189,7 +189,7 @@ class Iridium extends Gateway implements
         $options->shipping_address = ($options->shipping_address)? $options->shipping_address : null;
     }
 
-    private function build_purchase_request(
+    private function buildPurchaseRequest(
         $type,
         $money,
         CreditCard $creditcard,
@@ -197,12 +197,12 @@ class Iridium extends Gateway implements
     ) {
 
         $options->action ='CardDetailsTransaction';
-        $this->build_request($options, $money, $type, $creditcard);
+        $this->buildRequest($options, $money, $type, $creditcard);
 
         return $this->builderSoapEnvelope($this->soap);
     }
 
-    private function build_reference_request(
+    private function buildReferenceRequest(
         $type,
         $money,
         $authorization,
@@ -211,12 +211,12 @@ class Iridium extends Gateway implements
 
         $options->action ='CrossReferenceTransaction';
 
-        $this->build_request($options, $money, $type, $authorization);
+        $this->buildRequest($options, $money, $type, $authorization);
 
         return $this->builderSoapEnvelope($this->soap);
     }
 
-    private function build_request(
+    private function buildRequest(
         $options,
         $money,
         $type,
@@ -225,13 +225,13 @@ class Iridium extends Gateway implements
 
         $this->required_options('action', $options);
 
-        $merchant_data = $this->add_merchant($options);
-        $purchase_data = isset($payment_source->number) ? $this->add_purchase_data($type, $money, $options) : array();
-        $credit_data = isset($payment_source->number) ? $this->add_creditcard($payment_source, $options) : array();
-        $customer_details = isset($payment_source->number) ? $this->add_customer_details($payment_source, $options) : array();
+        $merchant_data = $this->addMerchant($options);
+        $purchase_data = isset($payment_source->number) ? $this->addPurchaseData($type, $money, $options) : array();
+        $credit_data = isset($payment_source->number) ? $this->addCreditcard($payment_source, $options) : array();
+        $customer_details = isset($payment_source->number) ? $this->addCustomerDetails($payment_source, $options) : array();
 
         if (!$purchase_data) {
-            $reference = $this->reference_details( $options, $money, $type, $payment_source);
+            $reference = $this->referenceDetails($options, $money, $type, $payment_source);
         } else {
             $reference  = array();
         }
@@ -251,7 +251,7 @@ class Iridium extends Gateway implements
         );
     }
 
-    private function add_merchant($options)
+    private function addMerchant($options)
     {
         $merchant = array(
             'MerchantAuthentication' => array(
@@ -274,12 +274,12 @@ class Iridium extends Gateway implements
 
         $request = $xml->createXML(true);
 
-        $request = str_replace("soapBody","soap:Body",$request);
+        $request = str_replace("soapBody", "soap:Body", $request);
 
         return $request;
     }
 
-    private function add_purchase_data($type, $money, $options)
+    private function addPurchaseData($type, $money, $options)
     {
         $this->required_options('order_id', $options);
 
@@ -312,7 +312,7 @@ class Iridium extends Gateway implements
      * @param CreditCard $creditcard
      * @param array reference $post
      */
-    private function add_creditcard(CreditCard $creditcard, $options)
+    private function addCreditcard(CreditCard $creditcard, $options)
     {
         $credit = array(
             'CardDetails' => array(
@@ -322,7 +322,7 @@ class Iridium extends Gateway implements
                 'ExpiryDate' => array(
                     '@attributes'=> array(
                         'Month' =>  $this->cc_format($creditcard->month, 'two_digits'),
-                        'Year' => $this->cc_format($creditcard->year, 'two_digits' )
+                        'Year' => $this->cc_format($creditcard->year, 'two_digits')
                     )
                 )
             )
@@ -331,7 +331,7 @@ class Iridium extends Gateway implements
         return $credit;
     }
 
-    private function add_customer_details($creditcard, $options, $shipTo = false)
+    private function addCustomerDetails($creditcard, $options, $shipTo = false)
     {
         $customer = array(
             'CustomerDetails' => array(
@@ -353,7 +353,7 @@ class Iridium extends Gateway implements
         return $customer;
     }
 
-    private function split_authorization($authorization)
+    private function splitAuthorization($authorization)
     {
         list($transaction_id, $amount, $last_four) = explode(';', $authorization);
 
@@ -366,9 +366,9 @@ class Iridium extends Gateway implements
         return $array;
     }
 
-    private function reference_details( $options, $money, $type, $authorization)
+    private function referenceDetails($options, $money, $type, $authorization)
     {
-        $author = $this->split_authorization($authorization);
+        $author = $this->splitAuthorization($authorization);
 
         if ($money) {
 
@@ -416,17 +416,17 @@ class Iridium extends Gateway implements
      */
     private function parse($body)
     {
-        $body = $this->substring_between($body, '<soap:Body>', '</soap:Body>');
+        $body = $this->substringBetween($body, '<soap:Body>', '</soap:Body>');
 
         $xml = new \SimpleXMLElement($body);
 
         foreach ($xml as $child => $value) {
 
-            $this->parse_element($child, $value);
+            $this->parseElement($child, $value);
         }
     }
 
-    private function parse_element($child, $value)
+    private function parseElement($child, $value)
     {
         if (($child == 'CardDetailsTransactionResult'  )
             || ($child == 'CrossReferenceTransactionResult')
@@ -479,7 +479,7 @@ class Iridium extends Gateway implements
         }
     }
 
-    private function substring_between($haystack, $start, $end)
+    private function substringBetween($haystack, $start, $end)
     {
         if (strpos($haystack, $start) === false
             || strpos($haystack, $end) === false
@@ -494,7 +494,7 @@ class Iridium extends Gateway implements
         }
     }
 
-    private function authorization_from(Options $options)
+    private function authorizationFrom(Options $options)
     {
         if ($this->success) {
             $auth_code = isset($this->reply['transaction_output_data']['AuthCode'])

@@ -25,7 +25,7 @@ class CountryCode
     public function __construct($value)
     {
         $this->value = strtoupper($value);
-        $this->detect_format();
+        $this->detectFormat();
     }
 
     /**
@@ -53,7 +53,7 @@ class CountryCode
      *
      * @return void
      */
-    private function detect_format()
+    private function detectFormat()
     {
         if (preg_match('/^[[:alpha:]]{2}$/', $this->value)) {
             $this->format = 'alpha2';

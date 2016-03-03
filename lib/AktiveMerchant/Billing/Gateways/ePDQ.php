@@ -110,7 +110,7 @@ class ePDQ extends Gateway implements Interfaces\Charge
      */
     public function authorize($amount, CreditCard $creditcard, $options = array())
     {
-        $this->build_xml($amount, $creditcard, 'PreAuth', $options);
+        $this->buildXml($amount, $creditcard, 'PreAuth', $options);
         return $this->commit(__FUNCTION__);
     }
 
@@ -124,7 +124,7 @@ class ePDQ extends Gateway implements Interfaces\Charge
      */
     public function purchase($amount, CreditCard $creditcard, $options = array())
     {
-        $this->build_xml($amount, $creditcard, 'Auth', $options);
+        $this->buildXml($amount, $creditcard, 'Auth', $options);
         return $this->commit(__FUNCTION__);
     }
 
@@ -138,7 +138,7 @@ class ePDQ extends Gateway implements Interfaces\Charge
     public function capture($amount, $authorization, $options = array())
     {
         $options = array_merge($options, array('authorization', $authorization));
-        $this->build_xml($amount, $creditcard, 'PostAuth', $options);
+        $this->buildXml($amount, $creditcard, 'PostAuth', $options);
     }
 
     /**
@@ -149,7 +149,7 @@ class ePDQ extends Gateway implements Interfaces\Charge
      */
     public function void($identification, $options = array())
     {
-        $this->build_xml($amount, $creditcard, 'Void', $options);
+        $this->buildXml($amount, $creditcard, 'Void', $options);
     }
 
     /**
@@ -160,11 +160,11 @@ class ePDQ extends Gateway implements Interfaces\Charge
      * @param string
      * @param array
      */
-    private function build_xml($amount, CreditCard $creditcard, $type, $options=array())
+    private function buildXml($amount, CreditCard $creditcard, $type, $options = array())
     {
-        $this->start_xml();
-        $this->insert_data($amount, $creditcard, $type, $options);
-        $this->end_xml();
+        $this->startXml();
+        $this->insertData($amount, $creditcard, $type, $options);
+        $this->endXml();
     }
 
     /**
@@ -175,7 +175,7 @@ class ePDQ extends Gateway implements Interfaces\Charge
      * @param string
      * @param array
      */
-    private function insert_data($amount, CreditCard $creditcard, $type, $options=array())
+    private function insertData($amount, CreditCard $creditcard, $type, $options = array())
     {
         $month = $this->cc_format($creditcard->month, 'two_digits');
         $year = $this->cc_format($creditcard->year, 'two_digits');
@@ -195,9 +195,9 @@ class ePDQ extends Gateway implements Interfaces\Charge
  </PaymentMech>
  </Consumer>
 XML;
-        $this->add_transaction_element($amount, $type, $options);
-        $this->add_billing_address($options);
-        $this->add_shipping_address($options);
+        $this->addTransactionElement($amount, $type, $options);
+        $this->addBillingAddress($options);
+        $this->addShippingAddress($options);
     }
 
     /**
@@ -207,7 +207,7 @@ XML;
      * @param string
      * @param array
      */
-    private function add_transaction_element($amount, $type, $options)
+    private function addTransactionElement($amount, $type, $options)
     {
 
         if ($type == 'PreAuth' || $type == 'Auth') {
@@ -241,7 +241,7 @@ XML;
      *
      * @param array
      */
-    private function add_billing_address($options)
+    private function addBillingAddress($options)
     {
         if (isset($options['billing_address'])) {
             $this->xml .= <<<XML
@@ -249,7 +249,7 @@ XML;
  <Location>
  <Email DataType="String">{$options['email']}</Email>
 XML;
-            $this->add_address($options['billing_address']);
+            $this->addAddress($options['billing_address']);
             $this->xml .= <<<XML
  <TelVoice DataType="String">{$options['billing_address']['phone']}</TelVoice>
  </Location>
@@ -263,7 +263,7 @@ XML;
      *
      * @param array
      */
-    private function add_shipping_address($options)
+    private function addShippingAddress($options)
     {
         if (isset($options['shipping_address'])) {
             $this->xml .= <<<XML
@@ -271,7 +271,7 @@ XML;
  <Location>
  <Email DataType="String">{$options['email']}</Email>
 XML;
-            $this->add_address($options['shipping_address']);
+            $this->addAddress($options['shipping_address']);
             $this->xml .= <<<XML
  <TelVoice DataType="String">{$options['shipping_address']['phone']}</TelVoice>
  </Location>
@@ -285,7 +285,7 @@ XML;
      *
      * @param array
      */
-    private function add_address($options)
+    private function addAddress($options)
     {
         $this->xml .= <<<XML
  <Address>
@@ -304,7 +304,7 @@ XML;
     /**
      * Start XML
      */
-    private function start_xml()
+    private function startXml()
     {
         $this->xml = <<<XML
      <?xml version="1.0" encoding="UTF-8"?>
@@ -326,7 +326,7 @@ XML;
     /**
      * End XML
      */
-    private function end_xml()
+    private function endXml()
     {
         $this->xml .= <<<XML
      </OrderFormDoc>
@@ -346,10 +346,10 @@ XML;
         $response = $this->parse($this->ssl_post($url, $this->xml));
 
         return new Response(
-            $this->success_from($action, $response),
-            $this->message_from($response),
+            $this->successFrom($action, $response),
+            $this->messageFrom($response),
             $response,
-            $this->options_from($response)
+            $this->optionsFrom($response)
         );
     }
 
@@ -446,7 +446,7 @@ XML;
      *
      * @param array
      */
-    private function options_from($response)
+    private function optionsFrom($response)
     {
         $options = array();
         $options['authorization'] = $response['transaction_id'];
@@ -456,7 +456,7 @@ XML;
         if (!empty($response['cvv2_resp'])) {
             $options['cvv_result'] = $this->CVV_RESPONSE_MAPPINGS[$response['cvv2_resp']];
         }
-        $options['avs_result'] = $this->avs_code_from($response);
+        $options['avs_result'] = $this->avsCodeFrom($response);
     }
 
     /**
@@ -466,7 +466,7 @@ XML;
      * @param array
      * @return bool
      */
-    private function success_from($action, $response)
+    private function successFrom($action, $response)
     {
         if ($action == 'authorize'
             || $action == 'purchase'
@@ -494,7 +494,7 @@ XML;
      * @param array
      * @return string
      */
-    private function message_from($response)
+    private function messageFrom($response)
     {
         return (isset($response['return_message']) ? $response['return_message'] : $response['error_message']);
     }
@@ -505,7 +505,7 @@ XML;
      * @param array
      * @return array
      */
-    private function avs_code_from($response)
+    private function avsCodeFrom($response)
     {
         if (empty($response['avs_display'])) {
             return array('code' => 'U');

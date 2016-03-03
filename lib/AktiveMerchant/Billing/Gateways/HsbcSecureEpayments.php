@@ -99,20 +99,20 @@ class HsbcSecureEpayments extends Gateway implements Interfaces\Charge
 
     public function authorize($amount, CreditCard $creditcard, $options = array())
     {
-        $this->build_xml($amount, 'PreAuth', $creditcard, $options);
+        $this->buildXml($amount, 'PreAuth', $creditcard, $options);
         return $this->commit(__FUNCTION__, $options);
     }
 
     public function purchase($amount, CreditCard $creditcard, $options = array())
     {
-        $this->build_xml($amount, 'Auth', $creditcard, $options);
+        $this->buildXml($amount, 'Auth', $creditcard, $options);
         return $this->commit(__FUNCTION__, $options);
     }
 
     public function capture($amount, $authorization, $options = array())
     {
         $options['authorization'] = $authorization;
-        $this->build_xml($amount, 'PostAuth', null, $options);
+        $this->buildXml($amount, 'PostAuth', null, $options);
         return $this->commit(__FUNCTION__, $options);
     }
 
@@ -122,7 +122,7 @@ class HsbcSecureEpayments extends Gateway implements Interfaces\Charge
     public function void($identification, $options = array())
     {
         $options['authorization'] = $identification;
-        $this->build_xml(null, 'Void', null, $options);
+        $this->buildXml(null, 'Void', null, $options);
     }
 
     /**
@@ -133,14 +133,14 @@ class HsbcSecureEpayments extends Gateway implements Interfaces\Charge
         // $type = 'Credit'
     }
 
-    private function build_xml($amount, $type, $creditcard=null, $options=array())
+    private function buildXml($amount, $type, $creditcard = null, $options = array())
     {
-        $this->start_xml();
-        $this->insert_data($amount, $creditcard, $type, $options);
-        $this->end_xml();
+        $this->startXml();
+        $this->insertData($amount, $creditcard, $type, $options);
+        $this->endXml();
     }
 
-    private function insert_data($amount, $creditcard, $type, $options=array())
+    private function insertData($amount, $creditcard, $type, $options = array())
     {
 
         $this->xml .= <<<XML
@@ -152,8 +152,9 @@ XML;
             $month = $this->cc_format($creditcard->month, 'two_digits');
             $year = $this->cc_format($creditcard->year, 'two_digits');
 
-            if (isset($options['order_id']))
+            if (isset($options['order_id'])) {
                 $this->xml .= "<Id DataType=\"String\">{$options['order_id']}</Id>";
+            }
 
             $this->xml .= <<<XML
               <Consumer>
@@ -167,18 +168,19 @@ XML;
                   </CreditCard>
                 </PaymentMech>
 XML;
-            $this->add_billing_address($options);
-            $this->add_shipping_address($options);
+            $this->addBillingAddress($options);
+            $this->addShippingAddress($options);
             $this->xml .= '</Consumer>';
         }
 
-        $this->add_transaction_element($amount, $type, $options);
+        $this->addTransactionElement($amount, $type, $options);
 
-        if (is_null($creditcard))
-            $this->add_item_elemts($options);
+        if (is_null($creditcard)) {
+            $this->addItemElemts($options);
+        }
     }
 
-    private function add_transaction_element($amount, $type, $options)
+    private function addTransactionElement($amount, $type, $options)
     {
         if ($type == 'PreAuth' || $type == 'Auth') {
             $this->xml .= <<<XML
@@ -216,7 +218,7 @@ XML;
         }
     }
 
-    private function add_item_elemts($options)
+    private function addItemElemts($options)
     {
         if (isset($options['order_items'])) {
             $this->xml .= '<OrderItemList>';
@@ -242,7 +244,7 @@ XML;
         }
     }
 
-    private function add_billing_address($options)
+    private function addBillingAddress($options)
     {
         if (isset($options['billing_address'])) {
             $this->xml .= <<<XML
@@ -250,7 +252,7 @@ XML;
           <Location>
             <Email DataType="String">{$options['email']}</Email>
 XML;
-            $this->add_address($options['billing_address']);
+            $this->addAddress($options['billing_address']);
             $this->xml .= <<<XML
             <TelVoice DataType="String">{$options['billing_address']['phone']}</TelVoice>
           </Location>
@@ -259,7 +261,7 @@ XML;
         }
     }
 
-    private function add_shipping_address($options)
+    private function addShippingAddress($options)
     {
         if (isset($options['shipping_address'])) {
             $this->xml .= <<<XML
@@ -267,7 +269,7 @@ XML;
           <Location>
             <Email DataType="String">{$options['email']}</Email>
 XML;
-            $this->add_address($options['shipping_address']);
+            $this->addAddress($options['shipping_address']);
             $this->xml .= <<<XML
             <TelVoice DataType="String">{$options['shipping_address']['phone']}</TelVoice>
           </Location>
@@ -276,7 +278,7 @@ XML;
         }
     }
 
-    private function add_address($options)
+    private function addAddress($options)
     {
         $country = Country::find($options['country'])->getCode('numeric');
 
@@ -293,7 +295,7 @@ XML;
 XML;
     }
 
-    private function start_xml()
+    private function startXml()
     {
         $this->xml = <<<XML
     <?xml version="1.0" encoding="UTF-8"?>
@@ -312,7 +314,7 @@ XML;
 XML;
     }
 
-    private function end_xml()
+    private function endXml()
     {
         $this->xml .= <<<XML
           </OrderFormDoc>
@@ -328,10 +330,10 @@ XML;
         $response = $this->parse($data);
 
         $r = new Response(
-            $this->success_from($action, $response),
-            $this->message_from($response),
+            $this->successFrom($action, $response),
+            $this->messageFrom($response),
             $response,
-            $this->options_from($response)
+            $this->optionsFrom($response)
         );
 
         return $r;
@@ -406,7 +408,7 @@ XML;
                 $response['avs_code'] = (string) $transaction->CardProcResp->AvsRespCode;
             }
 
-            if (isset($transaction->CardProcResp->AvsDisplay)){
+            if (isset($transaction->CardProcResp->AvsDisplay)) {
                 $response['avs_display'] = (string) $transaction->CardProcResp->AvsDisplay;
             }
 
@@ -418,7 +420,7 @@ XML;
         return $response;
     }
 
-    private function options_from($response)
+    private function optionsFrom($response)
     {
         $options = array();
         $options['authorization'] = isset($response['transaction_id']) ? $response['transaction_id'] : null;
@@ -430,12 +432,12 @@ XML;
                 $options['cvv_result'] = $this->HSBC_CVV_RESPONSE_MAPPINGS[$response['cvv2_resp']];
             }
         }
-        $options['avs_result'] = $this->avs_code_from($response);
+        $options['avs_result'] = $this->avsCodeFrom($response);
 
         return $options;
     }
 
-    protected function success_from($action, $response)
+    protected function successFrom($action, $response)
     {
         if ($action == 'authorize' || $action == 'purchase' || $action == 'capture') {
             $transaction_status = $this->TRANSACTION_STATUS_MAPPINGS['accepted'];
@@ -451,12 +453,12 @@ XML;
         $response['transaction_status'] == $transaction_status);
     }
 
-    private function message_from($response)
+    private function messageFrom($response)
     {
         return (isset($response['return_message']) ? $response['return_message'] : $response['error_message']);
     }
 
-    private function avs_code_from($response)
+    private function avsCodeFrom($response)
     {
         if (empty($response['avs_display'])) {
             return array('code' => 'U');

@@ -15,7 +15,6 @@ use AktiveMerchant\Common\Options;
  */
 class Response
 {
-
     protected $success;
     protected $message;
 

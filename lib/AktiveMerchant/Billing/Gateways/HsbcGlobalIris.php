@@ -9,7 +9,7 @@ class HsbcGlobalIris extends HsbcSecureEpayments
 
     public static $display_name = 'HSBC Global Iris';
 
-    protected function success_from($action, $response)
+    protected function successFrom($action, $response)
     {
         if ($action == 'authorize' || $action == 'purchase' || $action == 'capture') {
             $transaction_status = $this->TRANSACTION_STATUS_MAPPINGS['accepted'];

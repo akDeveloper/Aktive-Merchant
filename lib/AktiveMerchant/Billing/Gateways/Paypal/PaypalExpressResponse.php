@@ -5,11 +5,11 @@
 namespace AktiveMerchant\Billing\Gateways\Paypal;
 
 use AktiveMerchant\Billing\Response;
+
 /**
  * Description of PaypalExpressResponse
  *
- * @package Aktive-Merchant
- * @author  Andreas Kollaros
+ * @author Andreas Kollaros <andreas@larium.net>
  * @license http://www.opensource.org/licenses/mit-license.php
  */
 class PaypalExpressResponse extends Response
@@ -25,7 +25,7 @@ class PaypalExpressResponse extends Response
         $first_name = $this->params['FIRSTNAME'];
         $middle_name = isset($this->params['MIDDLENAME']) ? $this->params['MIDDLENAME'] : null;
         $last_name = $this->params['LASTNAME'];
-        
+
         return implode(' ', array_filter(array($first_name, $middle_name, $last_name)));
     }
 
@@ -68,5 +68,4 @@ class PaypalExpressResponse extends Response
     {
         return isset($this->params['NOTE']) ? $this->params['NOTE'] : null;
     }
-
 }

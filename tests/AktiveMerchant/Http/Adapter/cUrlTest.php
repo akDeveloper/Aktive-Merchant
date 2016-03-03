@@ -11,7 +11,7 @@ class cUrlTest extends \PHPUnit_Framework_TestCase
     public function testAdapterConfig()
     {
         $request = new Request();
-        $request->setUrl('http://www.example.com');
+        $request->setUrl('http://www.httpbin.org/get');
 
         $adapter = new cUrl();
 

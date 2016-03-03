@@ -103,7 +103,7 @@ class FatZebra extends Gateway
      * @throws \AktiveMerchant\Billing\Exception If the request fails
      * @return \AktiveMerchant\Billing\Response Response object
      */
-    public function purchase($money, $creditcard, $options=array())
+    public function purchase($money, $creditcard, $options = array())
     {
 
         Options::required('order_id, ip', $options);
@@ -112,16 +112,16 @@ class FatZebra extends Gateway
 
         $options = new Options($options);
 
-        $this->add_invoice($options->order_id, $money);
+        $this->addInvoice($options->order_id, $money);
 
         if (is_string($creditcard)) {
             Options::required('cvv', $options);
             $this->post['card_token'] = $creditcard;
         } else {
-            $this->add_creditcard($creditcard);
+            $this->addCreditcard($creditcard);
         }
 
-        $this->add_customer_data($options);
+        $this->addCustomerData($options);
 
         return $this->commit('purchases');
     }
@@ -145,7 +145,7 @@ class FatZebra extends Gateway
 
         $this->post = array('transaction_id' => $identification);
 
-        $this->add_invoice($options->order_id, $money);
+        $this->addInvoice($options->order_id, $money);
         return $this->commit('refunds');
     }
 
@@ -156,11 +156,11 @@ class FatZebra extends Gateway
      * @access public
      * @return void
      */
-    public function store(CreditCard $creditcard, $options=array())
+    public function store(CreditCard $creditcard, $options = array())
     {
         $this->post = array();
 
-        $this->add_creditcard($creditcard);
+        $this->addCreditcard($creditcard);
 
         return $this->commit('credit_cards');
     }
@@ -183,7 +183,7 @@ class FatZebra extends Gateway
      * @access public
      * @return void
      */
-    public function recurring($plan, CreditCard $creditcard, $options=array())
+    public function recurring($plan, CreditCard $creditcard, $options = array())
     {
         $this->post = array();
 
@@ -233,7 +233,7 @@ class FatZebra extends Gateway
 
         $this->post = array();
 
-        $this->add_invoice($options->order_id, $money);
+        $this->addInvoice($options->order_id, $money);
 
         $this->post['name'] = $options->name;
         $this->post['description'] = $options['description'];
@@ -269,7 +269,7 @@ class FatZebra extends Gateway
      * @param array  $attrs   An array holding the attributes to update
      * @return Response
      */
-    public function updatePlan($plan_id, array $attrs=array())
+    public function updatePlan($plan_id, array $attrs = array())
     {
         $this->post = array();
         $attrs = new Options($attrs);
@@ -293,9 +293,9 @@ class FatZebra extends Gateway
         Options::required('first_name, last_name, email, customer_id', $options);
         $options = new Options($options);
 
-        $this->add_customer_data($options);
-        $this->add_address($options);
-        $this->add_recurring_creditcard($creditcard, true);
+        $this->addCustomerData($options);
+        $this->addAddress($options);
+        $this->addRecurringCreditcard($creditcard, true);
         $this->post['reference'] = $options->customer_id;
 
         return $this->commit('customers');
@@ -311,20 +311,20 @@ class FatZebra extends Gateway
      * @access public
      * @return void
      */
-    public function updateCustomer($customer_id, CreditCard $creditcard = null, $options=array())
+    public function updateCustomer($customer_id, CreditCard $creditcard = null, $options = array())
     {
         $this->post = array();
 
         $options = new Options($options);
 
-        $this->add_customer_data($options);
-        $this->add_address($options);
+        $this->addCustomerData($options);
+        $this->addAddress($options);
         $address = $this->post['address'];
         unset($this->post['address']);
         $this->post = array_merge($this->post, $address);
 
         if (null !== $creditcard) {
-            $this->add_recurring_creditcard($creditcard);
+            $this->addRecurringCreditcard($creditcard);
         }
 
         $customer_id = urlencode(trim($customer_id));
@@ -361,7 +361,7 @@ class FatZebra extends Gateway
      *
      * @return void
      */
-    private function add_address($options)
+    private function addAddress($options)
     {
         $billing_address = $options->billing_address ?: $options->address;
 
@@ -386,7 +386,7 @@ class FatZebra extends Gateway
      * @param Options $options Options must include the ip address of
      *                         customer.
      */
-    private function add_customer_data($options)
+    private function addCustomerData($options)
     {
         $this->post['customer_ip'] = $options->ip;
 
@@ -406,7 +406,7 @@ class FatZebra extends Gateway
      * @param Options $order_id The unique order_id.
      * @param number  $money    The amount of money if needed.
      */
-    private function add_invoice($order_id, $money=null)
+    private function addInvoice($order_id, $money = null)
     {
         $this->post['reference'] = $order_id;
 
@@ -421,26 +421,26 @@ class FatZebra extends Gateway
      *
      * @param CreditCard $creditcard
      */
-    private function add_creditcard(CreditCard $creditcard)
+    private function addCreditcard(CreditCard $creditcard)
     {
 
         $post['card_holder'] = $creditcard->name();
         $post['card_number'] = $creditcard->number;
         $post['card_expiry'] = $this->cc_format($creditcard->month, 'two_digits')
             . "/"
-            . $this->cc_format($creditcard->year,'four_digits');
+            . $this->cc_format($creditcard->year, 'four_digits');
         $post['cvv'] = $creditcard->verification_value;
 
         $this->post = array_merge($this->post, $post);
     }
 
-    private function add_recurring_creditcard(CreditCard $creditcard)
+    private function addRecurringCreditcard(CreditCard $creditcard)
     {
         $post['card_holder'] = $creditcard->name();
         $post['card_number'] = $creditcard->number;
         $post['expiry_date'] = $this->cc_format($creditcard->month, 'two_digits')
             . "/"
-            . $this->cc_format($creditcard->year,'four_digits');
+            . $this->cc_format($creditcard->year, 'four_digits');
         $post['cvv'] = $creditcard->verification_value;
 
         $this->post['card'] = $post;
@@ -496,7 +496,7 @@ class FatZebra extends Gateway
      *
      * @return Response
      */
-    private function commit($action, $method=RequestInterface::METHOD_POST)
+    private function commit($action, $method = RequestInterface::METHOD_POST)
     {
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
@@ -514,8 +514,8 @@ class FatZebra extends Gateway
         $test_mode = $this->isTest();
 
         return new Response(
-            $this->success_from($response),
-            $this->message_from($response),
+            $this->successFrom($response),
+            $this->messageFrom($response),
             $response,
             array(
                 'test' => $test_mode && $response['test'],
@@ -534,7 +534,7 @@ class FatZebra extends Gateway
      *
      * @return string
      */
-    private function success_from($response)
+    private function successFrom($response)
     {
         return $response['success'];
     }
@@ -546,7 +546,7 @@ class FatZebra extends Gateway
      *
      * @return string
      */
-    private function message_from($response)
+    private function messageFrom($response)
     {
         return is_array($response['message'])
             ? implode(', ', $response['message'])

@@ -89,8 +89,9 @@ class BridgePay extends Gateway implements
     {
         $this->required_options('username, password', $options);
 
-        if (isset($options['currency']))
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
+        }
 
         $this->options = $options;
     }
@@ -102,11 +103,11 @@ class BridgePay extends Gateway implements
     {
         $this->post = array();
         $options = new Options($options);
-        $this->post_required_fields('Auth');
+        $this->postRequiredFields('Auth');
 
-        $this->add_invoice($this->post, $money, $options);
-        $this->add_creditcard($this->post, $creditcard);
-        $this->add_customer_data($this->post, $options);
+        $this->addInvoice($this->post, $money, $options);
+        $this->addCreditcard($this->post, $creditcard);
+        $this->addCustomerData($this->post, $options);
 
         return $this->commit();
     }
@@ -118,12 +119,12 @@ class BridgePay extends Gateway implements
     {
         $this->post = array();
         $options = new Options($options);
-        $this->post_required_fields('Sale');
+        $this->postRequiredFields('Sale');
 
         $this->post['ExtData'] = '<Force>T</Force>';
-        $this->add_invoice($this->post, $money, $options);
-        $this->add_creditcard($this->post, $creditcard);
-        $this->add_customer_data($this->post, $options);
+        $this->addInvoice($this->post, $money, $options);
+        $this->addCreditcard($this->post, $creditcard);
+        $this->addCustomerData($this->post, $options);
 
         return $this->commit();
     }
@@ -135,11 +136,11 @@ class BridgePay extends Gateway implements
     {
         $this->post = array();
         $options = new Options($options);
-        $this->post_required_fields('Force');
+        $this->postRequiredFields('Force');
 
-        $this->add_invoice($this->post, $money, $options);
-        $this->add_reference($this->post, $authorization);
-        $this->add_customer_data($this->post, $options);
+        $this->addInvoice($this->post, $money, $options);
+        $this->addReference($this->post, $authorization);
+        $this->addCustomerData($this->post, $options);
 
         return $this->commit();
     }
@@ -151,9 +152,9 @@ class BridgePay extends Gateway implements
     {
         $this->post = array();
         $options = new Options($options);
-        $this->post_required_fields('Void');
+        $this->postRequiredFields('Void');
 
-        $this->add_reference($this->post, $authorization);
+        $this->addReference($this->post, $authorization);
 
         return $this->commit();
     }
@@ -165,10 +166,10 @@ class BridgePay extends Gateway implements
     {
         $this->post = array();
         $options = new Options($options);
-        $this->post_required_fields('Return');
+        $this->postRequiredFields('Return');
 
-        $this->add_invoice($this->post, $money, $options);
-        $this->add_reference($this->post, $identification);
+        $this->addInvoice($this->post, $money, $options);
+        $this->addReference($this->post, $identification);
 
         return $this->commit();
     }
@@ -181,15 +182,15 @@ class BridgePay extends Gateway implements
      * @param array $options
      * @param array reference $post
      */
-    private function add_customer_data(&$post, Options $options)
+    private function addCustomerData(&$post, Options $options)
     {
         $address = array();
 
-        if($options->billing_address) {
+        if ($options->billing_address) {
 
             $adr = $options->billing_address;
 
-        } else if($options->address) {
+        } elseif ($options->address) {
 
             $adr = $options->address;
 
@@ -199,7 +200,7 @@ class BridgePay extends Gateway implements
         $post['Zip'] = $adr->zip;
     }
 
-    private function post_required_fields ($transaction_type)
+    private function postRequiredFields($transaction_type)
     {
         $this->post = array (
             'TransType' => $transaction_type,
@@ -218,15 +219,15 @@ class BridgePay extends Gateway implements
         );
     }
 
-    private function add_reference(&$post, $authorization)
+    private function addReference(&$post, $authorization)
     {
-        $split = $this->split_authorization($authorization);
+        $split = $this->splitAuthorization($authorization);
 
         $this->post['AuthCode'] = $split['AuthCode'];
         $this->post['PNRef'] = $split['PNRef'];
     }
 
-    private function split_authorization($authorization)
+    private function splitAuthorization($authorization)
     {
         list($authcode, $pnref) = explode('|', $authorization);
 
@@ -239,7 +240,7 @@ class BridgePay extends Gateway implements
     }
 
 
-    private function add_invoice(&$post, $money,  Options $options)
+    private function addInvoice(&$post, $money, Options $options)
     {
         $post['Amount'] = $this->amount($money);
         $post['InvNum'] = $options->order_id;
@@ -251,10 +252,11 @@ class BridgePay extends Gateway implements
      * @param CreditCard $creditcard
      * @param array reference $post
      */
-    private function add_creditcard(&$post, CreditCard $creditcard)
+    private function addCreditcard(&$post, CreditCard $creditcard)
     {
         $post['NameOnCard'] = $creditcard->type;
-        $post['ExpDate'] = $this->cc_format($creditcard->month, 'two_digits').$this->cc_format($creditcard->year, 'two_digits' );
+        $post['ExpDate'] = $this->cc_format($creditcard->month, 'two_digits')
+            .$this->cc_format($creditcard->year, 'two_digits');
         $post['CardNum'] = $creditcard->number;
         $post['CVNum'] = $creditcard->verification_value;
     }
@@ -264,25 +266,25 @@ class BridgePay extends Gateway implements
     {
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
-        $data = $this->ssl_post($url, $this->post_data());
+        $data = $this->ssl_post($url, $this->postData());
 
         $response = $this->parse($data);
 
         $test_mode = $this->isTest();
 
         return new Response(
-            $this->success_from($response),
-            $this->message_from($response),
+            $this->successFrom($response),
+            $this->messageFrom($response),
             $response,
             array(
-                'authorization' => $this->authorization_from($response),
+                'authorization' => $this->authorizationFrom($response),
                 'test' => $test_mode
 
             )
         );
     }
 
-    private function authorization_from($response)
+    private function authorizationFrom($response)
     {
         $result = $response['AuthCode'].'|'.$response['PNRef'];
 
@@ -296,7 +298,7 @@ class BridgePay extends Gateway implements
      *
      * @return boolean
      */
-    private function success_from($response)
+    private function successFrom($response)
     {
         if ($response['RespMSG']== $this->APPROVED) {
 
@@ -314,7 +316,7 @@ class BridgePay extends Gateway implements
      *
      * @return array
      */
-    private function message_from($response)
+    private function messageFrom($response)
     {
         return $response['RespMSG'];
     }
@@ -327,7 +329,7 @@ class BridgePay extends Gateway implements
      *
      * @return array
      */
-    private function avs_result_from($response)
+    private function avsResultFrom($response)
     {
         return array('code' => $response['avs_result_code']);
     }
@@ -341,7 +343,7 @@ class BridgePay extends Gateway implements
      *
      * @return string $result
      */
-    private function post_data()
+    private function postData()
     {
         $post =  array(
             'UserName' => $this->options['username'],

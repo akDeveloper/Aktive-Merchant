@@ -10,6 +10,7 @@ use AktiveMerchant\Billing\Gateways\Paypal\PaypalExpressResponse;
 use AktiveMerchant\Common\Country;
 use AktiveMerchant\Common\Address;
 use AktiveMerchant\Common\Options;
+
 /**
  * Description of PaypalExpress
  *
@@ -38,10 +39,12 @@ class PaypalExpress extends PaypalCommon
 
         $this->options = new Options($options);
 
-        if (isset($options['version']))
+        if (isset($options['version'])) {
             $this->version = $options['version'];
-        if (isset($options['currency']))
+        }
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
+        }
     }
 
     /**
@@ -49,19 +52,20 @@ class PaypalExpress extends PaypalCommon
      */
     public function amount($money)
     {
-        if (null === $money)
+        if (null === $money) {
             return null;
+        }
 
         $cents = $money * 100;
         if (!is_numeric($money)) {
             throw new \InvalidArgumentException('money amount must be a number.');
         }
-        
-        return ($this->money_format() == 'cents') 
-            ? number_format($cents, 0, '', '') 
+
+        return ($this->money_format() == 'cents')
+            ? number_format($cents, 0, '', '')
             : number_format($money, 2);
     }
-    
+
     /**
      * Authorize and Purchase actions
      *
@@ -74,7 +78,7 @@ class PaypalExpress extends PaypalCommon
      */
     public function authorize($amount, $options = array())
     {
-        return $this->do_action($amount, "Authorization", $options);
+        return $this->doAction($amount, "Authorization", $options);
     }
 
     /**
@@ -86,13 +90,13 @@ class PaypalExpress extends PaypalCommon
      */
     public function purchase($amount, $options = array())
     {
-        return $this->do_action($amount, "Sale", $options);
+        return $this->doAction($amount, "Sale", $options);
     }
 
     public function capture($money, $authorization, $options = array())
     {
         $this->required_options('complete_type', $options);
-        
+
         $this->post = array();
 
         $params = array(
@@ -104,17 +108,17 @@ class PaypalExpress extends PaypalCommon
         );
 
         $this->post = array_merge(
-            $this->post, 
+            $this->post,
             $params
         );
 
-        return $this->commit('DoCapture'); 
+        return $this->commit('DoCapture');
     }
 
     public function credit($money, $identification, $options = array())
     {
         $this->required_options('refund_type', $options);
-        
+
         $this->post = array();
 
         $params = array(
@@ -122,35 +126,36 @@ class PaypalExpress extends PaypalCommon
         );
 
         $this->post['REFUNDTYPE'] = $options['refund_type']; //Must be Other, Full or Partial
-        
-        if ($this->post['REFUNDTYPE'] != 'Full')
+
+        if ($this->post['REFUNDTYPE'] != 'Full') {
             $this->post['AMT'] = $this->amount($money);
+        }
 
         $this->post['TRANSACTIONID'] = $identification;
 
         $this->post = array_merge(
-            $this->post, 
-            $params 
+            $this->post,
+            $params
         );
 
-        return $this->commit('RefundTransaction'); 
+        return $this->commit('RefundTransaction');
     }
 
     /**
      * Void an authorization.
      *
      * Available option fields are:
-     * - note: (Optional) Informational note about this void that is displayed 
+     * - note: (Optional) Informational note about this void that is displayed
      *          to the buyer in email and in their transaction history.
      *          Character length and limitations: 255 single-byte characters
-     * 
-     * - message: (Optional) A message ID used for idempotence to uniquely 
-     *            identify a message. This ID can later be used to request the 
-     *            latest results for a previous request without generating a 
+     *
+     * - message: (Optional) A message ID used for idempotence to uniquely
+     *            identify a message. This ID can later be used to request the
+     *            latest results for a previous request without generating a
      *            new request. Examples of this include requests due to timeouts
      *            or errors during the original request.
      *            Character length and limitations: 38 single-byte characters
-     *  
+     *
      * {@inheritdoc }
      */
     public function void($authorization, $options = array())
@@ -171,11 +176,11 @@ class PaypalExpress extends PaypalCommon
         }
 
         $this->post = array_merge(
-            $this->post, 
+            $this->post,
             $params
         );
 
-        return $this->commit('DoVoid'); 
+        return $this->commit('DoVoid');
     }
 
     public function recurring($money, $options = array())
@@ -193,16 +198,16 @@ class PaypalExpress extends PaypalCommon
             'TOKEN' => urlencode(trim($options['token'])),
             'DESC' => $options['description'],
         );
-        
-        $this->add_address($options);
+
+        $this->addAddress($options);
 
         $this->post = array_merge(
-            $this->post, 
+            $this->post,
             $params,
-            $this->get_optional_params($options)
+            $this->getOptionalParams($options)
         );
-        
-        return $this->commit('CreateRecurringPaymentsProfile'); 
+
+        return $this->commit('CreateRecurringPaymentsProfile');
 
     }
 
@@ -212,13 +217,13 @@ class PaypalExpress extends PaypalCommon
 
         $this->post['PROFILEID'] = $profile_id;
         $this->post['METHOD'] = 'GetRecurringPaymentsProfileDetails';
-    
-        return $this->commit('GetRecurringPaymentsProfileDetails'); 
+
+        return $this->commit('GetRecurringPaymentsProfileDetails');
     }
 
     public function setupRecurring($money, $options = array())
     {
-        
+
         $this->post = array();
         $this->post['L_BILLINGAGREEMENTDESCRIPTION0'] = $options['desc'];
         $this->post['L_BILLINGTYPE0'] = 'RecurringPayments';
@@ -269,21 +274,22 @@ class PaypalExpress extends PaypalCommon
             'CANCELURL'            => $options['cancel_return_url']
         );
 
-        $this->add_address($options);
+        $this->addAddress($options);
 
-        if(isset($options['header_image']))
+        if (isset($options['header_image'])) {
             $params['HDRIMG'] = $options['header_image'];
+        }
 
         $this->post = array_merge(
-            $this->post, 
-            $params, 
-            $this->get_optional_params($options)
+            $this->post,
+            $params,
+            $this->getOptionalParams($options)
         );
 
         return $this->commit($action);
     }
 
-    private function do_action($money, $action, $options = array())
+    private function doAction($money, $action, $options = array())
     {
         if (!isset($options['token'])) {
             $options['token'] = $this->token;
@@ -296,7 +302,7 @@ class PaypalExpress extends PaypalCommon
         $this->required_options('token, payer_id', $options);
 
         $this->post = array();
-        
+
         $params = array(
             'METHOD'               => 'DoExpressCheckoutPayment',
             'PAYMENTREQUEST_0_AMT' => $this->amount($money),
@@ -304,18 +310,18 @@ class PaypalExpress extends PaypalCommon
             'PAYERID'              => $options['payer_id']
         );
 
-        $this->add_address($options);
-        
+        $this->addAddress($options);
+
         $this->post = array_merge(
-            $this->post, 
-            $params, 
-            $this->get_optional_params($options)
+            $this->post,
+            $params,
+            $this->getOptionalParams($options)
         );
 
         return $this->commit($action);
     }
 
-    private function get_optional_params($options)
+    private function getOptionalParams($options)
     {
         $params = array();
 
@@ -328,20 +334,25 @@ class PaypalExpress extends PaypalCommon
 
         if (isset($options['items'])) {
             foreach ($options['items'] as $key => $item) {
-                if(isset($item['name']))
+                if (isset($item['name'])) {
                     $params["L_PAYMENTREQUEST_0_NAME$key"]   = $item['name'];
+                }
 
-                if(isset($item['description']))
+                if (isset($item['description'])) {
                     $params["L_PAYMENTREQUEST_0_DESC$key"]   = $item['description'];
-                
-                if(isset($item['unit_price']))
+                }
+
+                if (isset($item['unit_price'])) {
                     $params["L_PAYMENTREQUEST_0_AMT$key"]    = $this->amount($item['unit_price']);
-                
-                if(isset($item['quantity']))
+                }
+
+                if (isset($item['quantity'])) {
                     $params["L_PAYMENTREQUEST_0_QTY$key"]    = $item['quantity'];
-                
-                if(isset($item['id']))
+                }
+
+                if (isset($item['id'])) {
                     $params["L_PAYMENTREQUEST_0_NUMBER$key"] = $item['id'];
+                }
             }
         }
 
@@ -373,7 +384,7 @@ class PaypalExpress extends PaypalCommon
      * </code>
      *
      * common pattern for address is
-     * 
+     *
      * <code>
      *      $billing_address = isset($options['billing_address'])
      *          ? $options['billing_address']
@@ -385,7 +396,7 @@ class PaypalExpress extends PaypalCommon
      *
      * @return void
      */
-    private function add_address($options)
+    private function addAddress($options)
     {
 
         $billing_address = isset($options['billing_address'])
@@ -400,13 +411,13 @@ class PaypalExpress extends PaypalCommon
         $country_code = Country::find($billing_address['country'])
             ->getCode('alpha2');
         $billing_address['country'] = $country_code;
-       
-        $address = $this->map_address($billing_address);
+
+        $address = $this->mapAddress($billing_address);
 
         $this->post = array_merge($this->post, $address->getMappedFields());
     }
 
-    private function map_address($billing_address)
+    private function mapAddress($billing_address)
     {
         $address = new Address($billing_address);
 
@@ -430,8 +441,8 @@ class PaypalExpress extends PaypalCommon
      */
     public function urlForToken($token)
     {
-        $redirect_url = $this->isTest() 
-            ? self::TEST_REDIRECT_URL 
+        $redirect_url = $this->isTest()
+            ? self::TEST_REDIRECT_URL
             : self::LIVE_REDIRECT_URL;
         return $redirect_url . $token;
     }
@@ -466,7 +477,7 @@ class PaypalExpress extends PaypalCommon
      * @param string $action
      * @param array $parameters
      */
-    protected function post_data($action)
+    protected function postData($action)
     {
         $params = array(
             'USER'                           => $this->options['login'],
@@ -476,8 +487,7 @@ class PaypalExpress extends PaypalCommon
             'PAYMENTREQUEST_0_CURRENCYCODE'  => self::$default_currency
         );
 
-        if (in_array($this->post['METHOD'], array('SetExpressCheckout', 'DoExpressCheckoutPayment'))) 
-        {
+        if (in_array($this->post['METHOD'], array('SetExpressCheckout', 'DoExpressCheckoutPayment'))) {
             $params['PAYMENTREQUEST_0_PAYMENTACTION'] = $action;
         }
 
@@ -494,9 +504,8 @@ class PaypalExpress extends PaypalCommon
      *
      * @return PaypalExpressResponse
      */
-    protected function build_response($success, $message, $response, $options = array())
+    protected function buildResponse($success, $message, $response, $options = array())
     {
         return new PaypalExpressResponse($success, $message, $response, $options);
     }
-
 }

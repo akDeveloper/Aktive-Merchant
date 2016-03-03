@@ -1,4 +1,5 @@
 <?php
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
 namespace AktiveMerchant\Billing\Gateways;
@@ -52,13 +53,14 @@ class Worldpay extends Gateway
 
         $this->timestamp = strftime("%Y%m%d%H%M%S");
 
-        if (isset($options['currency']))
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
+        }
 
         $this->options = $options;
     }
 
-    public function authorize($money, CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options = array())
     {
         $this->required_options('order_id', $options);
         $this->build_authorization_request($money, $creditcard, $options);
@@ -79,7 +81,7 @@ class Worldpay extends Gateway
             'merchantCode' => $this->options['login'],
             'version' => '1.4',
             'submit' => array(
-                'order' => $this->add_order($money, $creditcard, $options)
+                'order' => $this->addOrder($money, $creditcard, $options)
             )
         ));
 
@@ -95,7 +97,7 @@ class Worldpay extends Gateway
         $this->xml->load(array(
             'merchantCode' => $this->options['login'],
             'version' => '1.4',
-            'modify' => $this->add_capture_modification($money, $authorization, $options)
+            'modify' => $this->addCaptureModification($money, $authorization, $options)
         ));
 
         if ($testingXmlGeneration) {
@@ -118,7 +120,7 @@ class Worldpay extends Gateway
         return $xml;
     }
 
-    private function add_order($money, $creditcard, $options)
+    private function addOrder($money, $creditcard, $options)
     {
         $attrs = array('orderCode' => $options['order_id']);
         $attrs['installationId'] = $this->options['inst_id'];
@@ -127,13 +129,13 @@ class Worldpay extends Gateway
             '@attributes' => $attrs,
             array(
                 'description' => 'Purchase',
-                'amount' => $this->add_amount($money, $options),
-                'paymentDetails' => $this->add_payment_method($money, $creditcard, $options)
+                'amount' => $this->addAmount($money, $options),
+                'paymentDetails' => $this->addPaymentMethod($money, $creditcard, $options)
             )
         );
     }
 
-    private function add_capture_modification($money, $authorization, $options)
+    private function addCaptureModification($money, $authorization, $options)
     {
         $now = new \DateTime(null, new \DateTimeZone('UTC'));
 
@@ -149,14 +151,14 @@ class Worldpay extends Gateway
                                 'year' => $now->format('Y')
                             )
                         ),
-                        'amount' => $this->add_amount($money, $options)
+                        'amount' => $this->addAmount($money, $options)
                     )
                 )
             )
         );
     }
 
-    private function add_payment_method($money, $creditcard, $options)
+    private function addPaymentMethod($money, $creditcard, $options)
     {
         $cardCode = self::$card_codes[$creditcard->type];
 
@@ -173,12 +175,12 @@ class Worldpay extends Gateway
                 ),
                 'cardHolderName' => $creditcard->name(),
                 'cvc' => $creditcard->verification_value,
-                'cardAddress' => $this->add_address($options)
+                'cardAddress' => $this->addAddress($options)
             )
         );
     }
 
-    private function add_amount($money, $options)
+    private function addAmount($money, $options)
     {
         $currency = isset($options['currency']) ? $options['currency'] : self::$default_currency;
 
@@ -191,7 +193,7 @@ class Worldpay extends Gateway
         );
     }
 
-    private function add_address($options)
+    private function addAddress($options)
     {
         $address = isset($options['billing_address']) ? $options['billing_address'] : $options['address'];
 
@@ -243,16 +245,16 @@ class Worldpay extends Gateway
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
         $options = array('headers' => array(
-            "Authorization: {$this->encoded_credentials()}"
+            "Authorization: {$this->encodedCredentials()}"
         ));
 
         $response = $this->parse($this->ssl_post($url, $this->xml->createXML(true), $options));
-        $success = $this->success_from($response, $successCriteria);
+        $success = $this->successFrom($response, $successCriteria);
         return new Response(
             $success,
-            $this->message_from($success, $response, $successCriteria),
-            $this->params_from($response),
-            $this->options_from($response)
+            $this->messageFrom($success, $response, $successCriteria),
+            $this->paramsFrom($response),
+            $this->optionsFrom($response)
         );
     }
 
@@ -263,7 +265,7 @@ class Worldpay extends Gateway
         return $xml->toArray($dom);
     }
 
-    private function success_from($response, $successCriteria)
+    private function successFrom($response, $successCriteria)
     {
         if ($successCriteria == 'ok') {
             return isset($response['paymentService']['reply']['ok']);
@@ -276,7 +278,7 @@ class Worldpay extends Gateway
         return false;
     }
 
-    private function message_from($success, $response, $successCriteria)
+    private function messageFrom($success, $response, $successCriteria)
     {
         if ($success) {
             return "SUCCESS";
@@ -289,12 +291,12 @@ class Worldpay extends Gateway
         return "A transaction status of $successCriteria is required.";
     }
 
-    private function params_from($response)
+    private function paramsFrom($response)
     {
         return $response['paymentService']['reply'];
     }
 
-    private function options_from($response)
+    private function optionsFrom($response)
     {
         $options = array('test' => $this->isTest());
 
@@ -309,7 +311,7 @@ class Worldpay extends Gateway
         return $options;
     }
 
-    private function encoded_credentials()
+    private function encodedCredentials()
     {
         $credentials = $this->options['login'] . ':' . $this->options['password'];
         $encoded = base64_encode($credentials);

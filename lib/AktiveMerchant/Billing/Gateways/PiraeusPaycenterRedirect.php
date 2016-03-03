@@ -8,7 +8,6 @@ use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Options;
 
-
 class PiraeusPaycenterRedirect extends Gateway
 {
     const TEST_URL = 'https://paycenter.piraeusbank.gr/services/tickets/issuer.asmx';
@@ -80,18 +79,18 @@ XML;
 
         $header = 'http://piraeusbank.gr/paycenter/redirection/IssueNewTicket';
 
-        $post_data = $this->post_data($action, $parameters);
+        $postData = $this->postData($action, $parameters);
 
         $headers = array(
             "POST /services/paymentgateway.asmx HTTP/1.1",
             "Host: paycenter.piraeusbank.gr",
             "Content-type: text/xml; charset=\"utf-8\"",
-            "Content-length: " . strlen($post_data),
+            "Content-length: " . strlen($postData),
             "SOAPAction: \"$header\""
         );
 
         try {
-            $data = $this->ssl_post($url, $post_data, array('headers' => $headers));
+            $data = $this->ssl_post($url, $postData, array('headers' => $headers));
         } catch (\AktiveMerchant\Http\Adapter\Exception $e) {
             $data = $e->getResponseBody();
         }
@@ -101,8 +100,8 @@ XML;
         $test_mode = $this->isTest();
 
         return new Response(
-            $this->success_from($response),
-            $this->message_from($response),
+            $this->successFrom($response),
+            $this->messageFrom($response),
             $response,
             array(
                 'test' => $test_mode,
@@ -159,7 +158,7 @@ XML;
      *
      * @return string
      */
-    protected function success_from($response)
+    protected function successFrom($response)
     {
         return $response['result_code'] == '0';
     }
@@ -170,12 +169,12 @@ XML;
      *
      * @return string
      */
-    protected function message_from($response)
+    protected function messageFrom($response)
     {
         return $response['result_description'];
     }
 
-    protected function post_data($action, $parameters)
+    protected function postData($action, $parameters)
     {
         /**
          * Add final parameters to post data and

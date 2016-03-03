@@ -18,9 +18,9 @@ class Payflow extends PayflowCommon
     public static $homepage_url = 'https://www.paypal.com/cgi-bin/webscr?cmd=_payflow-pro-overview-outside';
     public static $display_name = 'PayPal Payflow Pro';
 
-    function authorize($money, $credit_card_or_reference, $options = array())
+    public function authorize($money, $credit_card_or_reference, $options = array())
     {
-        $this->build_sale_or_authorization_request(
+        $this->buildSaleOrAuthorizationRequest(
             'Authorization',
             $money,
             $credit_card_or_reference,
@@ -30,9 +30,9 @@ class Payflow extends PayflowCommon
         return $this->commit($options);
     }
 
-    function purchase($money, $credit_card_or_reference, $options = array())
+    public function purchase($money, $credit_card_or_reference, $options = array())
     {
-        $this->build_sale_or_authorization_request(
+        $this->buildSaleOrAuthorizationRequest(
             'Sale',
             $money,
             $credit_card_or_reference,
@@ -42,14 +42,15 @@ class Payflow extends PayflowCommon
         return $this->commit($options);
     }
 
-    private function build_sale_or_authorization_request($action, $money, $credit_card_or_reference, $options) {
+    private function buildSaleOrAuthorizationRequest($action, $money, $credit_card_or_reference, $options)
+    {
         return is_string($credit_card_or_reference)
-            ? $this->build_reference_sale_or_authorization_request(
+            ? $this->buildReferenceSaleOrAuthorizationRequest(
                 $action,
                 $money,
                 $credit_card_or_reference
             )
-            : $this->build_credit_card_request(
+            : $this->buildCreditCardRequest(
                 $action,
                 $money,
                 $credit_card_or_reference,
@@ -57,7 +58,8 @@ class Payflow extends PayflowCommon
             );
     }
 
-    private function build_reference_sale_or_authorization_request($action, $money, $reference) {
+    private function buildReferenceSaleOrAuthorizationRequest($action, $money, $reference)
+    {
         $default_currency = self::$default_currency;
         $bodyXml = <<<XML
              <{$action}>
@@ -78,7 +80,8 @@ XML;
         return $this->build_request($bodyXml);
     }
 
-    private function build_credit_card_request($action, $money, $credit_card, $options) {
+    private function buildCreditCardRequest($action, $money, $credit_card, $options)
+    {
         $default_currency = self::$default_currency;
 
         $bodyXml = <<<XML
@@ -86,28 +89,32 @@ XML;
                 <PayData>
                     <Invoice>
 XML;
-        if (isset($options['ip']))
+        if (isset($options['ip'])) {
             $bodyXml .= "<CustIp>" . $options['ip'] . "</CustIp>";
+        }
 
         if (isset($options['order_id'])) {
             $bodyXml .= "<InvNum>" . $options['order_id'] . "</InvNum>";
             $bodyXml .= "<Comment>" . $options['order_id'] . "</Comment>";
         }
 
-        if (isset($options['description']))
+        if (isset($options['description'])) {
             $bodyXml .= "<Description>"
                 . $options['description']
                 . "</Description>";
+        }
 
-        if (isset($options['billing_address']))
+        if (isset($options['billing_address'])) {
             $bodyXml .= "<BillTo>"
                 . $this->add_address($options, $options['billing_address'])
                 . "</BillTo>";
+        }
 
-        if (isset($options['shipping_address']))
+        if (isset($options['shipping_address'])) {
             $bodyXml .= "<ShipTo>"
                 . $this->add_address($options, $options['shipping_address'])
                 . "</ShipTo>";
+        }
 
         $bodyXml .= <<<XML
                         <TotalAmt Currency="{$default_currency}">
@@ -137,7 +144,7 @@ XML;
             $bodyXml .= "</Items>";
         }
 
-        $bodyXml .= $this->add_credit_card($credit_card, $options);
+        $bodyXml .= $this->addCreditCard($credit_card, $options);
 
         $bodyXml .= <<<XML
                     </Tender>
@@ -147,14 +154,14 @@ XML;
         return $this->build_request($bodyXml);
     }
 
-    private function add_credit_card($creditcard, $options = array())
+    private function addCreditCard($creditcard, $options = array())
     {
         $month = $this->cc_format($creditcard->month, 'two_digits');
         $year = $this->cc_format($creditcard->year, 'four_digits');
 
         $xml = <<<XML
         <Card>
-            <CardType>{$this->credit_card_type($creditcard)}</CardType>
+            <CardType>{$this->creditCardType($creditcard)}</CardType>
             <CardNum>{$creditcard->number}</CardNum>
             <ExpDate>{$year}{$month}</ExpDate>
             <NameOnCard>{$creditcard->first_name}</NameOnCard>
@@ -196,11 +203,10 @@ XML;
         return $xml;
     }
 
-    private function credit_card_type($credit_card)
+    private function creditCardType($credit_card)
     {
         return is_null($this->card_brand($credit_card))
             ? ''
             : $this->CARD_MAPPING[$this->card_brand($credit_card)];
     }
-
 }

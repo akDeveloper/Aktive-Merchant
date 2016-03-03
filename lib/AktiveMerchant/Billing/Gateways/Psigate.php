@@ -11,7 +11,7 @@ use AktiveMerchant\Billing\Exception;
 use AktiveMerchant\Billing\Response;
 
 /**
- * Merchant driver for {link http://www.psigate.com/ PSiGate}.
+ * Integration of {link http://www.psigate.com/ PSiGate}.
  *
  * @author Scott Gifford
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -90,7 +90,7 @@ class Psigate extends Gateway implements
     public function capture($money, $authorization, $options = array())
     {
         $options['CardAction'] = 2;
-        $authdata = $this->unpack_authorization_string($authorization);
+        $authdata = $this->unpackAuthorizationString($authorization);
         $options['order_id'] = $authdata['order_id'];
         return $this->commit($money, null, $options);
     }
@@ -98,7 +98,7 @@ class Psigate extends Gateway implements
     public function credit($money, $authorization, $options = array())
     {
         $options['CardAction'] = 3;
-        $authdata = $this->unpack_authorization_string($authorization);
+        $authdata = $this->unpackAuthorizationString($authorization);
         $options['order_id'] = $authdata['order_id'];
         return $this->commit($money, null, $options);
     }
@@ -106,7 +106,7 @@ class Psigate extends Gateway implements
     public function void($authorization, $options = array())
     {
         $options['CardAction'] = 9;
-        $authdata = $this->unpack_authorization_string($authorization);
+        $authdata = $this->unpackAuthorizationString($authorization);
         $options['transaction_id'] = $authdata['transaction_id'];
         $options['order_id'] = $authdata['order_id'];
         return $this->commit(null, null, $options);
@@ -122,12 +122,12 @@ class Psigate extends Gateway implements
      * @param unknown_type $orderid
      * @param unknown_type $transactionid
      */
-    private function pack_authorization_values($orderid, $transactionid)
+    private function packAuthorizationValues($orderid, $transactionid)
     {
         return implode("&", array(self::AUTHSTR_VERSION, urlencode($orderid), urlencode($transactionid)));
     }
 
-    private function unpack_authorization_string($authstr)
+    private function unpackAuthorizationString($authstr)
     {
         $split = explode("&", $authstr);
 
@@ -158,15 +158,15 @@ class Psigate extends Gateway implements
             $log_card = null;
         } else {
             $log_card = clone $creditcard;
-            $log_card->number = $this->mask_cardnum($log_card->number);
+            $log_card->number = $this->maskCardnum($log_card->number);
 
             if ($log_card->verification_value) {
-                $log_card->verification_value = $this->mask_cvv($log_card->verification_value);
+                $log_card->verification_value = $this->maskCvv($log_card->verification_value);
             }
         }
 
         // Make the request
-        $data = $this->ssl_post($url, $this->post_data($money, $creditcard, $options));
+        $data = $this->ssl_post($url, $this->postData($money, $creditcard, $options));
         $response = $this->parse($data);
 
         // Make sure the response is valid and doesn't contain an error
@@ -185,13 +185,13 @@ class Psigate extends Gateway implements
         }
 
         return new Response(
-            $this->success_from($response),
-            $this->message_from($response),
+            $this->successFrom($response),
+            $this->messageFrom($response),
             $response,
             array(
                 'test' => $this->isTest(),
                 'authorization' => (isset($response['orderid']) && isset($response['transrefnumber']))
-                ? $this->pack_authorization_values($response['orderid'], $response['transrefnumber'])
+                ? $this->packAuthorizationValues($response['orderid'], $response['transrefnumber'])
                 : null,
                 'avs_result' => isset($response['avsresult'])
                 ? array('code' => $response['avsresult'])
@@ -203,9 +203,9 @@ class Psigate extends Gateway implements
         );
     }
 
-    private function message_from($response)
+    private function messageFrom($response)
     {
-        if ($this->success_from($response)) {
+        if ($this->successFrom($response)) {
             return self::SUCCESS_MESSAGE;
         } else {
             if (isset($response['errmsg'])) {
@@ -216,7 +216,7 @@ class Psigate extends Gateway implements
         }
     }
 
-    private function success_from($response)
+    private function successFrom($response)
     {
         return $response['approved'] == "APPROVED";
     }
@@ -245,7 +245,7 @@ class Psigate extends Gateway implements
         return $response;
     }
 
-    protected function post_data($money, $creditcard, $options)
+    protected function postData($money, $creditcard, $options)
     {
         $params = $this->parameters($money, $creditcard, $options);
         $xml = new \SimpleXMLElement("<Order />");
@@ -361,7 +361,7 @@ class Psigate extends Gateway implements
      * @param string $cardnum Card number to mask
      * @return string Masked card number
      */
-    protected function mask_cardnum($cardnum)
+    protected function maskCardnum($cardnum)
     {
         return substr($cardnum, 0, 2)
             . preg_replace('/./', 'x', substr($cardnum, 2, -4))
@@ -377,7 +377,7 @@ class Psigate extends Gateway implements
      * @param string $cardverifier Card verification value to mask
      * @return string Masked card verification value
      */
-    protected function mask_cvv($cvv)
+    protected function maskCvv($cvv)
     {
         return preg_replace('/./', 'x', $cvv);
     }

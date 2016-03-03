@@ -13,7 +13,6 @@ namespace AktiveMerchant\Billing;
  */
 class CreditCardMethods
 {
-
     private static $CARD_COMPANIES = array(
         'visa' => '/^4\d{12}(\d{3})?$/',
         'master' => '/^(5[1-5]\d{4}|677189)\d{10}$/',
@@ -57,13 +56,13 @@ class CreditCardMethods
 
     public static function isValidNumber($number)
     {
-        return ((self::_is_valid_card_number_length($number) &&
-            self::_is_valid_checksum($number)));
+        return ((self::isValidCardNumberLength($number) &&
+            self::isValidChecksum($number)));
     }
 
     public static function type($number)
     {
-        if (self::_is_valid_test_mode_card_number($number)) {
+        if (self::isValidTestModeCardNumber($number)) {
             return 'bogus';
         }
 
@@ -96,12 +95,12 @@ class CreditCardMethods
         return (self::type($number) == $type);
     }
 
-    private static function _is_valid_card_number_length($number)
+    private static function isValidCardNumberLength($number)
     {
         return ( strlen($number) >= 12 );
     }
 
-    private static function _is_valid_test_mode_card_number($number)
+    private static function isValidTestModeCardNumber($number)
     {
         return Base::is_test() && in_array($number, array('1', '2', '3', 'success', 'failure', 'error'));
     }
@@ -114,7 +113,7 @@ class CreditCardMethods
      *
      * @return boolean if given number has valid checksum
      */
-    private static function _is_valid_checksum($number)
+    private static function isValidChecksum($number)
     {
         $map = array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 2, 4, 6, 8, 1, 3, 5, 7, 9);
         $sum = 0;

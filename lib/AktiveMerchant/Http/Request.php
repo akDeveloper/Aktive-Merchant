@@ -245,7 +245,7 @@ class Request implements RequestInterface
             : $this->config['ssl_verify_host'];
 
         $this->config['user_agent'] = $this->options['user_agent']
-            ?: $this->default_agent();
+            ?: $this->getDefaultAgent();
 
         if ($this->options['headers']) {
             $this->setHeaders($this->options['headers']->getArrayCopy());
@@ -255,7 +255,7 @@ class Request implements RequestInterface
             ?: $this->config['ssl_version'];
     }
 
-    private function default_agent()
+    private function getDefaultAgent()
     {
         $os = \php_uname('s');
         $machine = \php_uname('m');

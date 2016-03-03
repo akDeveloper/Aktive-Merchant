@@ -77,10 +77,10 @@ class Centinel extends Gateway
         Options::required('order_id', $options);
         $options = new Options($options);
 
-        $this->build_xml(static::LOOKUP, function($xml) use ($money, $creditcard, $options) {
-            $this->add_invoice($money, $options, $xml);
-            $this->add_creditcard($creditcard, $xml);
-            $options['description'] and $this->add_order_description($options['description'], $xml);
+        $this->buildXml(static::LOOKUP, function ($xml) use ($money, $creditcard, $options) {
+            $this->addInvoice($money, $options, $xml);
+            $this->addCreditcard($creditcard, $xml);
+            $options['description'] and $this->addOrderDescription($options['description'], $xml);
         });
 
 
@@ -92,8 +92,8 @@ class Centinel extends Gateway
         Options::required('payload, transaction_id', $options);
         $options = new Options($options);
 
-        $this->build_xml(static::AUTHENTICATE, function($xml) use ($options){
-            $this->add_cmpi_lookup_data($options, $xml);
+        $this->buildXml(static::AUTHENTICATE, function ($xml) use ($options) {
+            $this->addCmpiLookupData($options, $xml);
         });
 
         return $this->commit(static::AUTHENTICATE, null, $options);
@@ -101,11 +101,11 @@ class Centinel extends Gateway
 
     /* Private */
 
-    private function build_xml($action, $block)
+    private function buildXml($action, $block)
     {
         $this->xml = new XmlBuilder();
         $this->xml->instruct('1.0', 'UTF-8');
-        $this->xml->CardinalMPI(function($xml) use ($action, $block){
+        $this->xml->CardinalMPI(function ($xml) use ($action, $block) {
             $xml->MsgType($action);
             $xml->Version(static::VERSION);
             $xml->ProcessorId($this->options['processor_id']);
@@ -116,18 +116,18 @@ class Centinel extends Gateway
         });
     }
 
-    private function add_cmpi_lookup_data($options, $xml)
+    private function addCmpiLookupData($options, $xml)
     {
         $xml->TransactionId($options['transaction_id']);
         $xml->PAResPayload($options['payload']);
     }
 
-    private function add_order_description($description, $xml)
+    private function addOrderDescription($description, $xml)
     {
         $xml->OrderDescription($description);
     }
 
-    private function add_invoice($money, $options, $xml)
+    private function addInvoice($money, $options, $xml)
     {
         $order_number = isset($options['order_id']) ? $options['order_id'] : null;
 
@@ -141,7 +141,7 @@ class Centinel extends Gateway
         }
     }
 
-    private function add_creditcard(CreditCard $creditcard, $xml)
+    private function addCreditcard(CreditCard $creditcard, $xml)
     {
         $month = $this->cc_format($creditcard->month, 'two_digits');
         $year = $this->cc_format($creditcard->year, 'four_digits');
@@ -160,7 +160,7 @@ class Centinel extends Gateway
         return $response;
     }
 
-    private function parse_cmpi_lookup($body)
+    private function parseCmpiLookup($body)
     {
         $xml = simplexml_load_string($body);
 
@@ -177,7 +177,7 @@ class Centinel extends Gateway
         return $response;
     }
 
-    private function parse_cmpi_authenticate($body)
+    private function parseCmpiAuthenticate($body)
     {
         $xml = simplexml_load_string($body);
 
@@ -201,17 +201,17 @@ class Centinel extends Gateway
 
         $xml = $this->xml->__toString();
 
-        $data = $this->ssl_post($url, $this->post_data($xml), $parameters->getArrayCopy());
+        $data = $this->ssl_post($url, $this->postData($xml), $parameters->getArrayCopy());
 
         $options = array('test' => $this->isTest());
 
         switch ($action) {
             case 'cmpi_lookup':
-                $response = $this->parse_cmpi_lookup($data);
+                $response = $this->parseCmpiLookup($data);
                 $options['authorization'] = $response['transaction_id'];
                 break;
             case 'cmpi_authenticate':
-                $response = $this->parse_cmpi_authenticate($data);
+                $response = $this->parseCmpiAuthenticate($data);
                 break;
 
             default:
@@ -219,38 +219,41 @@ class Centinel extends Gateway
                 break;
         }
 
-        return new CentinelResponse($this->success_from($response),
-            $this->message_from($response), $response, $options);
+        return new CentinelResponse(
+            $this->successFrom($response),
+            $this->messageFrom($response),
+            $response,
+            $options
+        );
     }
 
-    private function success_from($response)
+    private function successFrom($response)
     {
         $cardholderEnrolled = isset($response['acs_url']);
         $acsUrlNotProvided = empty($response['acs_url']);
 
-        if($cardholderEnrolled && $acsUrlNotProvided)
+        if ($cardholderEnrolled && $acsUrlNotProvided) {
             return false;
+        }
 
         $authStatus = isset($response['pares_status']) ? $response['pares_status'] : null;
         $isCmpiAuthenticateResponse = !is_null($authStatus);
         $autheticationFailed = !in_array($authStatus, array('Y', 'A'));
 
-        if($isCmpiAuthenticateResponse && $autheticationFailed)
-          return false;
+        if ($isCmpiAuthenticateResponse && $autheticationFailed) {
+            return false;
+        }
 
         return $response['error_no'] == '0';
     }
 
-    private function message_from($response)
+    private function messageFrom($response)
     {
         return $response['error_desc'];
     }
 
-    private function post_data($xml)
+    private function postData($xml)
     {
         return "cmpi_msg=" . urlencode(trim($xml));
     }
-
 }
-
-?>

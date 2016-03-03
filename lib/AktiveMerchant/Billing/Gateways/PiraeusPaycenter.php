@@ -97,10 +97,11 @@ class PiraeusPaycenter extends Gateway implements
      */
     public function __construct($options = array())
     {
-      $this->required_options('acquire_id, merchant_id, pos_id, user, password, channel_type', $options);
+        $this->required_options('acquire_id, merchant_id, pos_id, user, password, channel_type', $options);
 
-        if (isset($options['currency']))
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
+        }
 
         $this->options = $options;
     }
@@ -124,11 +125,11 @@ class PiraeusPaycenter extends Gateway implements
         $authorizeDays = isset($options['authorize_days'])
             ? (int) $options['authorize_days']
             : 30;
-        $this->add_invoice($money, $options);
+        $this->addInvoice($money, $options);
         $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['ExpirePreauth'] = $authorizeDays;
-        $this->add_creditcard($creditcard);
+        $this->addCreditcard($creditcard);
         if ($creditcard->type !== 'UNKNOWN') {
-            $this->add_centinel_data($options);
+            $this->addCentinelData($options);
         }
 
         return $this->commit('AUTHORIZE', $money);
@@ -145,10 +146,10 @@ class PiraeusPaycenter extends Gateway implements
     public function purchase($money, CreditCard $creditcard, $options = array())
     {
         $this->post = array();
-        $this->add_invoice($money, $options);
-        $this->add_creditcard($creditcard);
+        $this->addInvoice($money, $options);
+        $this->addCreditcard($creditcard);
         if ($creditcard->type !== 'UNKNOWN') {
-            $this->add_centinel_data($options);
+            $this->addCentinelData($options);
         }
 
         return $this->commit('SALE', $money);
@@ -274,7 +275,7 @@ class PiraeusPaycenter extends Gateway implements
      *
      * @param array $options
      */
-    private function add_invoice($money, $options)
+    private function addInvoice($money, $options)
     {
         $options = new Options($options);
         $currency = $options['currency'] ?: self::$default_currency;
@@ -292,7 +293,7 @@ class PiraeusPaycenter extends Gateway implements
      *
      * @param CreditCard $creditcard
      */
-    private function add_creditcard(CreditCard $creditcard)
+    private function addCreditcard(CreditCard $creditcard)
     {
         $month = null;
         if ($creditcard->month) {
@@ -316,7 +317,7 @@ class PiraeusPaycenter extends Gateway implements
      *
      * @param array $options
      */
-    private function add_centinel_data($options)
+    private function addCentinelData($options)
     {
         $this->required_options('cavv, eci_flag, xid, enrolled, pares_status, signature_verification', $options);
 
@@ -401,7 +402,7 @@ class PiraeusPaycenter extends Gateway implements
      */
     private function commit($action, $money, $parameters = array())
     {
-        $post_data = $this->post_data($action, $parameters);
+        $postData = $this->postData($action, $parameters);
 
         $adapter = new SoapClientAdapter();
         $adapter->setOption('action', static::ACTION);
@@ -420,7 +421,7 @@ class PiraeusPaycenter extends Gateway implements
         $test_mode = $this->isTest();
 
         try {
-            $data = $this->ssl_post($url, $post_data);
+            $data = $this->ssl_post($url, $postData);
         } catch (AdapterException $e) {
             return new Response(
                 false,
@@ -436,8 +437,8 @@ class PiraeusPaycenter extends Gateway implements
         $response = $this->parse($data);
 
         return new Response(
-            $this->success_from($response, $action == 'TOKEN', $action == 'BIN'),
-            $this->message_from($response),
+            $this->successFrom($response, $action == 'TOKEN', $action == 'BIN'),
+            $this->messageFrom($response),
             $response,
             array(
                 'test' => $test_mode,
@@ -452,7 +453,7 @@ class PiraeusPaycenter extends Gateway implements
      *
      * @return string
      */
-    private function success_from($response, $token = false, $bin = false)
+    private function successFrom($response, $token = false, $bin = false)
     {
         if ($token) {
             return $response['result_code'] == '0'
@@ -475,7 +476,7 @@ class PiraeusPaycenter extends Gateway implements
      *
      * @return string
      */
-    private function message_from($response)
+    private function messageFrom($response)
     {
         return isset($response['response_description'])
             ? $response['response_description']
@@ -488,7 +489,7 @@ class PiraeusPaycenter extends Gateway implements
      *
      * @return string
      */
-    private function fraud_review_from($response)
+    private function fraudReviewFrom($response)
     {
 
     }
@@ -499,7 +500,7 @@ class PiraeusPaycenter extends Gateway implements
      *
      * @return array
      */
-    private function avs_result_from($response)
+    private function avsResultFrom($response)
     {
         return array('code' => $response['avs_result_code']);
     }
@@ -509,7 +510,7 @@ class PiraeusPaycenter extends Gateway implements
      * @param string $action
      * @param array  $parameters
      */
-    private function post_data($action, $parameters = array())
+    private function postData($action, $parameters = array())
     {
         if ($action == 'TOKEN') {
             return $this->post;

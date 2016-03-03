@@ -9,7 +9,7 @@ class PayflowCommon extends Gateway
 {
     const TEST_URL = 'https://pilot-payflowpro.paypal.com';
     const LIVE_URL = 'https://payflowpro.paypal.com';
-    
+
     protected $XMLNS = 'http://www.paypal.com/XMLPay';
     protected $CARD_MAPPING = array(
         'visa' => 'Visa',
@@ -34,25 +34,27 @@ class PayflowCommon extends Gateway
     protected $timeout = 60;
     private $xml = '';
 
-    function __construct($options = array())
+    public function __construct($options = array())
     {
         $this->required_options('login, password', $options);
 
         $this->options = $options;
-        if (isset($options['partner']))
+        if (isset($options['partner'])) {
             $this->partner = $options['partner'];
+        }
 
-        if (isset($options['currency']))
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
+        }
     }
 
-    function capture($money, $authorization, $options)
+    public function capture($money, $authorization, $options)
     {
         $this->build_reference_request('Capture', $money, $authorization);
         return $this->commit($options);
     }
 
-    function void($authorization, $options)
+    public function void($authorization, $options)
     {
         $this->build_reference_request('Void', null, $authorization);
         return $this->commit($options);
@@ -96,7 +98,7 @@ XML;
 XML;
         if (!is_null($money)) {
             $default_currency = self::$default_currency;
-            $bodyXml .= <<< XML
+            $bodyXml .= <<<XML
                 <Invoice>
                     <TotalAmt Currency="{$default_currency}">{$this->amount($money)}</TotalAmt>
                 </Invoice>
@@ -112,14 +114,17 @@ XML;
     {
         $xml = '';
 
-        if (isset($address['name']))
+        if (isset($address['name'])) {
             $xml .= "<Name>{$address['name']}</Name>";
+        }
 
-        if (isset($options['email']))
+        if (isset($options['email'])) {
             $xml .= "<EMail>{$options['email']}</EMail>";
+        }
 
-        if (isset($address['phone']))
+        if (isset($address['phone'])) {
             $xml .= "<Phone>" . $address['phone'] . "</Phone>";
+        }
 
         $xml .= <<<XML
             <Address>
@@ -142,10 +147,13 @@ XML;
         $root = $xml->ResponseData;
         $transactionAttrs = $root->TransactionResults->TransactionResult->attributes();
 
-        if (isset($transactionAttrs['Duplicate']) && $transactionAttrs['Duplicate'] == 'true')
+        if (isset($transactionAttrs['Duplicate'])
+            && $transactionAttrs['Duplicate'] == 'true'
+        ) {
             $response['duplicate'] = true;
+        }
 
-        foreach ($root->children() as $node){
+        foreach ($root->children() as $node) {
             $response = array_merge($response, $this->parse_element($node));
         }
 
@@ -160,22 +168,29 @@ XML;
 
         switch (true) {
             case $nodeName == 'RPPaymentResult':
-                if (!isset($parsed[$nodeName]))
+                if (!isset($parsed[$nodeName])) {
                     $parsed[$nodeName] = array();
+                }
 
                 $payment_result_response = array();
 
-                foreach ($node->children() as $child)
-                    $payment_result_response = array_merge($payment_result_response, $this->parse_element($child));
+                foreach ($node->children() as $child) {
+                    $payment_result_response = array_merge(
+                        $payment_result_response,
+                        $this->parse_element($child)
+                    );
+                }
 
-                foreach ($payment_result_response as $key => $value)
+                foreach ($payment_result_response as $key => $value) {
                     $parsed[$nodeName][$key] = $value;
+                }
                 break;
 
             case $node->children()->count() > 0:
-                foreach ($node->children() as $child)
+                foreach ($node->children() as $child) {
                     $parsed = array_merge($parsed, $this->parse_element($child));
-                
+                }
+
                 break;
 
             case preg_match('/amt$/', $nodeName):
@@ -204,20 +219,25 @@ XML;
             $response['Result'] == 0,
             $response['Message'],
             $response,
-            $this->options_from($response));
+            $this->options_from($response)
+        );
     }
 
     private function options_from($response)
     {
         $options = array();
-        $options['authorization'] = isset($response['PNRef']) ? $response['PNRef'] : null;
+        $options['authorization'] = isset($response['PNRef'])
+            ? $response['PNRef']
+            : null;
         $options['test'] = $this->isTest();
-        if (isset($response['CVResult']))
+        if (isset($response['CVResult'])) {
             $options['cvv_result'] = $this->CVV_CODE[$response['CVResult']];
-        if (isset($response['AVSResult']))
+        }
+
+        if (isset($response['AVSResult'])) {
             $options['avs_result'] = array('code' => $response['AVSResult']);
+        }
 
         return $options;
     }
-
 }

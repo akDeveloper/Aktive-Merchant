@@ -89,7 +89,7 @@ class Moneris extends Gateway
 
         $this->options = new Options($options);
 
-        if (isset( $options['currency'])) {
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
         }
 
@@ -111,21 +111,22 @@ class Moneris extends Gateway
      *
      * @return Response
      */
-    public function authorize($money, CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options = array())
     {
 
-        $this->add_invoice($options);
-        $this->add_creditcard($creditcard);
-        $this->add_address($options);
+        $this->addInvoice($options);
+        $this->addCreditcard($creditcard);
+        $this->addAddress($options);
         $this->post .= "<amount>{$this->amount($money)}</amount>";
         $action = $this->authorize;
 
-        if ( isset($options['cavv']) ) {
+        if (isset($options['cavv'])) {
             $this->post .= "<cavv>{$this->amount($money)}</cavv>";
             $action = $this->cavv_authorize;
         }
-        if ( isset( $options['crypt_type'] ) )
+        if (isset($options['crypt_type'])) {
             $this->crypt_type = $options['crypt_type'];
+        }
 
         return $this->commit($action, $money);
     }
@@ -138,21 +139,21 @@ class Moneris extends Gateway
      *
      * @return Response
      */
-    public function purchase($money, CreditCard $creditcard, $options=array())
+    public function purchase($money, CreditCard $creditcard, $options = array())
     {
-
-        $this->add_invoice($options);
-        $this->add_creditcard($creditcard);
-        $this->add_address($options);
+        $this->addInvoice($options);
+        $this->addCreditcard($creditcard);
+        $this->addAddress($options);
         $this->post .= "<amount>{$this->amount($money)}</amount>";
 
         $action = $this->purchase;
-        if ( isset($options['cavv']) ) {
+        if (isset($options['cavv'])) {
             $this->post .= "<cavv>{$this->amount($money)}</cavv>";
             $action = $this->cavv_purchase;
         }
-        if ( isset( $options['crypt_type'] ) )
+        if (isset($options['crypt_type'])) {
             $this->crypt_type = $options['crypt_type'];
+        }
 
         return $this->commit($action, $money, $options);
     }
@@ -169,7 +170,7 @@ class Moneris extends Gateway
     {
         Options::required('order_id', $options);
 
-        $this->add_invoice($options);
+        $this->addInvoice($options);
         $this->post .= "<comp_amount>{$this->amount($money)}</comp_amount>";
         $this->post .= "<txn_number>$authorization</txn_number>";
 
@@ -187,7 +188,7 @@ class Moneris extends Gateway
     {
         Options::required('order_id', $options);
 
-        $this->add_invoice($options);
+        $this->addInvoice($options);
         $this->post .= "<txn_number>$authorization</txn_number>";
 
         return $this->commit($this->void, null);
@@ -205,7 +206,7 @@ class Moneris extends Gateway
     {
         Options::required('order_id', $options);
 
-        $this->add_invoice($options);
+        $this->addInvoice($options);
         $this->post .= "<amount>{$this->amount($money)}</amount>";
         $this->post .= "<txn_number>$identification</txn_number>";
 
@@ -237,7 +238,7 @@ class Moneris extends Gateway
      *
      * @param array $options
      */
-    private function add_address($options)
+    private function addAddress($options)
     {
         $options = new Options($options);
 
@@ -248,14 +249,14 @@ class Moneris extends Gateway
             return false;
         }
 
-        $name = explode(' ',$billing_address['name']);
+        $name = explode(' ', $billing_address['name']);
         $first_name = $name[0];
         $last_name = $name[1];
 
         $this->post .= "<billing><first_name>$first_name</first_name><last_name>$last_name</last_name>";
-        $this->post .= $this->parse_address($billing_address)."</billing>";
+        $this->post .= $this->parseAddress($billing_address)."</billing>";
         $this->post .= "<shipping><first_name>$first_name</first_name><last_name>$last_name</last_name>";
-        $this->post .= $this->parse_address($shipping_address)."</shipping>";
+        $this->post .= $this->parseAddress($shipping_address)."</shipping>";
 
         if (isset($options['street_number']) && isset($options['street_name'])) {
             $this->post .= "<avs_info><avs_street_number>{$options['street_number']}</avs_street_number><avs_street_name>{$options['street_name']}</avs_street_name><avs_zipcode>{$shipping_address['zip']}</avs_zipcode></avs_info>";
@@ -265,7 +266,7 @@ class Moneris extends Gateway
     /**
      * @param array $address an array of address information to parse.
      */
-    private function parse_address($address)
+    private function parseAddress($address)
     {
         $options = array(
             'company'=>'company_name',
@@ -279,8 +280,8 @@ class Moneris extends Gateway
         );
 
         $return = "";
-        foreach ($options as $k=>$v) {
-            if ( $address->offsetExists($k) ) {
+        foreach ($options as $k => $v) {
+            if ($address->offsetExists($k)) {
                 $return .= "<{$v}>{$address[$k]}</$v>";
             }
         }
@@ -292,7 +293,7 @@ class Moneris extends Gateway
      *
      * @param array $options
      */
-    private function add_invoice($options)
+    private function addInvoice($options)
     {
         Options::required('order_id', $options);
 
@@ -316,7 +317,7 @@ class Moneris extends Gateway
      * @param CreditCard $creditcard
      */
 
-    private function add_creditcard(CreditCard $creditcard)
+    private function addCreditcard(CreditCard $creditcard)
     {
         $exp_date = $this->cc_format($creditcard->year, 'two_digits')
             . $this->cc_format($creditcard->month, 'two_digits');
@@ -371,13 +372,13 @@ class Moneris extends Gateway
      *
      * @return Response
      */
-    private function commit($action, $money, $parameters=array())
+    private function commit($action, $money, $parameters = array())
     {
         $url = $this->isTest() ? static::TEST_URL : static::LIVE_URL;
 
         $data = $this->ssl_post(
             $url,
-            $this->post_data($action, $parameters),
+            $this->postData($action, $parameters),
             array(
                 'user_agent' =>  static::API_VERSION,
                 'timeout'=> 60
@@ -389,14 +390,14 @@ class Moneris extends Gateway
         $test_mode = $this->isTest();
 
         return new Response(
-            $this->success_from($response),
-            $this->message_from($response),
+            $this->successFrom($response),
+            $this->messageFrom($response),
             $response,
             array(
                 'test' => $test_mode,
                 'authorization' => $response['transaction_id'],
-                'fraud_review' => $this->fraud_review_from($response),
-                'avs_result' => $this->avs_result_from($response),
+                'fraud_review' => $this->fraudReviewFrom($response),
+                'avs_result' => $this->avsResultFrom($response),
                 'cvv_result' => false
             )
         );
@@ -409,7 +410,7 @@ class Moneris extends Gateway
      *
      * @return bool
      */
-    private function success_from($response)
+    private function successFrom($response)
     {
         return ($response['response_code'] < 50) && ($response['response_code'] != 'null');
     }
@@ -421,7 +422,7 @@ class Moneris extends Gateway
      *
      * @return string
      */
-    private function message_from($response)
+    private function messageFrom($response)
     {
         return $response['message'];
     }
@@ -434,7 +435,7 @@ class Moneris extends Gateway
      *
      * @return boolean
      */
-    private function fraud_review_from($response)
+    private function fraudReviewFrom($response)
     {
         return $response['cvd_result_code'] == self::FRAUD_REVIEW;
     }
@@ -447,7 +448,7 @@ class Moneris extends Gateway
      *
      * @return array
      */
-    private function avs_result_from($response)
+    private function avsResultFrom($response)
     {
         return array( 'code' => $response['avs_result_code'] );
     }
@@ -460,7 +461,7 @@ class Moneris extends Gateway
      * @param string $action
      * @param array  $parameters
      */
-    private function post_data($action, $parameters = array())
+    private function postData($action, $parameters = array())
     {
         $xml = '<?xml version="1.0"?><request>';
         $xml .= "<store_id>{$this->options['store_id']}</store_id><api_token>{$this->options['api_token']}</api_token>";
@@ -468,5 +469,4 @@ class Moneris extends Gateway
 
         return $xml;
     }
-
 }
