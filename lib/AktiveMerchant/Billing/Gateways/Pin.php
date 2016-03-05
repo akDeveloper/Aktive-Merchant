@@ -273,7 +273,6 @@ class Pin extends Gateway implements
         $this->post['card']['address_postcode'] = $address['zip'];
         $this->post['card']['address_state'] = $address['state'];
         $this->post['card']['address_country'] = $address['country'];
-
     }
 
     /**
@@ -320,7 +319,7 @@ class Pin extends Gateway implements
      *
      * @param string $body
      *
-     * @return array|stdClass The parsed response data.
+     * @return Options The parsed response data.
      */
     private function parse($body)
     {
@@ -336,8 +335,7 @@ class Pin extends Gateway implements
     /**
      *
      * @param string $action
-     * @param number $money
-     * @param array  $parameters
+     * @param string $method Http request method [GET, POST, PUT, DELETE].
      *
      * @return Response
      */
@@ -433,7 +431,7 @@ class Pin extends Gateway implements
      * Adds final parameters to post data and
      * build $this->post to the format that your payment gateway understands
      *
-     * @return array
+     * @return string
      */
     private function postData()
     {
