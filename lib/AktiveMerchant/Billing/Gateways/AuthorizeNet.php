@@ -50,7 +50,7 @@ class AuthorizeNet extends Gateway implements
     const RESPONSE_REASON_DUPLICATE = 11;
     const RESPONSE_REASON_AUTHCODE_REQUIRED = 12;
 
-    public static $supported_countries = array('US');
+    public static $supported_countries = array('AD', 'AT', 'AU', 'BE', 'BG', 'CA', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GB', 'GI', 'GR', 'HU', 'IE', 'IS', 'IT', 'LI', 'LT', 'LU', 'LV', 'MC', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'SM', 'TR', 'US', 'VA');
 
     public static $supported_cardtypes = array('visa', 'master', 'american_express', 'discover');
 
