@@ -75,6 +75,8 @@ class cUrl implements AdapterInterface
             curl_setopt($this->ch, CURLOPT_POST, 1);
             curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'PUT');
             curl_setopt($this->ch, CURLOPT_POSTFIELDS, $request->getBody());
+        } elseif ($request->getMethod() == RequestInterface::METHOD_DELETE) {
+            curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
         }
 
         $response = curl_exec($this->ch);
