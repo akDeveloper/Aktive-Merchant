@@ -210,7 +210,7 @@ class DataCash extends Gateway implements
      */
     protected function commit()
     {
-        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
+        $url = $this->isTest() ? static::TEST_URL : static::LIVE_URL;
 
         $postData = $this->postData();
 
