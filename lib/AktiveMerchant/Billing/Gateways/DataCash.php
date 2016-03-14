@@ -21,8 +21,8 @@ class DataCash extends Gateway implements
     Interfaces\Charge,
     Interfaces\Credit
 {
-    const TEST_URL = 'https://accreditation.datacash.com/Transaction/acq_a';
-    const LIVE_URL = 'https://accreditation.datacash.com/Transaction/acq_a';
+    const TEST_URL = 'https://testserver.datacash.com/Transaction';
+    const LIVE_URL = 'https://mars.transaction.datacash.com/Transaction';
 
     const PURCHASE = 'auth';
     const AUTHORIZE = 'pre';
@@ -210,7 +210,7 @@ class DataCash extends Gateway implements
      */
     protected function commit()
     {
-        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
+        $url = $this->isTest() ? static::TEST_URL : static::LIVE_URL;
 
         $postData = $this->postData();
 

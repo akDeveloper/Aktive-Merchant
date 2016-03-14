@@ -6,6 +6,9 @@ namespace AktiveMerchant\Billing\Gateways;
 
 class Nbg extends DataCash
 {
+    const TEST_URL = 'https://accreditation.datacash.com/Transaction/acq_a';
+    const LIVE_URL = 'https://mars.transaction.datacash.com/Transaction';
+
     /**
      * {@inheritdoc}
      */
