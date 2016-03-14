@@ -12,30 +12,23 @@ use AktiveMerchant\Common\Options;
 use AktiveMerchant\Common\Inflect;
 
 /**
- * Description of Exact gateway
+ * Integration of Exact gateway, using REST API with XML message format.
+ *
+ * @link https://hostedcheckout.zendesk.com/entries/231362-Transaction-Processing-API-Reference-Guide
  *
  * @author Andreas Kollaros <andreas@larium.net>
  * @license MIT License http://www.opensource.org/licenses/mit-license.php
  */
 class Exact extends Gateway implements Interfaces\Charge
 {
-    const TEST_URL = 'https://api.e-xact.com/transaction';
+    const TEST_URL = 'https://api.demo.e-xact.com/transaction';
     const LIVE_URL = 'https://api.e-xact.com/transaction';
-
-    protected $namespaces = array(
-        'xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"',
-        'xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"',
-        'xmlns:tns="http://secure2.e-xact.com/vplug-in/transaction/rpc-enc/"',
-        'xmlns:types="http://secure2.e-xact.com/vplug-in/transaction/rpc-enc/encodedTypes"',
-        'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
-        'xmlns:xsd="http://www.w3.org/2001/XMLSchema"'
-    );
 
     protected $transactions = array(
         'sale'     => '00',
         'authonly' => '01',
         'capture'  => '32',
-        'credit'   => '34'
+        'credit'   => '34',
     );
 
     protected $headers = array(
@@ -84,7 +77,7 @@ class Exact extends Gateway implements Interfaces\Charge
      *
      * @var array
      */
-    private $options;
+    protected $options;
 
     /**
      * Contains the main body of the request.
@@ -108,10 +101,10 @@ class Exact extends Gateway implements Interfaces\Charge
         Options::required('login, password', $options);
 
         if (isset($options['currency'])) {
-            self::$default_currency = $options['currency'];
+            unset($options['currency']);
         }
 
-        $this->options = new Options($options);
+        parent::__construct($options);
     }
 
     /**
@@ -129,7 +122,7 @@ class Exact extends Gateway implements Interfaces\Charge
         $this->addAddress($options);
         $this->addCustomerData($options);
 
-        return $this->commit('authonly', $money);
+        return $this->commit();
     }
 
     /**
@@ -147,7 +140,7 @@ class Exact extends Gateway implements Interfaces\Charge
         $this->addAddress($options);
         $this->addCustomerData($options);
 
-        return $this->commit('sale', $money);
+        return $this->commit();
     }
 
     /**
@@ -160,7 +153,7 @@ class Exact extends Gateway implements Interfaces\Charge
         $this->addAuthorization($authorization);
         $this->addAmount($money);
 
-        return $this->commit('capture', $money);
+        return $this->commit();
     }
 
     /**
@@ -173,10 +166,15 @@ class Exact extends Gateway implements Interfaces\Charge
         $this->addAuthorization($identification);
         $this->addAmount($money);
 
-        return $this->commit('credit', $money);
+        return $this->commit();
     }
 
-    // Private methods
+    public function amount($money)
+    {
+        $money = parent::amount($money);
+
+        return number_format($money, 2, '.', ',');
+    }
 
     private function addAmount($money)
     {
@@ -290,8 +288,6 @@ class Exact extends Gateway implements Interfaces\Charge
      */
     private function parse($body)
     {
-        $reponse = array();
-
         try {
             $xml = new \SimpleXMLElement($body);
         } catch (\Exception $e) {
@@ -302,13 +298,14 @@ class Exact extends Gateway implements Interfaces\Charge
 
         $root = $xml->xpath('/TransactionResult');
 
-        $this->parseElements($response, $root[0]);
+        $response = $this->parseElements($root[0]);
 
         return $response;
     }
 
-    private function parseElements(&$response, $root)
+    private function parseElements($root)
     {
+        $reponse = array();
         foreach ($root as $name => $value) {
             $response[$name] = trim((string) $value);
         }
@@ -325,12 +322,9 @@ class Exact extends Gateway implements Interfaces\Charge
      * Adds final parameters to post data and
      * build $this->post to the format that your payment gateway understands
      *
-     * @param  string $action
-     * @param  array  $parameters
-     *
      * @return void
      */
-    private function postData($action, $parameters = array())
+    private function postData()
     {
         return $this->post->asXML();
     }
@@ -343,27 +337,28 @@ class Exact extends Gateway implements Interfaces\Charge
      *
      * @return Response
      */
-    private function commit($action, $money, $parameters = array())
+    private function commit()
     {
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
-        //$this->getAdapter()->setOption(CURLOPT_USERPWD, "{$this->options->login}:{$this->options->password}");
-        $data = $this->ssl_post($url, $this->postData($action, $parameters), array('headers'=>$this->headers));
+        $postData = $this->postData();
+        echo $postData;
+        $options = array('headers' => $this->headers);
+        $data = $this->ssl_post($url, $postData, $options);
 
+        echo $data;
         $response = $this->parse($data);
-
-        $test_mode = $this->isTest();
 
         return new Response(
             $this->successFrom($response),
             $this->messageFrom($response),
             $response,
             array(
-                'test' => $test_mode,
+                'test' => $this->isTest(),
                 'authorization' => $this->authorizationFrom($response),
-                'fraud_review' => $this->fraudReviewFrom($response),
+                'fraud_review' => null,
                 'avs_result' => $this->avsResultFrom($response),
-                'cvv_result' => $response['CVV2']
+                'cvv_result' => $this->cvvResultFrom($response),
             )
         );
     }
@@ -377,7 +372,8 @@ class Exact extends Gateway implements Interfaces\Charge
      */
     private function successFrom($response)
     {
-        return $response['Transaction_Approved'] == 'true';
+        return isset($response['Transaction_Approved'])
+            && $response['Transaction_Approved'] == 'true';
     }
 
     private function authorizationFrom($response)
@@ -402,7 +398,7 @@ class Exact extends Gateway implements Interfaces\Charge
     {
         if (isset($response['Fault_Code']) && isset($response['Fault_String'])) {
             return $response['Fault_String'];
-        } elseif ($response['Error_Number'] != '0') {
+        } elseif (isset($response['Error_Number']) && $response['Error_Number'] != '0') {
             return $response['Error_Description'];
         } else {
             $result = isset($response['EXact_Message']) ? $response['EXact_Message'] : '';
@@ -415,27 +411,31 @@ class Exact extends Gateway implements Interfaces\Charge
     }
 
     /**
-     * Returns fraud review from gateway response
+     *
+     * Returns avs result from gateway response.
      *
      * @param array $response
      *
-     * @return string
-     */
-    private function fraudReviewFrom($response)
-    {
-
-    }
-
-    /**
-     *
-     * Returns avs result from gateway response
-     *
-     * @param array $response
-     *
-     * @return string
+     * @return array
      */
     private function avsResultFrom($response)
     {
-        return array('code' => isset($response['AVS']) ? $response['AVS'] : '');
+        $code = isset($response['AVS']) ? $response['AVS'] : 'U';
+
+        return array('code' => $code);
+    }
+
+    /**
+     * Returns cvv result from gateway response.
+     *
+     * @param array $response
+     *
+     * @return string
+     */
+    private function cvvResultFrom($response)
+    {
+        return isset($response['CVV2'])
+            ? $response['CVV2']
+            : 'P';
     }
 }
