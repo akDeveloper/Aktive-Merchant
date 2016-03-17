@@ -2,15 +2,16 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
+namespace AktiveMerchant\Billing\Gateways;
+
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\Gateways\BridgePay;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Common\Options;
-use AktiveMerchant\Billing\Gateways\Eway;
+use AktiveMerchant\TestCase;
 
-class BridgePaytTest extends \AktiveMerchant\TestCase
+class BridgePaytTest extends TestCase
 {
-
     public $gateway;
     public $amount;
     public $options;
@@ -20,28 +21,24 @@ class BridgePaytTest extends \AktiveMerchant\TestCase
     {
         Base::mode('test');
 
-
         $options = $this->getFixtures()->offsetGet('bridge_pay');
 
         $this->amount = 100;
-        $authorization = 'OK9757|837495';
 
         $this->gateway = new BridgePay($options);
         $this->creditcard = new CreditCard(
             array(
-                "type" => 'master',
                 "first_name" => "John",
                 "last_name" => "Doe",
                 "number" => "4381258770269608",
                 "month" => "01",
-                "year" => "2015",
+                "year" => date('Y') + 1,
                 "verification_value" => "000"
             )
         );
         $this->options = array(
             'order_id' => 'REF' . $this->gateway->generateUniqueId(),
             'email' => "buyer@email.com",
-            // 'description' => 'Paypal Pro Test Transaction',
             'billing_address' => array(
                 'address1' => '1234 Penny Lane',
                 'city' => 'Jonsetown',
@@ -51,23 +48,11 @@ class BridgePaytTest extends \AktiveMerchant\TestCase
             ),
             'ip' => '10.0.0.1'
         );
-
-        //$b->authorize($amount, $creditcard, $options);
-        //echo '========================================='. "\n";
-        //$b->purchase($amount, $creditcard, $options);
-        //echo '========================================='. "\n";
-        //$b->capture( $amount, $authorization, $options);
-        //echo '========================================='. "\n";
-        //$b->refund( $amount, $authorization, $options);
-        //echo '========================================='. "\n";
-        //$b->void($authorization, $options);
-
-
     }
 
     public function testSuccessfulAuthorization()
     {
-        $this->mock_request($this->successful_authorize_response());
+        $this->mock_request($this->successfulAuthorizeResponse());
 
         $response = $this->gateway->authorize(
             $this->amount,
@@ -79,16 +64,11 @@ class BridgePaytTest extends \AktiveMerchant\TestCase
             'OK2755|860592',
             $response->authorization()
         );
-        $request_body = $this->request->getBody();
-
-        //$this->assertTrue(!is_null($response->authorization()));
-
     }
 
-    public function testSuccesfulCapture ()
+    public function testSuccesfulCapture()
     {
-
-        $this->mock_request($this->successful_capture_response());
+        $this->mock_request($this->successfulCaptureResponse());
 
         $authorization = 'OK2755|860592';
         $response = $this->gateway->capture(
@@ -99,12 +79,11 @@ class BridgePaytTest extends \AktiveMerchant\TestCase
 
         $this->assert_success($response);
         $this->assertRegExp('/OK2755/', $response->authorization());
-
     }
 
     public function testSuccesfulPurchase()
     {
-        $this->mock_request($this->successful_purchase_response());
+        $this->mock_request($this->successfulPurchaseResponse());
 
         $response = $this->gateway->purchase(
             $this->amount,
@@ -113,12 +92,11 @@ class BridgePaytTest extends \AktiveMerchant\TestCase
         );
 
         $this->assert_success($response);
-
     }
 
     public function testSuccessfulCredit()
     {
-        $this->mock_request($this->successful_credit_response());
+        $this->mock_request($this->successfulCreditResponse());
 
         $authorization = 'OK2755|860923';
         $response = $this->gateway->credit(
@@ -127,14 +105,12 @@ class BridgePaytTest extends \AktiveMerchant\TestCase
             $this->options
         );
 
-
         $this->assert_success($response);
-
     }
 
     public function testSuccessfulVoid()
     {
-        $this->mock_request($this->successful_void_response());
+        $this->mock_request($this->successfulVoidResponse());
         $authorization = 'OK2755|860923';
 
         $response = $this->gateway->void(
@@ -142,11 +118,23 @@ class BridgePaytTest extends \AktiveMerchant\TestCase
             $this->options
         );
 
-
         $this->assert_success($response);
     }
 
-    private function successful_authorize_response()
+    public function testFailedPurchase()
+    {
+        $this->mock_request($this->failedPurchaseResponse());
+
+        $response = $this->gateway->purchase(
+            $this->amount,
+            $this->creditcard,
+            $this->options
+        );
+
+        $this->assert_failure($response);
+    }
+
+    private function successfulAuthorizeResponse()
     {
         return '<?xml version="1.0" encoding="utf-8"?>
 <Response xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://TPISoft.com/SmartPayments/">
@@ -168,7 +156,7 @@ class BridgePaytTest extends \AktiveMerchant\TestCase
 
     }
 
-    private function successful_capture_response()
+    private function successfulCaptureResponse()
     {
         return '<?xml version="1.0" encoding="utf-8"?>
 <Response xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://TPISoft.com/SmartPayments/">
@@ -183,7 +171,7 @@ class BridgePaytTest extends \AktiveMerchant\TestCase
     }
 
 
-    private function successful_purchase_response()
+    private function successfulPurchaseResponse()
     {
         return '<?xml version="1.0" encoding="utf-8"?>
 <Response xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://TPISoft.com/SmartPayments/">
@@ -205,7 +193,7 @@ class BridgePaytTest extends \AktiveMerchant\TestCase
 
     }
 
-    private function successful_credit_response()
+    private function successfulCreditResponse()
     {
         return '<?xml version="1.0" encoding="utf-8"?>
 <Response xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://TPISoft.com/SmartPayments/">
@@ -221,7 +209,7 @@ class BridgePaytTest extends \AktiveMerchant\TestCase
     }
 
 
-    private function successful_void_response()
+    private function successfulVoidResponse()
     {
         return '<?xml version="1.0" encoding="utf-8"?>
 <Response xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://TPISoft.com/SmartPayments/">
@@ -235,4 +223,20 @@ class BridgePaytTest extends \AktiveMerchant\TestCase
 
     }
 
+    private function failedPurchaseResponse()
+    {
+        return '<?xml version="1.0" encoding="utf-8"?>
+<Response xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://TPISoft.com/SmartPayments/">
+  <Result>12</Result>
+  <RespMSG>Decline</RespMSG>
+  <Message>DECLINE</Message>
+  <AuthCode>DECLINED</AuthCode>
+  <PNRef>1424426</PNRef>
+  <HostCode>1424426</HostCode>
+  <GetAVSResult>D</GetAVSResult>
+  <GetAVSResultTXT>Street Address Match and Postal Code Match</GetAVSResultTXT>
+  <GetCommercialCard>False</GetCommercialCard>
+  <ExtData>InvNum=REF1118183472,CardType=VISA</ExtData>
+</Response>';
+    }
 }

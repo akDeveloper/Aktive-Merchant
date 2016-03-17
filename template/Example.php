@@ -247,8 +247,8 @@ class Example extends Gateway implements
             array(
                 'test' => $test_mode,
                 'authorization' => $response['authorization_id'],
-                'fraud_review' => $this->fraud_review_from($response),
-                'avs_result' => $this->avs_result_from($response),
+                'fraud_review' => $this->fraudReviewFrom($response),
+                'avs_result' => $this->avsResultFrom($response),
                 'cvv_result' => $response['card_code']
             )
         );

@@ -2,20 +2,21 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-use AktiveMerchant\Billing\Gateways\Exact;
+namespace AktiveMerchant\Billing\Gateways;
+
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\TestCase;
 
 /**
  * Unit tests for Exact gateway.
- *
  *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  *
  */
-class ExactTest extends \AktiveMerchant\TestCase
+class ExactTest extends TestCase
 {
     public $gateway;
     public $amount;
@@ -36,7 +37,7 @@ class ExactTest extends \AktiveMerchant\TestCase
                 "last_name" => "Doe",
                 "number" => "4111111111111111",
                 "month" => "01",
-                "year" => "2015",
+                "year" => date('Y') + 1,
                 "verification_value" => "000"
             )
         );
@@ -53,7 +54,7 @@ class ExactTest extends \AktiveMerchant\TestCase
 
     public function testSuccessfulAuthorization()
     {
-        $this->mock_request($this->successful_authorize_response());
+        $this->mock_request($this->successfulAuthorizeResponse());
 
         $response = $this->gateway->authorize(
             $this->amount,
@@ -62,8 +63,8 @@ class ExactTest extends \AktiveMerchant\TestCase
         );
 
         $this->assert_success($response);
-        $this->assertEquals(
-            'Transaction Normal - Approved by E-xact',
+        $this->assertRegExp(
+            '/Approved/',
             $response->message()
         );
 
@@ -73,7 +74,7 @@ class ExactTest extends \AktiveMerchant\TestCase
 
     public function testSuccessfulPurchase()
     {
-        $this->mock_request($this->successful_purchase_response());
+        $this->mock_request($this->successfulPurchaseResponse());
 
         $response = $this->gateway->purchase(
             $this->amount,
@@ -82,8 +83,8 @@ class ExactTest extends \AktiveMerchant\TestCase
         );
 
         $this->assert_success($response);
-        $this->assertEquals(
-            'Transaction Normal - Approved by E-xact',
+        $this->assertRegExp(
+            '/Approved/',
             $response->message()
         );
 
@@ -93,7 +94,7 @@ class ExactTest extends \AktiveMerchant\TestCase
 
     public function testSuccessfulCapture()
     {
-        $this->mock_request($this->successful_capture_response());
+        $this->mock_request($this->successfulCaptureResponse());
 
         $authorization = 'ET5150;1255958813';
         $response = $this->gateway->capture($this->amount, $authorization);
@@ -108,18 +109,17 @@ class ExactTest extends \AktiveMerchant\TestCase
 
         $request_body = $this->request->getBody();
         $this->assertEquals(
-            $this->successful_capture_request(),
+            $this->successfulCaptureRequest(),
             $request_body
         );
-
     }
 
     public function testSuccessfulCredit()
     {
-        $this->mock_request($this->successful_credit_response());
+        $this->mock_request($this->successfulCreditResponse());
 
-        $authorization = 'ET0205;1255961063';
-        $response = $this->gateway->credit($this->amount, $authorization);
+        $identification = 'ET0205;1255961063';
+        $response = $this->gateway->credit($this->amount, $identification);
 
         $this->assert_success($response);
 
@@ -130,13 +130,12 @@ class ExactTest extends \AktiveMerchant\TestCase
 
         $request_body = $this->request->getBody();
         $this->assertEquals(
-            $this->successful_credit_request(),
+            $this->successfulCreditRequest(),
             $request_body
         );
-
     }
 
-    private function successful_authorize_response()
+    private function successfulAuthorizeResponse()
     {
         return '<?xml version="1.0" encoding="UTF-8"?>
 <TransactionResult>
@@ -225,7 +224,7 @@ issuer pursuant to cardholder agreement.
 </TransactionResult>';
     }
 
-    private function successful_purchase_response()
+    private function successfulPurchaseResponse()
     {
         return '<?xml version="1.0" encoding="UTF-8"?>
 <TransactionResult>
@@ -314,14 +313,14 @@ issuer pursuant to cardholder agreement.
 </TransactionResult>';
     }
 
-    private function successful_capture_request()
+    private function successfulCaptureRequest()
     {
         return '<?xml version="1.0" encoding="utf-8"?>
 <Transaction><ExactID>A00049-01</ExactID><Password>test1</Password><Transaction_Type>32</Transaction_Type><Transaction_Tag>1255958813</Transaction_Tag><Authorization_Num>ET5150</Authorization_Num><DollarAmount>100.00</DollarAmount></Transaction>
 ';
     }
 
-    private function successful_capture_response()
+    private function successfulCaptureResponse()
     {
         return '<?xml version="1.0" encoding="UTF-8"?>
 <TransactionResult>
@@ -409,14 +408,14 @@ issuer pursuant to cardholder agreement.
 =========================================</CTR>
 </TransactionResult>';
     }
-    private function successful_credit_request()
+    private function successfulCreditRequest()
     {
         return '<?xml version="1.0" encoding="utf-8"?>
 <Transaction><ExactID>A00049-01</ExactID><Password>test1</Password><Transaction_Type>34</Transaction_Type><Transaction_Tag>1255961063</Transaction_Tag><Authorization_Num>ET0205</Authorization_Num><DollarAmount>100.00</DollarAmount></Transaction>
 ';
     }
 
-    private function successful_credit_response()
+    private function successfulCreditResponse()
     {
         return '<?xml version="1.0" encoding="UTF-8"?>
 <TransactionResult>

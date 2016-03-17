@@ -9,12 +9,12 @@ use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Common\Options;
 use AktiveMerchant\Billing\Response;
-use Thapp\XmlBuilder\XmlBuilder;
 use AktiveMerchant\Common\Address;
-use AktiveMerchant\Billing\Gateways\Worldpay\XmlNormalizer;
 
 /**
- * Integration of BridgePay gateway.
+ * Integration of TGATE PathwayLINK gateway from BridgePay.
+ *
+ * @link http://www.bridgepaynetwork.com/developerCenterTGATE.html
  *
  * @author Dimitris Giannakakis <Dim.Giannakakis@yahoo.com>
  * @license MIT License http://www.opensource.org/licenses/mit-license.php
@@ -25,7 +25,6 @@ class BridgePay extends Gateway implements
 {
     const TEST_URL = 'https://gatewaystage.itstgate.com/SmartPayments/transact.asmx/ProcessCreditCard';
     const LIVE_URL = 'https://gateway.itstgate.com/SmartPayments/transact.asmx/ProcessCreditCard';
-    const DISPLAY_NAME = 'BridgePay';
 
     /**
      * {@inheritdoc}
@@ -49,7 +48,6 @@ class BridgePay extends Gateway implements
         'american_express',
         'discover',
         'diners_club',
-        'maestro',
         'jcb'
     );
 
@@ -89,11 +87,7 @@ class BridgePay extends Gateway implements
     {
         $this->required_options('username, password', $options);
 
-        if (isset($options['currency'])) {
-            self::$default_currency = $options['currency'];
-        }
-
-        $this->options = $options;
+        parent::__construct($options);
     }
 
     /**
@@ -105,9 +99,9 @@ class BridgePay extends Gateway implements
         $options = new Options($options);
         $this->postRequiredFields('Auth');
 
-        $this->addInvoice($this->post, $money, $options);
+        $this->addInvoice($money, $options);
         $this->addCreditcard($this->post, $creditcard);
-        $this->addCustomerData($this->post, $options);
+        $this->addAddress($options);
 
         return $this->commit();
     }
@@ -122,9 +116,9 @@ class BridgePay extends Gateway implements
         $this->postRequiredFields('Sale');
 
         $this->post['ExtData'] = '<Force>T</Force>';
-        $this->addInvoice($this->post, $money, $options);
+        $this->addInvoice($money, $options);
         $this->addCreditcard($this->post, $creditcard);
-        $this->addCustomerData($this->post, $options);
+        $this->addAddress($options);
 
         return $this->commit();
     }
@@ -138,9 +132,9 @@ class BridgePay extends Gateway implements
         $options = new Options($options);
         $this->postRequiredFields('Force');
 
-        $this->addInvoice($this->post, $money, $options);
-        $this->addReference($this->post, $authorization);
-        $this->addCustomerData($this->post, $options);
+        $this->addInvoice($money, $options);
+        $this->addReference($authorization);
+        $this->addAddress($options);
 
         return $this->commit();
     }
@@ -154,7 +148,7 @@ class BridgePay extends Gateway implements
         $options = new Options($options);
         $this->postRequiredFields('Void');
 
-        $this->addReference($this->post, $authorization);
+        $this->addReference($authorization);
 
         return $this->commit();
     }
@@ -168,36 +162,38 @@ class BridgePay extends Gateway implements
         $options = new Options($options);
         $this->postRequiredFields('Return');
 
-        $this->addInvoice($this->post, $money, $options);
-        $this->addReference($this->post, $identification);
+        $this->addInvoice($money, $options);
+        $this->addReference($identification);
 
         return $this->commit();
     }
 
-    // Private methods
-
     /**
-     * Customer data like e-mail, ip, web browser used for transaction etc
+     * Options key can be 'shipping address' and 'billing_address' or 'address'
      *
-     * @param array $options
-     * @param array reference $post
+     * Each of these keys must have an address array like:
+     * <code>
+     *      $address['name']
+     *      $address['company']
+     *      $address['address1']
+     *      $address['address2']
+     *      $address['city']
+     *      $address['state']
+     *      $address['country']
+     *      $address['zip']
+     *      $address['phone']
+     * </code>
+     *
+     * @param Options $options
+     *
+     * @return void
      */
-    private function addCustomerData(&$post, Options $options)
+    private function addAddress(Options $options)
     {
-        $address = array();
+        $address = $options['billing_address'] ?: $options['address'];
 
-        if ($options->billing_address) {
-
-            $adr = $options->billing_address;
-
-        } elseif ($options->address) {
-
-            $adr = $options->address;
-
-        }
-
-        $post['Street'] = $adr->address1;
-        $post['Zip'] = $adr->zip;
+        $this->post['Street'] = $address->address1;
+        $this->post['Zip'] = $address->zip;
     }
 
     private function postRequiredFields($transaction_type)
@@ -207,7 +203,7 @@ class BridgePay extends Gateway implements
             'Amount' => null,
             'PNRef' => null,
             'InvNum' => null,
-            'CardNum' =>null,
+            'CardNum' => null,
             'ExpDate' => null,
             'MagData' => null,
             'NameOnCard' => null,
@@ -219,31 +215,28 @@ class BridgePay extends Gateway implements
         );
     }
 
-    private function addReference(&$post, $authorization)
+    private function addReference($authorization)
     {
-        $split = $this->splitAuthorization($authorization);
-
-        $this->post['AuthCode'] = $split['AuthCode'];
-        $this->post['PNRef'] = $split['PNRef'];
+        $this->post = array_merge(
+            $this->post,
+            $this->splitAuthorization($authorization)
+        );
     }
 
     private function splitAuthorization($authorization)
     {
         list($authcode, $pnref) = explode('|', $authorization);
 
-        $array = array(
+        return array(
             'AuthCode' => $authcode,
             'PNRef' => $pnref,
         );
-
-        return $array;
     }
 
-
-    private function addInvoice(&$post, $money, Options $options)
+    private function addInvoice($money, Options $options)
     {
-        $post['Amount'] = $this->amount($money);
-        $post['InvNum'] = $options->order_id;
+        $this->post['Amount'] = $this->amount($money);
+        $this->post['InvNum'] = $options->order_id;
     }
 
     /**
@@ -270,16 +263,15 @@ class BridgePay extends Gateway implements
 
         $response = $this->parse($data);
 
-        $test_mode = $this->isTest();
-
         return new Response(
             $this->successFrom($response),
             $this->messageFrom($response),
             $response,
             array(
                 'authorization' => $this->authorizationFrom($response),
-                'test' => $test_mode
-
+                'test' => $this->isTest(),
+                'avs_result' => $this->avsResultFrom($response),
+                'cvv_result' => $this->cvvResultFrom($response),
             )
         );
     }
@@ -301,10 +293,8 @@ class BridgePay extends Gateway implements
     private function successFrom($response)
     {
         if ($response['RespMSG']== $this->APPROVED) {
-
             return true;
         } else {
-
             return false;
         }
     }
@@ -331,7 +321,20 @@ class BridgePay extends Gateway implements
      */
     private function avsResultFrom($response)
     {
-        return array('code' => $response['avs_result_code']);
+        if (isset($response['GetAVSResult'])) {
+            return array('code' => $response['GetAVSResult']);
+        }
+
+        return array('code' => 'U');
+    }
+
+    private function cvvResultFrom($response)
+    {
+        if (isset($response['GetCVResult'])) {
+            return $response['GetCVResult'];
+        }
+
+        return 'P';
     }
 
     /**
@@ -363,12 +366,11 @@ class BridgePay extends Gateway implements
      */
     private function parse($body)
     {
-        $xmlbuilder = new XmlBuilder();
+        $xmlObject = simplexml_load_string($body);
+        foreach ($xmlObject as $key => $value) {
+            $response[$key] = (string) $value;
+        }
 
-        $xml = $xmlbuilder->loadXML($body, true);
-
-        $request = $xmlbuilder->toArray($xml);
-
-        return $request['Response'];
+        return $response;
     }
 }
