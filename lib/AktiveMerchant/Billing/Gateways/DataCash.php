@@ -74,6 +74,11 @@ class DataCash extends Gateway implements
         $this->options = $options;
     }
 
+    public function amount($money)
+    {
+        return number_format($money, 2, '.', '');
+    }
+
     /**
      * {@inheritdoc}
      */
