@@ -371,7 +371,6 @@ class Iridium extends Gateway implements
         $author = $this->splitAuthorization($authorization);
 
         if ($money) {
-
             $details = array(
                 'TransactionDetails' => array(
                     '@attributes' => array(
@@ -421,7 +420,6 @@ class Iridium extends Gateway implements
         $xml = new \SimpleXMLElement($body);
 
         foreach ($xml as $child => $value) {
-
             $this->parseElement($child, $value);
         }
     }
@@ -434,7 +432,6 @@ class Iridium extends Gateway implements
             $attributes = $value->attributes();
 
             if (isset($attributes)) {
-
                 foreach ($attributes as $key => $att) {
                     $this->reply['transaction_result'][$key] = (string) $att;
                 }
@@ -445,11 +442,9 @@ class Iridium extends Gateway implements
             }
 
         } elseif ($child == 'TransactionOutputData') {
-
             $attributes = $value->attributes();
 
             if (isset($attributes)) {
-
                 foreach ($attributes as $key => $att) {
                     $this->reply['transaction_output_data'][$key] = (string) $att;
                 }
@@ -457,14 +452,12 @@ class Iridium extends Gateway implements
 
             foreach ($value as $child_node => $child_value) {
                 if ($child_node == 'GatewayEntryPoints') {
-
                     $index = 0;
 
                     foreach ($child_value as $key => $att) {
                         $attributes = $att->attributes();
 
                         if (isset($attributes)) {
-
                             foreach ($attributes as $att_key => $att_value) {
                                 $this->reply['transaction_output_data']['gateway_entry_points'][$index][$att_key] = (string) $att_value;
 
