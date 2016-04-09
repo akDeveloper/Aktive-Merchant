@@ -305,10 +305,12 @@ class Exact extends Gateway implements Interfaces\Charge
 
     private function parseElements($root)
     {
-        $reponse = array();
+        $response = array();
         foreach ($root as $name => $value) {
             $response[$name] = trim((string) $value);
         }
+
+        return $response;
     }
 
     private function createXml($action)
@@ -342,11 +344,9 @@ class Exact extends Gateway implements Interfaces\Charge
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
         $postData = $this->postData();
-        echo $postData;
         $options = array('headers' => $this->headers);
         $data = $this->ssl_post($url, $postData, $options);
 
-        echo $data;
         $response = $this->parse($data);
 
         return new Response(
