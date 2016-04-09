@@ -31,6 +31,12 @@ class XmlBuilder
         $this->writer->setIndent(true);
     }
 
+    public function docType($qualifiedName, $publicId = null, $systemId = null)
+    {
+        $this->writer->startDTD($qualifiedName, $publicId, $systemId);
+        $this->writer->endDTD();
+    }
+
     public function build()
     {
         $args = func_get_args();
@@ -75,12 +81,14 @@ class XmlBuilder
     public function __call($name, $args)
     {
         $args = array_merge([$name], $args);
+
         return $this->build($args);
     }
 
     public function __toString()
     {
         $this->writer->endDocument();
+
         return $this->writer->outputMemory();
     }
 }
