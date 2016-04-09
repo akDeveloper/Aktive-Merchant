@@ -12,7 +12,7 @@ use AktiveMerchant\Common\Options;
 use AktiveMerchant\Common\XmlBuilder;
 
 /**
- * National Bank of Greece DataCash gateway implementation.
+ * DataCash gateway implementation.
  *
  * @author Andreas Kollaros <andreas@larium.net>
  * @license  MIT License http://www.opensource.org/licenses/mit-license.php
@@ -72,6 +72,11 @@ class DataCash extends Gateway implements
         }
 
         $this->options = $options;
+    }
+
+    public function amount($money)
+    {
+        return number_format($money, 2, '.', '');
     }
 
     /**
@@ -302,7 +307,7 @@ class DataCash extends Gateway implements
             $xml->merchantreference($options['order_id']);
             $xml->amount($this->amount($money), array('currency' => static::$default_currency));
             $captureMethod = static::METHOD_ECOMM; # For 3D Secure or No 3D Secure transactions.
-            if ($options['token'] || $options['moto']) {# For tokenization or MOTO transactions.
+            if ($options['moto']) {# MOTO transactions.
                 $captureMethod = static::METHOD_MOTO;
             }
             $xml->capturemethod($captureMethod);
@@ -322,36 +327,24 @@ class DataCash extends Gateway implements
     protected function addCreditcard(CreditCard $creditcard, $action, $xml, $options = array())
     {
         $xml->CardTxn(function ($xml) use ($creditcard, $action, $options) {
-            $xml->Card(function ($xml) use ($creditcard, $options) {
-                $token = $options['token'] ? array('type' => 'token') : null;
-                $xml->pan($creditcard->number, $token);
-                $year  = $this->cc_format($creditcard->year, 'two_digits');
-                $month = $this->cc_format($creditcard->month, 'two_digits');
-                $xml->expirydate("{$month}/{$year}");
-                if (null == $options['token']) {
-                    $xml->Cv2Avs(function ($xml) use ($creditcard) {
-                        $xml->cv2($creditcard->verification_value);
-                    });
-                }
-            });
-            $xml->method($action);
-            $type = $creditcard->type == 'visa' ? 'visa' : 'ucaf';
-            if ($options['cardholder_registered']) {
-                $xml->Secure(function ($xml) use ($options) {
-                    $xml->cardholder_registered($options['cardholder_registered']);
-                    if ($options['aav']) {
-                        $xml->security_code($options['aav']);
-                    }
 
-                    if ($options['eci']) {
-                        $xml->eci($options['eci']);
+            if ($options['reference']) {
+                $xml->card_details($options['reference'], array('type' => 'from_mpi'));
+            } else {
+                $xml->Card(function ($xml) use ($creditcard, $options) {
+                    $token = $options['token'] ? array('type' => 'token') : null;
+                    $xml->pan($creditcard->number, $token);
+                    $year  = $this->cc_format($creditcard->year, 'two_digits');
+                    $month = $this->cc_format($creditcard->month, 'two_digits');
+                    $xml->expirydate("{$month}/{$year}");
+                    if (null == $options['token']) {
+                        $xml->Cv2Avs(function ($xml) use ($creditcard) {
+                            $xml->cv2($creditcard->verification_value);
+                        });
                     }
-
-                    if ($options['xid']) {
-                        $xml->transactionID($options['xid']);
-                    }
-                }, array('type' => $type));
+                });
             }
+            $xml->method($action);
         });
     }
 

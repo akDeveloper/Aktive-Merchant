@@ -4,6 +4,11 @@
 
 namespace AktiveMerchant\Billing\Gateways;
 
+/**
+ * National Bank of Greece gateway implementation.
+ *
+ * @author  Andreas Kollaros <andreas@larium.net>
+ */
 class Nbg extends DataCash
 {
     const TEST_URL = 'https://accreditation.datacash.com/Transaction/acq_a';

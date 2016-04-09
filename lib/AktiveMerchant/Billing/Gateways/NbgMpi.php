@@ -4,6 +4,12 @@
 
 namespace AktiveMerchant\Billing\Gateways;
 
+/**
+ * Support 3D Secure implementation for National Bank of Greece gateway.
+ *
+ * @author Andreas Kollaros <andreas@larium.net>
+ * @license MIT License http://www.opensource.org/licenses/mit-license.php
+ */
 class NbgMpi extends DataCashMpi
 {
     const TEST_URL = 'https://accreditation.datacash.com/Transaction/acq_a';
