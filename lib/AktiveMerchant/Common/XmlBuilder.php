@@ -25,10 +25,18 @@ class XmlBuilder
         $this->writer->openMemory();
     }
 
-    public function instruct($version, $encoding)
+    public function instruct($version, $encoding = null, $indent = true)
     {
         $this->writer->startDocument($version, $encoding);
-        $this->writer->setIndent(true);
+        if ($indent) {
+            $this->writer->setIndent(true);
+        }
+    }
+
+    public function docType($qualifiedName, $publicId = null, $systemId = null)
+    {
+        $this->writer->startDTD($qualifiedName, $publicId, $systemId);
+        $this->writer->endDTD();
     }
 
     public function build()
@@ -75,12 +83,14 @@ class XmlBuilder
     public function __call($name, $args)
     {
         $args = array_merge([$name], $args);
+
         return $this->build($args);
     }
 
     public function __toString()
     {
         $this->writer->endDocument();
+
         return $this->writer->outputMemory();
     }
 }

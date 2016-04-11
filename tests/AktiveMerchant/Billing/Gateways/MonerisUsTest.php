@@ -89,7 +89,7 @@ class MonerisUsTest extends \AktiveMerchant\TestCase
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
-        $request_body = $this->request->getBody();
+        $request_body = $this->getRequestBody();
         $this->assertEquals(
             $this->successful_authorize_request($this->options['order_id']),
             $request_body
@@ -125,7 +125,7 @@ class MonerisUsTest extends \AktiveMerchant\TestCase
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
-        $request_body = $this->request->getBody();
+        $request_body = $this->getRequestBody();
         $this->assertEquals(
             $this->successful_capture_request(),
             $request_body
@@ -159,7 +159,7 @@ class MonerisUsTest extends \AktiveMerchant\TestCase
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
-        $request_body = $this->request->getBody();
+        $request_body = $this->getRequestBody();
         $this->assertEquals(
             $this->successful_purchase_request($this->options['order_id']),
             $request_body
@@ -195,7 +195,7 @@ class MonerisUsTest extends \AktiveMerchant\TestCase
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
-        $request_body = $this->request->getBody();
+        $request_body = $this->getRequestBody();
         $this->assertEquals(
             $this->successful_credit_request(),
             $request_body
@@ -230,7 +230,7 @@ class MonerisUsTest extends \AktiveMerchant\TestCase
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
-        $request_body = $this->request->getBody();
+        $request_body = $this->getRequestBody();
         $this->assertEquals(
             $this->successful_void_request(),
             $request_body
@@ -247,5 +247,10 @@ class MonerisUsTest extends \AktiveMerchant\TestCase
     private function successful_void_response()
     {
         return '<?xml version="1.0" standalone="yes"?><response><receipt><ReceiptId>8915641235</ReceiptId><ReferenceNum>660021630010017210</ReferenceNum><ResponseCode>027</ResponseCode><ISO>01</ISO><AuthCode>356870</AuthCode><TransTime>07:29:16</TransTime><TransDate>2013-01-11</TransDate><TransType>11</TransType><Complete>true</Complete><Message>APPROVED           *                    =</Message><TransAmount>10.00</TransAmount><CardType>V</CardType><TransID>360712-2_8</TransID><TimedOut>false</TimedOut><BankTotals>null</BankTotals><Ticket>null</Ticket><CorporateCard>false</CorporateCard></receipt></response>';
+    }
+
+    private function getRequestBody()
+    {
+        return str_replace("\n", null, $this->request->getBody());
     }
 }

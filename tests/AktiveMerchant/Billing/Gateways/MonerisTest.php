@@ -40,7 +40,7 @@ class MonerisTest extends \AktiveMerchant\TestCase
                 "last_name" => "Doe",
                 "number" => "4242424242424242",
                 "month" => "01",
-                "year" => "2015",
+                "year" => date('Y') + 1,
                 "verification_value" => "000"
             )
         );
@@ -81,7 +81,7 @@ class MonerisTest extends \AktiveMerchant\TestCase
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
-        $request_body = $this->request->getBody();
+        $request_body = $this->getRequestBody();
         $this->assertEquals(
             $this->successful_authorize_request($this->options['order_id']),
             $request_body
@@ -94,7 +94,8 @@ class MonerisTest extends \AktiveMerchant\TestCase
 
     private function successful_authorize_request($order_id)
     {
-        return '<?xml version="1.0"?><request><store_id>store1</store_id><api_token>yesguy</api_token><preauth><order_id>'.$order_id.'</order_id><pan>4242424242424242</pan><expdate>1501</expdate><cvd_info><cvd_indicator>1</cvd_indicator><cvd_value>000</cvd_value></cvd_info><billing><first_name>John</first_name><last_name>Dows</last_name><address>1 Main St</address><city>San Jose</city><province>CA</province><country>United States</country><postal_code>95131</postal_code></billing><shipping><first_name>John</first_name><last_name>Dows</last_name><address>1 Main St</address><city>San Jose</city><province>CA</province><country>United States</country><postal_code>95131</postal_code></shipping><avs_info><avs_street_number>1</avs_street_number><avs_street_name>Main St</avs_street_name><avs_zipcode>95131</avs_zipcode></avs_info><amount>10.00</amount><crypt_type>7</crypt_type></preauth></request>';
+        $year = substr(date('Y') + 1, 2);
+        return '<?xml version="1.0"?><request><store_id>store1</store_id><api_token>yesguy</api_token><preauth><order_id>'.$order_id.'</order_id><pan>4242424242424242</pan><expdate>'.$year.'01</expdate><cvd_info><cvd_indicator>1</cvd_indicator><cvd_value>000</cvd_value></cvd_info><billing><first_name>John</first_name><last_name>Dows</last_name><address>1 Main St</address><city>San Jose</city><province>CA</province><country>United States</country><postal_code>95131</postal_code></billing><shipping><first_name>John</first_name><last_name>Dows</last_name><address>1 Main St</address><city>San Jose</city><province>CA</province><country>United States</country><postal_code>95131</postal_code></shipping><avs_info><avs_street_number>1</avs_street_number><avs_street_name>Main St</avs_street_name><avs_zipcode>95131</avs_zipcode></avs_info><amount>10.00</amount><crypt_type>7</crypt_type></preauth></request>';
     }
 
     private function successful_authorize_response()
@@ -117,7 +118,7 @@ class MonerisTest extends \AktiveMerchant\TestCase
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
-        $request_body = $this->request->getBody();
+        $request_body = $this->getRequestBody();
         $this->assertEquals(
             $this->successful_capture_request(),
             $request_body
@@ -151,7 +152,7 @@ class MonerisTest extends \AktiveMerchant\TestCase
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
-        $request_body = $this->request->getBody();
+        $request_body = $this->getRequestBody();
         $this->assertEquals(
             $this->successful_purchase_request($this->options['order_id']),
             $request_body
@@ -164,7 +165,8 @@ class MonerisTest extends \AktiveMerchant\TestCase
 
     private function successful_purchase_request($order_id)
     {
-        return '<?xml version="1.0"?><request><store_id>store1</store_id><api_token>yesguy</api_token><purchase><order_id>'.$order_id.'</order_id><pan>4242424242424242</pan><expdate>1501</expdate><cvd_info><cvd_indicator>1</cvd_indicator><cvd_value>000</cvd_value></cvd_info><billing><first_name>John</first_name><last_name>Dows</last_name><address>1 Main St</address><city>San Jose</city><province>CA</province><country>United States</country><postal_code>95131</postal_code></billing><shipping><first_name>John</first_name><last_name>Dows</last_name><address>1 Main St</address><city>San Jose</city><province>CA</province><country>United States</country><postal_code>95131</postal_code></shipping><avs_info><avs_street_number>1</avs_street_number><avs_street_name>Main St</avs_street_name><avs_zipcode>95131</avs_zipcode></avs_info><amount>10.00</amount><crypt_type>7</crypt_type></purchase></request>';
+        $year = substr(date('Y') + 1, 2);
+        return '<?xml version="1.0"?><request><store_id>store1</store_id><api_token>yesguy</api_token><purchase><order_id>'.$order_id.'</order_id><pan>4242424242424242</pan><expdate>'.$year.'01</expdate><cvd_info><cvd_indicator>1</cvd_indicator><cvd_value>000</cvd_value></cvd_info><billing><first_name>John</first_name><last_name>Dows</last_name><address>1 Main St</address><city>San Jose</city><province>CA</province><country>United States</country><postal_code>95131</postal_code></billing><shipping><first_name>John</first_name><last_name>Dows</last_name><address>1 Main St</address><city>San Jose</city><province>CA</province><country>United States</country><postal_code>95131</postal_code></shipping><avs_info><avs_street_number>1</avs_street_number><avs_street_name>Main St</avs_street_name><avs_zipcode>95131</avs_zipcode></avs_info><amount>10.00</amount><crypt_type>7</crypt_type></purchase></request>';
     }
 
     private function successful_purchase_response($order_id)
@@ -187,7 +189,7 @@ class MonerisTest extends \AktiveMerchant\TestCase
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
-        $request_body = $this->request->getBody();
+        $request_body = $this->getRequestBody();
         $this->assertEquals(
             $this->successful_credit_request(),
             $request_body
@@ -222,7 +224,7 @@ class MonerisTest extends \AktiveMerchant\TestCase
         $this->assert_success($response);
         $this->assertTrue($response->test());
 
-        $request_body = $this->request->getBody();
+        $request_body = $this->getRequestBody();
         $this->assertEquals(
             $this->successful_void_request(),
             $request_body
@@ -239,5 +241,10 @@ class MonerisTest extends \AktiveMerchant\TestCase
     private function successful_void_response()
     {
         return '<?xml version="1.0" standalone="yes"?><response><receipt><ReceiptId>8915641235</ReceiptId><ReferenceNum>660021630010017210</ReferenceNum><ResponseCode>027</ResponseCode><ISO>01</ISO><AuthCode>356870</AuthCode><TransTime>07:29:16</TransTime><TransDate>2013-01-11</TransDate><TransType>11</TransType><Complete>true</Complete><Message>APPROVED           *                    =</Message><TransAmount>10.00</TransAmount><CardType>V</CardType><TransID>360712-2_8</TransID><TimedOut>false</TimedOut><BankTotals>null</BankTotals><Ticket>null</Ticket><CorporateCard>false</CorporateCard></receipt></response>';
+    }
+
+    private function getRequestBody()
+    {
+        return str_replace("\n", null, $this->request->getBody());
     }
 }

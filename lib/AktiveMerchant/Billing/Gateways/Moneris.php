@@ -10,6 +10,7 @@ use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Exception;
 use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Options;
+use AktiveMerchant\Common\XmlBuilder;
 
 /**
  * Integration of Moneris gateway
@@ -39,14 +40,13 @@ class Moneris extends Gateway
     const LIVE_URL = 'https://www3.moneris.com/gateway2/servlet/MpgRequest';
 
     #Actions
-    protected $authorize;
-    protected $cavv_authorize;
-    protected $purchase;
-    protected $cavv_purchase;
-    protected $capture;
-    protected $void;
-    protected $credit;
-
+    const AUTHORIZE = 'preauth';
+    const CAVV_ATHORIZE = 'cavv_preauth';
+    const PURCHASE = 'purchase';
+    const CAVV_PURCHASE = 'cavv_purchase';
+    const CAPTURE = 'completion';
+    const VOID = 'purchasecorrection';
+    const CREDIT = 'refund';
 
     # The countries the gateway supports merchants from as 2 digit ISO country codes
     public static $supported_countries = array('CA');
@@ -62,8 +62,11 @@ class Moneris extends Gateway
 
     public static $default_currency = 'CAD';
 
-    private $options;
+    protected $options;
+
     private $post;
+
+    private $xml;
 
     private $crypt_type = 7;
 
@@ -87,20 +90,7 @@ class Moneris extends Gateway
     {
         Options::required('store_id, api_token', $options);
 
-        $this->options = new Options($options);
-
-        if (isset($options['currency'])) {
-            self::$default_currency = $options['currency'];
-        }
-
-        $this->authorize      = 'preauth';
-        $this->cavv_authorize = 'cavv_preauth';
-        $this->purchase       = 'purchase';
-        $this->cavv_purchase  = 'cavv_purchase';
-        $this->capture        = 'completion';
-        $this->void           = 'purchasecorrection';
-        $this->credit         = 'refund';
-
+        parent::__construct($options);
     }
 
     /**
@@ -113,22 +103,25 @@ class Moneris extends Gateway
      */
     public function authorize($money, CreditCard $creditcard, $options = array())
     {
-
-        $this->addInvoice($options);
-        $this->addCreditcard($creditcard);
-        $this->addAddress($options);
-        $this->post .= "<amount>{$this->amount($money)}</amount>";
-        $action = $this->authorize;
+        $action = static::AUTHORIZE;
 
         if (isset($options['cavv'])) {
-            $this->post .= "<cavv>{$this->amount($money)}</cavv>";
-            $action = $this->cavv_authorize;
+            $action = static::CAVV_ATHORIZE;
         }
         if (isset($options['crypt_type'])) {
             $this->crypt_type = $options['crypt_type'];
         }
+        $this->buildXml($action, function ($xml) use ($money, $creditcard, $options) {
+            if (isset($options['cavv'])) {
+                $xml->cavv($this->amount($money));
+            }
+            $this->addInvoice($options);
+            $this->addCreditcard($creditcard);
+            $this->addAddress($options);
+            $xml->amount($this->amount($money));
+        });
 
-        return $this->commit($action, $money);
+        return $this->commit();
     }
 
     /**
@@ -141,21 +134,26 @@ class Moneris extends Gateway
      */
     public function purchase($money, CreditCard $creditcard, $options = array())
     {
-        $this->addInvoice($options);
-        $this->addCreditcard($creditcard);
-        $this->addAddress($options);
-        $this->post .= "<amount>{$this->amount($money)}</amount>";
+        $action = static::PURCHASE;
 
-        $action = $this->purchase;
         if (isset($options['cavv'])) {
-            $this->post .= "<cavv>{$this->amount($money)}</cavv>";
-            $action = $this->cavv_purchase;
+            $action = static::CAVV_PURCHASE;
         }
         if (isset($options['crypt_type'])) {
             $this->crypt_type = $options['crypt_type'];
         }
 
-        return $this->commit($action, $money, $options);
+        $this->buildXml($action, function ($xml) use ($money, $creditcard, $options) {
+            if (isset($options['cavv'])) {
+                $xml->cavv($this->amount($money));
+            }
+            $this->addInvoice($options);
+            $this->addCreditcard($creditcard);
+            $this->addAddress($options);
+            $xml->amount($this->amount($money));
+        });
+
+        return $this->commit();
     }
 
     /**
@@ -170,11 +168,13 @@ class Moneris extends Gateway
     {
         Options::required('order_id', $options);
 
-        $this->addInvoice($options);
-        $this->post .= "<comp_amount>{$this->amount($money)}</comp_amount>";
-        $this->post .= "<txn_number>$authorization</txn_number>";
+        $this->buildXml(static::CAPTURE, function ($xml) use ($authorization, $money, $options) {
+            $this->addInvoice($options);
+            $xml->comp_amount($this->amount($money));
+            $xml->txn_number($authorization);
+        });
 
-        return $this->commit($this->capture, $money);
+        return $this->commit();
     }
 
     /**
@@ -188,10 +188,12 @@ class Moneris extends Gateway
     {
         Options::required('order_id', $options);
 
-        $this->addInvoice($options);
-        $this->post .= "<txn_number>$authorization</txn_number>";
+        $this->buildXml(static::VOID, function ($xml) use ($authorization, $options) {
+            $this->addInvoice($options);
+            $xml->txn_number($authorization);
+        });
 
-        return $this->commit($this->void, null);
+        return $this->commit();
     }
 
     /**
@@ -206,11 +208,13 @@ class Moneris extends Gateway
     {
         Options::required('order_id', $options);
 
-        $this->addInvoice($options);
-        $this->post .= "<amount>{$this->amount($money)}</amount>";
-        $this->post .= "<txn_number>$identification</txn_number>";
+        $this->buildXml(static::CREDIT, function ($xml) use ($identification, $money, $options) {
+            $this->addInvoice($options);
+            $xml->amount($this->amount($money));
+            $xml->txn_number($identification);
+        });
 
-        return $this->commit($this->credit, $money);
+        return $this->commit();
     }
 
     /* Private */
@@ -253,20 +257,31 @@ class Moneris extends Gateway
         $first_name = $name[0];
         $last_name = $name[1];
 
-        $this->post .= "<billing><first_name>$first_name</first_name><last_name>$last_name</last_name>";
-        $this->post .= $this->parseAddress($billing_address)."</billing>";
-        $this->post .= "<shipping><first_name>$first_name</first_name><last_name>$last_name</last_name>";
-        $this->post .= $this->parseAddress($shipping_address)."</shipping>";
+        $this->xml->billing(function ($xml) use ($billing_address, $first_name, $last_name) {
+            $xml->first_name($first_name);
+            $xml->last_name($last_name);
+            $this->parseAddress($billing_address);
+        });
+
+        $this->xml->shipping(function ($xml) use ($shipping_address, $first_name, $last_name) {
+            $xml->first_name($first_name);
+            $xml->last_name($last_name);
+            $this->parseAddress($shipping_address);
+        });
 
         if (isset($options['street_number']) && isset($options['street_name'])) {
-            $this->post .= "<avs_info><avs_street_number>{$options['street_number']}</avs_street_number><avs_street_name>{$options['street_name']}</avs_street_name><avs_zipcode>{$shipping_address['zip']}</avs_zipcode></avs_info>";
+            $this->xml->avs_info(function ($xml) use ($options, $billing_address) {
+                $xml->avs_street_number($options['street_number']);
+                $xml->avs_street_name($options['street_name']);
+                $xml->avs_zipcode($billing_address['zip']);
+            });
         }
     }
 
     /**
      * @param array $address an array of address information to parse.
      */
-    private function parseAddress($address)
+    private function parseAddress(Options $address)
     {
         $options = array(
             'company'=>'company_name',
@@ -279,14 +294,11 @@ class Moneris extends Gateway
             'phone'=>'phone_number'
         );
 
-        $return = "";
         foreach ($options as $k => $v) {
             if ($address->offsetExists($k)) {
-                $return .= "<{$v}>{$address[$k]}</$v>";
+                $this->xml->$v($address[$k]);
             }
         }
-
-        return $return;
     }
 
     /**
@@ -297,18 +309,18 @@ class Moneris extends Gateway
     {
         Options::required('order_id', $options);
 
-        $this->post .= "<order_id>{$options['order_id']}</order_id>";
+        $this->xml->order_id($options['order_id']);
 
         if (isset($options['commcard_invoice'])) {
-            $this->post .= "<commcard_invoice>{$options['commcard_invoice']}</commcard_invoice>";
+            $this->xml->commcard_invoice($options['commcard_invoice']);
         }
 
         if (isset($options['commcard_tax_amount'])) {
-            $this->post .= "<commcard_tax_amount>{$this->amount($options['commcard_tax_amount'])}</commcard_tax_amount>";
+            $this->xml->commcard_tax_amount($this->amount($options['commmcard_tax_amount']));
         }
 
         if (isset($options['customer_id'])) {
-            $this->post .= "<cust_id>{$this->amount($options['customer_id'])}</cust_id>";
+            $this->xml->cust_id($this->options['customer_id']);
         }
     }
 
@@ -319,10 +331,15 @@ class Moneris extends Gateway
 
     private function addCreditcard(CreditCard $creditcard)
     {
-        $exp_date = $this->cc_format($creditcard->year, 'two_digits')
+        $expDate = $this->cc_format($creditcard->year, 'two_digits')
             . $this->cc_format($creditcard->month, 'two_digits');
 
-        $this->post .= "<pan>{$creditcard->number}</pan><expdate>{$exp_date}</expdate><cvd_info><cvd_indicator>1</cvd_indicator><cvd_value>{$creditcard->verification_value}</cvd_value></cvd_info>";
+        $this->xml->pan($creditcard->number);
+        $this->xml->expdate($expDate);
+        $this->xml->cvd_info(function ($xml) use ($creditcard) {
+            $xml->cvd_indicator(1);
+            $xml->cvd_value($creditcard->verification_value);
+        });
     }
 
     /**
@@ -372,15 +389,15 @@ class Moneris extends Gateway
      *
      * @return Response
      */
-    private function commit($action, $money, $parameters = array())
+    private function commit()
     {
         $url = $this->isTest() ? static::TEST_URL : static::LIVE_URL;
 
         $data = $this->ssl_post(
             $url,
-            $this->postData($action, $parameters),
+            $this->xml->__toString(),
             array(
-                'user_agent' =>  static::API_VERSION,
+                'user_agent' => static::API_VERSION,
                 'timeout'=> 60
             )
         );
@@ -437,7 +454,7 @@ class Moneris extends Gateway
      */
     private function fraudReviewFrom($response)
     {
-        return $response['cvd_result_code'] == self::FRAUD_REVIEW;
+        return $response['cvd_result_code'] == static::FRAUD_REVIEW;
     }
 
     /**
@@ -450,23 +467,26 @@ class Moneris extends Gateway
      */
     private function avsResultFrom($response)
     {
-        return array( 'code' => $response['avs_result_code'] );
+        return array('code' => $response['avs_result_code']);
     }
 
-    /**
-     *
-     * Add final parameters to post data and
-     * build $this->post to the format that your payment gateway understands
-     *
-     * @param string $action
-     * @param array  $parameters
-     */
-    private function postData($action, $parameters = array())
+    private function buildXml($action, $block)
     {
-        $xml = '<?xml version="1.0"?><request>';
-        $xml .= "<store_id>{$this->options['store_id']}</store_id><api_token>{$this->options['api_token']}</api_token>";
-        $xml .= "<$action>$this->post<crypt_type>{$this->crypt_type}</crypt_type></$action></request>";
+        $this->xml = new XmlBuilder();
+        $this->xml->instruct('1.0', null, false);
 
-        return $xml;
+        $this->xml->request(function ($xml) use ($action, $block) {
+            $this->authenticate();
+            $xml->$action(function ($xml) use ($block) {
+                $block($xml);
+                $xml->crypt_type($this->crypt_type);
+            });
+        });
+    }
+
+    private function authenticate()
+    {
+        $this->xml->store_id($this->options['store_id']);
+        $this->xml->api_token($this->options['api_token']);
     }
 }

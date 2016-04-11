@@ -11,20 +11,15 @@ class MonerisUs extends Moneris
 
     const API_VERSION = 'US PHP Api v.1.1.2';
 
+    const AUTHORIZE = 'us_preauth';
+    const CAVV_ATHORIZE = 'us_cavv_preauth';
+    const PURCHASE = 'us_purchase';
+    const CAVV_PURCHASE = 'us_cavv_purchase';
+    const CAPTURE = 'us_completion';
+    const VOID = 'us_purchasecorrection';
+    const CREDIT = 'us_refund';
+
     public static $supported_countries = array('US');
 
     public static $default_currency = 'USD';
-
-    public function __construct(array $options = array())
-    {
-        parent::__construct($options);
-
-        $this->authorize      = 'us_preauth';
-        $this->cavv_authorize = 'us_cavv_preauth';
-        $this->purchase       = 'us_purchase';
-        $this->cavv_purchase  = 'us_cavv_purchase';
-        $this->capture        = 'us_completion';
-        $this->void           = 'us_purchasecorrection';
-        $this->credit         = 'us_refund';
-    }
 }
