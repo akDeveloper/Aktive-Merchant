@@ -2,12 +2,13 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-use AktiveMerchant\Billing\Gateways\Centinel;
+namespace AktiveMerchant\Billing\Gateways;
+
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
-use AktiveMerchant\Event\RequestEvents;
+use AktiveMerchant\TestCase;
 
-class CentinelTest extends \AktiveMerchant\TestCase
+class CentinelTest extends TestCase
 {
 
     public $gateway;
@@ -58,59 +59,64 @@ class CentinelTest extends \AktiveMerchant\TestCase
         $this->assertNotNull($this->creditcard);
     }
 
-    function testLookup()
+    public function testLookup()
     {
-        $this->mock_request($this->successful_lookup_response());
+        $this->mock_request($this->successfulLookupResponse());
 
-        /*
-        $this->gateway->addListener(RequestEvents::POST_SEND, function($event){
-            var_dump(str_replace('cmpi_msg=', null, urldecode($event->getRequest()->getBody())));
-            var_dump($event->getRequest()->getResponseBody());
-        });*/
         $auth = $this->gateway->lookup(
             $this->amount,
             $this->creditcard,
             $this->options
         );
 
+        $request_body = $this->getRequestBody();
+        $this->assertEquals(
+            $this->successfulLookupRequest(),
+            $request_body
+        );
+
         $this->assertTrue($auth->success());
     }
 
-    function testAuthenticate()
+    public function testAuthenticate()
     {
-        $this->mock_request($this->successful_authenticate_response());
+        $this->mock_request($this->successfulAuthenticateResponse());
 
         $auth = $this->gateway->authenticate($this->options);
 
+        $request_body = $this->getRequestBody();
+        $this->assertEquals(
+            $this->successfulAuthenticateRequest(),
+            $request_body
+        );
+
         $this->assertTrue($auth->success());
     }
 
-    private function successful_lookup_response()
+    private function successfulLookupRequest()
     {
-    return '<CardinalMPI>
-<TransactionType>C</TransactionType>
-<ErrorNo>0</ErrorNo>
-<ErrorDesc></ErrorDesc>
-<TransactionId>75f986t76f6</TransactionId>
-<OrderId>2584</OrderId>
-<Payload>eNpVUk1TwjAQ/SsM402nSUuKwSC/3gSoH5PL</Payload>
-<Enrolled>Y</Enrolled>
-<ACSUrl>https://www.somewebsite.com/acs</ACSUrl>
-<EciFlag>07</EciFlag>
-</CardinalMPI>';
+        return '<?xml version="1.0" encoding="UTF-8"?>
+<CardinalMPI><MsgType>cmpi_lookup</MsgType><Version>1.7</Version><ProcessorId>z</ProcessorId><MerchantId>x</MerchantId><TransactionPwd>y</TransactionPwd><TransactionType>C</TransactionType><OrderNumber>123456</OrderNumber><CurrencyCode>978</CurrencyCode><Amount>100</Amount><CardNumber>5105105105105100</CardNumber><CardExpMonth>11</CardExpMonth><CardExpYear>2017</CardExpYear></CardinalMPI>';
     }
 
-    private function successful_authenticate_response()
+    private function successfulAuthenticateRequest()
     {
-    return '<CardinalMPI>
-<ErrorDesc></ErrorDesc>
-<ErrorNo>0</ErrorNo>
-<PAResStatus>Y</PAResStatus>
-<SignatureVerification>Y</SignatureVerification>
-<Cavv>AAAAAAAAAAAAAAAAAAAAAAAAA=</Cavv>
-<EciFlag>05</EciFlag>
-<Xid>k4Vf36ijnJX54kwHQNqUr8/ruvs=</Xid>
-</CardinalMPI>';
+        return '<?xml version="1.0" encoding="UTF-8"?>
+<CardinalMPI><MsgType>cmpi_authenticate</MsgType><Version>1.7</Version><ProcessorId>z</ProcessorId><MerchantId>x</MerchantId><TransactionPwd>y</TransactionPwd><TransactionType>C</TransactionType><TransactionId>78910</TransactionId><PAResPayload>payload</PAResPayload></CardinalMPI>';
     }
 
+    private function successfulLookupResponse()
+    {
+        return '<CardinalMPI> <TransactionType>C</TransactionType> <ErrorNo>0</ErrorNo> <ErrorDesc></ErrorDesc> <TransactionId>75f986t76f6</TransactionId> <OrderId>2584</OrderId> <Payload>eNpVUk1TwjAQ/SsM402nSUuKwSC/3gSoH5PL</Payload> <Enrolled>Y</Enrolled> <ACSUrl>https://www.somewebsite.com/acs</ACSUrl> <EciFlag>07</EciFlag> </CardinalMPI>';
+    }
+
+    private function successfulAuthenticateResponse()
+    {
+        return '<CardinalMPI> <ErrorDesc></ErrorDesc> <ErrorNo>0</ErrorNo> <PAResStatus>Y</PAResStatus> <SignatureVerification>Y</SignatureVerification> <Cavv>AAAAAAAAAAAAAAAAAAAAAAAAA=</Cavv> <EciFlag>05</EciFlag> <Xid>k4Vf36ijnJX54kwHQNqUr8/ruvs=</Xid> </CardinalMPI>';
+    }
+
+    private function getRequestBody()
+    {
+        return str_replace('cmpi_msg=', null, urldecode($this->request->getBody()));
+    }
 }

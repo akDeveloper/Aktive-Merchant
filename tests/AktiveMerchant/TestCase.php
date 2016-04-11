@@ -31,8 +31,7 @@ class TestCase extends \PHPUnit_Framework_TestCase
             array('getResponseBody')
         );
 
-        $this->request->expects($this->once())
-            ->method('getResponseBody')
+        $this->request->method('getResponseBody')
             ->will($this->returnValue($answer));
 
         $this->gateway->setRequest($this->request);

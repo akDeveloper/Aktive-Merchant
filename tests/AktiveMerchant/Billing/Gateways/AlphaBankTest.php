@@ -59,6 +59,8 @@ class AlphaBankTest extends \AktiveMerchant\TestCase
             $this->options
         );
 
+        echo $this->request->getBody();
+
         $this->assert_success($response);
         $this->assertTrue($response->test());
 

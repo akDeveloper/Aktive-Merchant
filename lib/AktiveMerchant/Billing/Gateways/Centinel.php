@@ -8,7 +8,7 @@ use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Gateways\Centinel\CentinelResponse;
 use AktiveMerchant\Common\Options;
-use AktiveMerchant\Common\XmlBuilder;
+use AktiveMerchant\Common\SimpleXmlBuilder;
 
 /**
  * Integration of Centinel gateway
@@ -77,11 +77,10 @@ class Centinel extends Gateway
         Options::required('order_id', $options);
         $options = new Options($options);
 
-        $this->buildXml(static::LOOKUP, function ($xml) use ($money, $creditcard, $options) {
-            $this->addInvoice($money, $options, $xml);
-            $this->addCreditcard($creditcard, $xml);
-            $options['description'] and $this->addOrderDescription($options['description'], $xml);
-        });
+        $this->buildXml(static::LOOKUP);
+        $this->addInvoice($money, $options);
+        $this->addCreditcard($creditcard);
+        $options['description'] and $this->addOrderDescription($options['description']);
 
 
         return $this->commit(static::LOOKUP, $money, $options);
@@ -92,63 +91,59 @@ class Centinel extends Gateway
         Options::required('payload, transaction_id', $options);
         $options = new Options($options);
 
-        $this->buildXml(static::AUTHENTICATE, function ($xml) use ($options) {
-            $this->addCmpiLookupData($options, $xml);
-        });
+        $this->buildXml(static::AUTHENTICATE);
+        $this->addCmpiLookupData($options);
 
         return $this->commit(static::AUTHENTICATE, null, $options);
     }
 
     /* Private */
 
-    private function buildXml($action, $block)
+    private function buildXml($action)
     {
-        $this->xml = new XmlBuilder();
-        $this->xml->instruct('1.0', 'UTF-8');
-        $this->xml->CardinalMPI(function ($xml) use ($action, $block) {
-            $xml->MsgType($action);
-            $xml->Version(static::VERSION);
-            $xml->ProcessorId($this->options['processor_id']);
-            $xml->MerchantId($this->options['login']);
-            $xml->TransactionPwd($this->options['password']);
-            $xml->TransactionType('C');
-            $block($xml);
-        });
+        $this->xml = new SimpleXmlBuilder('1.0', 'UTF-8');
+        $this->xml->CardinalMPI();
+        $this->xml->MsgType($action);
+        $this->xml->Version(static::VERSION);
+        $this->xml->ProcessorId($this->options['processor_id']);
+        $this->xml->MerchantId($this->options['login']);
+        $this->xml->TransactionPwd($this->options['password']);
+        $this->xml->TransactionType('C');
     }
 
-    private function addCmpiLookupData($options, $xml)
+    private function addCmpiLookupData($options)
     {
-        $xml->TransactionId($options['transaction_id']);
-        $xml->PAResPayload($options['payload']);
+        $this->xml->TransactionId($options['transaction_id']);
+        $this->xml->PAResPayload($options['payload']);
     }
 
     private function addOrderDescription($description, $xml)
     {
-        $xml->OrderDescription($description);
+        $this->xml->OrderDescription($description);
     }
 
-    private function addInvoice($money, $options, $xml)
+    private function addInvoice($money, $options)
     {
         $order_number = isset($options['order_id']) ? $options['order_id'] : null;
 
         $amount = $this->isTest() ? $this->amount("1") : $this->amount($money);
         $default_currency = static::$default_currency;
-        $xml->OrderNumber($order_number);
-        $xml->CurrencyCode($this->currency_lookup($default_currency));
-        $xml->Amount($amount);
+        $this->xml->OrderNumber($order_number);
+        $this->xml->CurrencyCode($this->currency_lookup($default_currency));
+        $this->xml->Amount($amount);
         if ($options['installment']) {
-            $xml->Installment($options['installment']);
+            $this->xml->Installment($options['installment']);
         }
     }
 
-    private function addCreditcard(CreditCard $creditcard, $xml)
+    private function addCreditcard(CreditCard $creditcard)
     {
         $month = $this->cc_format($creditcard->month, 'two_digits');
         $year = $this->cc_format($creditcard->year, 'four_digits');
 
-        $xml->CardNumber($creditcard->number);
-        $xml->CardExpMonth($month);
-        $xml->CardExpYear($year);
+        $this->xml->CardNumber($creditcard->number);
+        $this->xml->CardExpMonth($month);
+        $this->xml->CardExpYear($year);
     }
 
     private function parse($body)

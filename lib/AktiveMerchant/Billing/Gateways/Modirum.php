@@ -133,9 +133,9 @@ abstract class Modirum extends Gateway implements
         $options = new Options($options);
 
         $this->buildXml(static::AUTHORIZE, $options, function ($xml) use ($money, $creditcard, $options) {
-            $this->addInvoice($money, $options, $xml);
-            $this->addCreditcard($creditcard, $options, $xml);
-            $this->addThreedSecure($options, $xml);
+            $this->addInvoice($money, $options, static::AUTHORIZE);
+            $this->addCreditcard($creditcard, $options, static::AUTHORIZE);
+            $this->addThreedSecure($options, static::AUTHORIZE);
         });
 
         return $this->commit(static::AUTHORIZE, $money);
@@ -148,11 +148,10 @@ abstract class Modirum extends Gateway implements
     {
         $options = new Options($options);
 
-        $this->buildXml(static::SALE, $options, function ($xml) use ($money, $creditcard, $options) {
-            $this->addInvoice($money, $options, $xml);
-            $this->addCreditcard($creditcard, $options, $xml);
-            $this->addThreedSecure($options, $xml);
-        });
+        $this->buildXml(static::SALE);
+        $this->addInvoice($money, $options, $xml);
+        $this->addCreditcard($creditcard, $options, $xml);
+        $this->addThreedSecure($options, $xml);
 
 
         #$this->add_address($options);
@@ -235,14 +234,10 @@ abstract class Modirum extends Gateway implements
         $action = $action . 'Request';
         $messageId = md5(uniqid($options['order_id'], true));
         $this->xml = new XmlBuilder();
-        $this->xml->Message(function ($xml) use ($action, $block) {
-            $xml->$action(function ($xml) use ($block) {
-                $xml->Authentication(function ($xml) {
-                    $xml->Mid($this->options['merchant_id']);
-                });
-                $block($xml);
-            });
-        }, array('lang' => 'en', 'messageId' => $messageId, 'version' => '1.0'));
+        $this->xml->Message(null, null, array('lang' => 'en', 'messageId' => $messageId, 'version' => '1.0'));
+        $this->xml->$action(null, 'Message');
+        $this->xml->Authentication(null, $action);
+        $this->xml->Mid($this->options['merchant_id'], 'Authentication');
     }
 
     /**
@@ -250,18 +245,18 @@ abstract class Modirum extends Gateway implements
      *
      * @param array $options
      */
-    private function addInvoice($money, $options, $xml)
+    private function addInvoice($money, $options, $action)
     {
-        $xml->OrderInfo(function ($xml) use ($money, $options) {
-            $xml->OrderId($options['order_id']);
-            $xml->OrderDesc($options['order_id']);
-            $xml->OrderAmount($this->amount($money));
-            $xml->Currency(static::$default_currency);
-            $xml->PayerEmail("");
-            if (true == $options['moto']) {
-                $xml->MOTO(1);
-            }
-        });
+        $xml = $this->xml;
+        $xml->OrderInfo(null, $action . 'Request');
+        $xml->OrderId($options['order_id'], 'OrderInfo');
+        $xml->OrderDesc($options['order_id'], 'OrderInfo');
+        $xml->OrderAmount($this->amount($money), 'OrderInfo');
+        $xml->Currency(static::$default_currency, 'OrderInfo');
+        $xml->PayerEmail("", 'OrderInfi');
+        if (true == $options['moto']) {
+            $xml->MOTO(1, 'OrderInfo');
+        }
     }
 
     /**
@@ -269,8 +264,28 @@ abstract class Modirum extends Gateway implements
      *
      * @param CreditCard $creditcard
      */
-    private function addCreditcard(CreditCard $creditcard, $options, $xml)
+    private function addCreditcard(CreditCard $creditcard, $options, $action)
     {
+        $xml = $this->xml;
+        $year  = $this->cc_format($creditcard->year, 'two_digits');
+        $month = $this->cc_format($creditcard->month, 'two_digits');
+
+        $xml->PaymentInfo(null, $action . 'Request')
+            ->PayMethod(
+                $this->CARD_MAPPINGS[CreditCard::type($creditcard->number)],
+                'PaymentInfo'
+            )
+            ->CardPan($creditcard->number, 'PaymentInfo')
+            ->CardExpDate("{$year}{$month}", 'PaymentInfo')
+            ->CardCvv2($creditcard->verification_value, 'PaymentInfo')
+            ->CardHolderName(trim($creditcard->name()), 'PaymentInfo');
+
+        if ($options['installments']) {
+            $xml->InstallmentParameters(null, 'PayentInfo')
+                ->ExtInstallmentoffset(0, 'InstallmentParameters')
+                ->ExtInstallmentperiod($options['installments'], 'InstallmentParameters');
+        }
+        return;
         $xml->PaymentInfo(function ($xml) use ($creditcard, $options) {
             $xml->PayMethod($this->CARD_MAPPINGS[CreditCard::type($creditcard->number)]);
             $xml->CardPan($creditcard->number);

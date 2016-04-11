@@ -39,12 +39,6 @@ class XmlBuilder
         $this->writer->endDTD();
     }
 
-    public function docType($qualifiedName, $publicId = null, $systemId = null)
-    {
-        $this->writer->startDTD($qualifiedName, $publicId, $systemId);
-        $this->writer->endDTD();
-    }
-
     public function build()
     {
         $args = func_get_args();
