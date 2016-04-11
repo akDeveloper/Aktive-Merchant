@@ -108,8 +108,9 @@ class ExactTest extends TestCase
         $this->assertTrue(!is_null($response->authorization()));
 
         $request_body = $this->request->getBody();
+        $login = $this->getFixtures()->offsetGet('exact');
         $this->assertEquals(
-            $this->successfulCaptureRequest(),
+            $this->successfulCaptureRequest($login['login'], $login['password']),
             $request_body
         );
     }
@@ -129,8 +130,9 @@ class ExactTest extends TestCase
         );
 
         $request_body = $this->request->getBody();
+        $login = $this->getFixtures()->offsetGet('exact');
         $this->assertEquals(
-            $this->successfulCreditRequest(),
+            $this->successfulCreditRequest($login['login'], $login['password']),
             $request_body
         );
     }
@@ -313,10 +315,10 @@ issuer pursuant to cardholder agreement.
 </TransactionResult>';
     }
 
-    private function successfulCaptureRequest()
+    private function successfulCaptureRequest($login, $password)
     {
         return '<?xml version="1.0" encoding="utf-8"?>
-<Transaction><ExactID>A00049-01</ExactID><Password>test1</Password><Transaction_Type>32</Transaction_Type><Transaction_Tag>1255958813</Transaction_Tag><Authorization_Num>ET5150</Authorization_Num><DollarAmount>100.00</DollarAmount></Transaction>
+<Transaction><ExactID>'.$login.'</ExactID><Password>'.$password.'</Password><Transaction_Type>32</Transaction_Type><Transaction_Tag>1255958813</Transaction_Tag><Authorization_Num>ET5150</Authorization_Num><DollarAmount>100.00</DollarAmount></Transaction>
 ';
     }
 
@@ -408,10 +410,10 @@ issuer pursuant to cardholder agreement.
 =========================================</CTR>
 </TransactionResult>';
     }
-    private function successfulCreditRequest()
+    private function successfulCreditRequest($login, $password)
     {
         return '<?xml version="1.0" encoding="utf-8"?>
-<Transaction><ExactID>A00049-01</ExactID><Password>test1</Password><Transaction_Type>34</Transaction_Type><Transaction_Tag>1255961063</Transaction_Tag><Authorization_Num>ET0205</Authorization_Num><DollarAmount>100.00</DollarAmount></Transaction>
+<Transaction><ExactID>'.$login.'</ExactID><Password>'.$password.'</Password><Transaction_Type>34</Transaction_Type><Transaction_Tag>1255961063</Transaction_Tag><Authorization_Num>ET0205</Authorization_Num><DollarAmount>100.00</DollarAmount></Transaction>
 ';
     }
 
