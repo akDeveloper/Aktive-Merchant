@@ -22,21 +22,26 @@ class SimpleXmlBuilder
 
     private $encoding;
 
+    private $namespace;
+
+    private $nodes;
+
     /**
      * @param string $version Default '1.0'
      * @param string $encoding Default 'UTF-8'
      */
-    public function __construct($version = '1.0', $encoding = 'UTF-8')
+    public function __construct($version = '1.0', $encoding = 'UTF-8', $namespace = null)
     {
         $this->version = $version;
         $this->encoding = $encoding;
+        $this->namespace = $namespace;
     }
 
     /**
      * @param string $name The name of element
      * @param array $args An array with:
      *                      - (string) value of element
-     *                      - (string) node element to add this element as child.
+     *                      - (string) parent node element to add this element as child.
      *                      - (array) attributes of element
      *
      * @return XmlBuilder
@@ -46,6 +51,7 @@ class SimpleXmlBuilder
         $value = array_shift($args);
         $parentNode = array_shift($args);
         $attrs = array_shift($args) ?: array();
+        $namespace = array_shift($args) ?: null;
 
         if (null === $this->root) {
             $this->createRootNode($name, $attrs);
@@ -53,27 +59,49 @@ class SimpleXmlBuilder
             return $this;
         }
 
-        $this->createNode($name, $value, $attrs, $parentNode);
+        $this->createNode($name, $value, $attrs, $parentNode, $namespace);
 
         return $this;
     }
 
-    private function createNode($name, $value, array $attrs = array(), $parentNode = null)
+    public function registerXPathNamespace($prefix, $ns)
+    {
+        $this->root->registerXPathNamespace($prefix, $ns);
+    }
+
+    private function createNode($name, $value, array $attrs = array(), $parentNode = null, $namespace = null)
     {
         if ($parentNode) {
-            $node = $this->xpath('//' . $parentNode)->addChild($name, $value);
+            #$node = $this->xpath('//' . $parentNode);
+            $node = $this->nodes[$parentNode];
+            $node = $node->addChild($name, $value, $namespace);
         } else {
-            $node = $this->root->addChild($name, $value);
+            $node = $this->root->addChild($name, $value, $namespace);
         }
         $this->addAttributes($node, $attrs);
+        $this->nodes[$name] = $node;
     }
 
     private function createRootNode($tag, array $attrs = array())
     {
-        $root = '<?xml version="%s" encoding="%s"?><%s></%s>';
-        $string = sprintf($root, $this->version, $this->encoding, $tag, $tag);
+        $attr = "";
+        if (!empty($attrs)) {
+            $attr = $this->serializeAttributes($attrs);
+        }
+        $root = '<?xml version="%s" encoding="%s"?><%s%s></%s>';
+        $string = sprintf($root, $this->version, $this->encoding, $tag, $attr, $tag);
         $this->root = new SimpleXmlElement($string);
-        $this->addAttributes($this->root, $attrs);
+        $this->nodes[$tag] = $this->root;
+    }
+
+    private function serializeAttributes($attrs)
+    {
+        $string = "";
+        foreach ($attrs as $name => $value) {
+            $string .= ' '.$name.'="'.$value.'"';
+        }
+
+        return $string;
     }
 
     private function addAttributes($node, array $attrs)

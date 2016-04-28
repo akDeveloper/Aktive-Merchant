@@ -2,15 +2,16 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
+namespace AktiveMerchant\Billing\Gateways;
+
 use AktiveMerchant\Billing\Base;
-use AktiveMerchant\Billing\Gateways\Iridium;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Common\Options;
-use AktiveMerchant\Billing\Gateways\Eway;
+use AktiveMerchant\TestCase;
+use AktiveMerchant\Event\RequestEvents;
 
-class IridiumTest extends AktiveMerchant\TestCase
+class IridiumTest extends TestCase
 {
-
     public $gateway;
     public $amount;
     public $options;
@@ -28,12 +29,11 @@ class IridiumTest extends AktiveMerchant\TestCase
 
         $this->creditcard = new CreditCard(
             array(
-                "type" => 'VC',
                 "first_name" => "John",
                 "last_name" => "Doe",
                 "number" => '4976000000003436',
                 "month" => "12",
-                "year" => "2015",
+                "year" => date('Y') + 1,
                 "verification_value" => "452"
             )
         );
@@ -55,7 +55,7 @@ class IridiumTest extends AktiveMerchant\TestCase
 
     public function testSuccessfulAuthorization()
     {
-        $this->mock_request($this->successful_authorize_response());
+        $this->mock_request($this->successfulAuthorizeResponse());
 
         $response = $this->gateway->authorize(
             $this->amount,
@@ -64,31 +64,32 @@ class IridiumTest extends AktiveMerchant\TestCase
         );
 
         $this->assert_success($response);
-
         $this->assertRegExp('/033976/', $response->authorization());
+        $this->assertNotNull($response->authorization());
 
-        $this->assertTrue(!is_null($response->authorization()));
-
+        return $response->authorization();
     }
 
-    public function testSuccesfulCapture ()
+    /**
+     * @depends testSuccessfulAuthorization
+     */
+    public function testSuccesfulCapture($authorization)
     {
-        $this->mock_request($this->successful_capture_response());
+        $this->mock_request($this->successfulCaptureResponse());
 
-        $authorization = 'REF1401315153;140529115207528401556604;033976';
         $response = $this->gateway->capture(
             $this->amount,
             $authorization,
             $this->options
         );
 
+        $this->assert_success($response);
         $this->assertRegExp('/140529115328094701097945/', $response->authorization());
-
     }
 
     public function testSuccesfulPurchase()
     {
-        $this->mock_request($this->successful_purchase_response());
+        $this->mock_request($this->successfulPurchaseResponse());
 
         $response = $this->gateway->purchase(
             $this->amount,
@@ -96,41 +97,46 @@ class IridiumTest extends AktiveMerchant\TestCase
             $this->options
         );
 
-        $this->assertRegExp('/140529120244578301140694/', $response->authorization());
         $this->assert_success($response);
+        $this->assertRegExp('/140529120244578301140694/', $response->authorization());
+
+        return $response->authorization();
     }
 
-    public function testSuccessfulCredit()
+    /**
+     * @depends testSuccesfulPurchase
+     */
+    public function testSuccessfulCredit($authorization)
     {
-       $this->mock_request($this->successful_credit_response());
+        $this->mock_request($this->successfulCreditResponse());
 
-        $authorization = 'REF1768823666;140529120244578301140694;931597';
         $response = $this->gateway->credit(
             $this->amount,
             $authorization,
             $this->options
         );
 
-        $this->assertRegExp('/140529131137341901180555/', $response->authorization());
         $this->assert_success($response);
+        $this->assertRegExp('/140529131137341901180555/', $response->authorization());
     }
 
-    public function testSuccessfulVoid()
+    /**
+     * @depends testSuccessfulAuthorization
+     */
+    public function testSuccessfulVoid($authorization)
     {
-        $this->mock_request($this->successful_void_response());
-        $authorization = 'REF1768823666;140529120244578301140694;931597';
+        $this->mock_request($this->successfulVoidResponse());
 
         $response = $this->gateway->void(
             $authorization,
             $this->options
         );
 
-        $this->assertRegExp('/140529132114901901941710/', $response->authorization());
         $this->assert_success($response);
+        $this->assertRegExp('/140529132114901901941710/', $response->authorization());
     }
 
-
-    private function successful_authorize_response()
+    private function successfulAuthorizeResponse()
     {
         return '<?xml version="1.0" encoding="utf-8"?>
             <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -144,9 +150,9 @@ class IridiumTest extends AktiveMerchant\TestCase
             </CardDetailsTransactionResponse></soap:Body></soap:Envelope>';
     }
 
-    private function successful_capture_response()
+    private function successfulCaptureResponse()
     {
-        return ' <?xml version="1.0" encoding="utf-8" ?>
+        return '<?xml version="1.0" encoding="utf-8" ?>
             <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
             <soap:Body><CrossReferenceTransactionResponse xmlns="https://www.thepaymentgateway.net/"><CrossReferenceTransactionResult AuthorisationAttempted="True">
             <StatusCode>0</StatusCode><Message>Collection successful</Message>
@@ -157,7 +163,7 @@ class IridiumTest extends AktiveMerchant\TestCase
     }
 
 
-    private function successful_purchase_response()
+    private function successfulPurchaseResponse()
     {
         return '<?xml version="1.0" encoding="utf-8"?>
             <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -168,11 +174,11 @@ class IridiumTest extends AktiveMerchant\TestCase
             <AddressNumericCheckResult>PASSED</AddressNumericCheckResult><PostCodeCheckResult>PASSED</PostCodeCheckResult>
             <CV2CheckResult>PASSED</CV2CheckResult><GatewayEntryPoints><GatewayEntryPoint EntryPointURL="https://gw1.payvector.net/" Metric="100" />
             <GatewayEntryPoint EntryPointURL="https://gw2.payvector.net/" Metric="200" /></GatewayEntryPoints>
-            </TransactionOutputData></CardDetailsTransactionResponse></soap:Body></soap:Envelope>A';
+            </TransactionOutputData></CardDetailsTransactionResponse></soap:Body></soap:Envelope>';
 
     }
 
-    private function successful_credit_response()
+    private function successfulCreditResponse()
     {
         return '<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
             <soap:Body><CrossReferenceTransactionResponse xmlns="https://www.thepaymentgateway.net/">
@@ -184,7 +190,7 @@ class IridiumTest extends AktiveMerchant\TestCase
             </TransactionOutputData></CrossReferenceTransactionResponse></soap:Body></soap:Envelope>';
     }
 
-    private function successful_void_response()
+    private function successfulVoidResponse()
     {
         return'<?xml version="1.0" encoding="utf-8"?>
             <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -197,6 +203,4 @@ class IridiumTest extends AktiveMerchant\TestCase
             </GatewayEntryPoints></TransactionOutputData></CrossReferenceTransactionResponse>
             </soap:Body></soap:Envelope>';
     }
-
-
 }
