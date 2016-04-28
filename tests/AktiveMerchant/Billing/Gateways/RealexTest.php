@@ -35,9 +35,9 @@ class RealexTest extends \AktiveMerchant\TestCase
             array(
                 "first_name" => "John",
                 "last_name" => "Doe",
-                "number" => "4111111111111111",
+                "number" => "4263970000005262",
                 "month" => "01",
-                "year" => "2015",
+                "year" => date('Y') + 1,
                 "verification_value" => "000"
             )
         );
@@ -55,11 +55,15 @@ class RealexTest extends \AktiveMerchant\TestCase
 
     public function testSuccessfulPurchase()
     {
-        $this->mock_request($this->successful_purchase_response());
+        #$this->mock_request($this->successful_purchase_response());
 
         $response = $this->gateway->purchase(
-            $this->amount, $this->creditcard, $this->options
+            $this->amount,
+            $this->creditcard,
+            $this->options
         );
+
+        print_r($response);
 
         $this->assertInstanceOf('AktiveMerchant\\Billing\\Response', $response);
         $this->assert_success($response);
