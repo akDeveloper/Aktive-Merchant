@@ -155,6 +155,7 @@ class Everypay extends Gateway implements
     {
         $options = new Options($options);
         $this->post = array('amount' => $this->amount($money));
+        $this->post['description'] = $options['description'];
 
         $path = sprintf(self::CREDIT, $identification);
 
@@ -180,11 +181,20 @@ class Everypay extends Gateway implements
      */
     private function addCreditcard(CreditCard $creditcard)
     {
+        if ($this->isToken($creditcard->number)) {
+            return $this->post['token'] = $creditcard->number;
+        }
+
         $this->post['card_number'] = $creditcard->number;
         $this->post['holder_name'] = $creditcard->name();
         $this->post['expiration_year'] = $creditcard->year;
         $this->post['expiration_month'] = $this->cc_format($creditcard->month, 'two_digits');
         $this->post['cvv'] = $creditcard->verification_value;
+    }
+
+    private function isToken($number)
+    {
+        return preg_match("/^ctn|^cus/", $number);
     }
 
     /**
@@ -222,7 +232,6 @@ class Everypay extends Gateway implements
         $options = array('connect_timeout' => 60);
 
         $postData = $this->postData();
-        print_r($postData);
         $data = $this->ssl_request(
             $method,
             $url,
@@ -246,7 +255,6 @@ class Everypay extends Gateway implements
             )
         );
     }
-
 
     /**
      * Returns success flag from gateway response

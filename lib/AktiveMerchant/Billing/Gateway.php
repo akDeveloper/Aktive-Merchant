@@ -26,7 +26,6 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  */
 abstract class Gateway
 {
-
     /**
      * Money format supported by this gateway.
      * Can be 'dollars' or 'cents'
@@ -420,6 +419,15 @@ abstract class Gateway
 
     /**
      * Add a listener to gateway event.
+     *
+     * <code>
+     * <?php
+     *
+     * $this->gateway->addListener(RequestEvents::POST_SEND, function ($event) {
+     *      $requestBody = $event->getRequest()->getBody();
+     *      $responseBody = $event->getRequest()->getResponseBody();
+     * });
+     * </code>
      *
      * @param string $eventName
      * @param string $listener

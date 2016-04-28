@@ -7,6 +7,7 @@ namespace AktiveMerchant\Billing\Gateways;
 use AktiveMerchant\TestCase;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Event\RequestEvents;
 
 class EverypayTest extends TestCase
 {
@@ -39,7 +40,7 @@ class EverypayTest extends TestCase
 
     public function testSuccessfulPurchase()
     {
-        #$this->mock_request($this->successful_purchase_response());
+        $this->mock_request($this->successPurchaseResponse());
 
         $response = $this->gateway->purchase(
             $this->amount,
@@ -47,20 +48,20 @@ class EverypayTest extends TestCase
             $this->options
         );
 
-        print_r($response);
-        #$this->assert_success($response);
+        $this->assert_success($response);
+        $this->assertRegExp('/^pmt/', $response->authorization());
+        $this->assertEquals('Captured', $response->message());
 
-        #$request_body = $this->request->getBody();
-        /*$this->assertEquals(
-            $this->purchase_request($this->options['order_id']),
-            $request_body
-        );*/
+    }
 
+    private function successPurchaseResponse()
+    {
+        return '{ "token": "pmt_8aos88URXiaa8gKzkciu5Vdf", "date_created": "2016-04-28T21:04:17+0300", "description": "Everypay Test Transaction", "currency": "EUR", "status": "Captured", "amount": 1000, "refund_amount": 0, "fee_amount": 44, "payee_email": "test@example.com", "payee_phone": "+30211212121", "refunded": false, "refunds": [], "installments_count": 0, "installments": [], "card": { "expiration_month": "01", "expiration_year": "2017", "last_four": "1111", "type": "Visa", "holder_name": "John Doe", "supports_installments": false, "max_installments": 0 } }';
     }
 
     public function testSuccessfulAuthorize()
     {
-        #$this->mock_request($this->successful_purchase_response());
+        $this->mock_request($this->successAuthorizeResponse());
 
         $response = $this->gateway->authorize(
             $this->amount,
@@ -68,38 +69,63 @@ class EverypayTest extends TestCase
             $this->options
         );
 
-        print_r($response);
-        #$this->assert_success($response);
+        $this->assert_success($response);
+        $this->assertRegExp('/^pmt/', $response->authorization());
+        $this->assertEquals('Pre authorized', $response->message());
 
-        #$request_body = $this->request->getBody();
-        /*$this->assertEquals(
-            $this->purchase_request($this->options['order_id']),
-            $request_body
-        );*/
-
+        return $response->authorization();
     }
 
-    public function testCapture()
+    private function successAuthorizeResponse()
     {
-        $authorization = 'pmt_2f9rI3J0NzyZvGdl7X1xMmT9';
+        return '{ "token": "pmt_tLzz3ICU8v1FqI3aWfga5oqd", "date_created": "2016-04-28T21:06:08+0300", "description": "Everypay Test Transaction", "currency": "EUR", "status": "Pre authorized", "amount": 1000, "refund_amount": 0, "fee_amount": 44, "payee_email": "test@example.com", "payee_phone": "+30211212121", "refunded": false, "refunds": [], "installments_count": 0, "installments": [], "card": { "expiration_month": "01", "expiration_year": "2017", "last_four": "1111", "type": "Visa", "holder_name": "John Doe", "supports_installments": false, "max_installments": 0 } }';
+    }
+
+    /**
+     * @depends testSuccessfulAuthorize
+     */
+    public function testSuccessfulCapture($authorization)
+    {
+        $this->mock_request($this->successCaptureResponse());
+
         $response = $this->gateway->capture(
             $this->amount,
             $authorization,
             $this->options
         );
 
-        print_r($response);
+        $this->assert_success($response);
+        $this->assertRegExp('/^pmt/', $response->authorization());
+        $this->assertEquals('Captured', $response->message());
+
+        return $response->authorization();
     }
 
-    public function testCredit()
+    private function successCaptureResponse()
     {
-        $identification = 'pmt_2f9rI3J0NzyZvGdl7X1xMmT9';
+        return '{ "token": "pmt_tLzz3ICU8v1FqI3aWfga5oqd", "date_created": "2016-04-28T21:06:08+0300", "description": "Everypay Test Transaction", "currency": "EUR", "status": "Captured", "amount": 1000, "refund_amount": 0, "fee_amount": 44, "payee_email": "test@example.com", "payee_phone": "+30211212121", "refunded": false, "refunds": [], "installments_count": 0, "installments": [], "card": { "expiration_month": "01", "expiration_year": "2017", "last_four": "1111", "type": "Visa", "holder_name": "John Doe", "supports_installments": false, "max_installments": 0 } }';
+    }
+
+    /**
+     * @depends testSuccessfulCapture
+     */
+    public function testSuccessfulCredit($identification)
+    {
+        $this->mock_request($this->successCreditResponse());
+
         $response = $this->gateway->credit(
             $this->amount,
             $identification,
             $this->options
         );
 
-        print_r($response);
+        $this->assert_success($response);
+        $this->assertRegExp('/^pmt/', $response->authorization());
+        $this->assertEquals('Refunded', $response->message());
+    }
+
+    private function successCreditResponse()
+    {
+        return '{ "token": "pmt_tLzz3ICU8v1FqI3aWfga5oqd", "date_created": "2016-04-28T21:06:08+0300", "description": "Everypay Test Transaction", "currency": "EUR", "status": "Refunded", "amount": 1000, "refund_amount": 1000, "fee_amount": 0, "payee_email": "test@example.com", "payee_phone": "+30211212121", "refunded": true, "refunds": [ { "token": "ref_IOvZv1QspHxgWezKztWiRHHY", "status": "Captured", "date_created": "2016-04-28T21:14:23+0300", "amount": 1000, "fee_amount": 44, "description": null } ], "installments_count": 0, "installments": [], "card": { "expiration_month": "01", "expiration_year": "2017", "last_four": "1111", "type": "Visa", "holder_name": "John Doe", "supports_installments": false, "max_installments": 0 } }';
     }
 }
