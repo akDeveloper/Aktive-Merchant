@@ -250,7 +250,6 @@ class Exact extends Gateway implements Interfaces\Charge
         $this->post->addChild('Expiry_Date', $this->expdate($creditcard));
         $this->post->addChild('CardHoldersName', $creditcard->name());
         if ($cvv = $creditcard->verification_value) {
-
             $this->post->addChild('CVD_Presence_Ind', 1);
             $this->post->addChild('VerificationStr2', $cvv);
         }

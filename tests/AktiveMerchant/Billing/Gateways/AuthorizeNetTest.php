@@ -17,7 +17,6 @@ use AktiveMerchant\Billing\CreditCard;
  */
 class AuthorizeNetTest extends \AktiveMerchant\TestCase
 {
-
     public $gateway;
     public $amount;
     public $options;
