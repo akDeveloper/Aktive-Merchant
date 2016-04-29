@@ -2,9 +2,11 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-use AktiveMerchant\Billing\Gateways\Moneris;
+namespace AktiveMerchant\Billing\Gateways;
+
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\TestCase;
 
 /**
  * Unit tests for Moneris gateway.
@@ -15,7 +17,7 @@ use AktiveMerchant\Billing\CreditCard;
  * @license http://www.opensource.org/licenses/mit-license.php
  *
  */
-class MonerisTest extends \AktiveMerchant\TestCase
+class MonerisTest extends TestCase
 {
     public $gateway;
     public $amount;

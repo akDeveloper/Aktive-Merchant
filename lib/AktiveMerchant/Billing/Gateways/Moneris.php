@@ -173,7 +173,7 @@ class Moneris extends Gateway
     public function capture($money, $authorization, $options = array())
     {
         Options::required('order_id', $options);
-        $action = self::CAPTURE;
+        $action = static::CAPTURE;
 
         $this->createXmlBuilder($action);
 
@@ -195,7 +195,7 @@ class Moneris extends Gateway
     public function void($authorization, $options = array())
     {
         Options::required('order_id', $options);
-        $action = self::VOID;
+        $action = static::VOID;
 
         $this->createXmlBuilder($action);
 
@@ -217,7 +217,7 @@ class Moneris extends Gateway
     public function credit($money, $identification, $options = array())
     {
         Options::required('order_id', $options);
-        $action = self::CREDIT;
+        $action = static::CREDIT;
 
         $this->createXmlBuilder($action);
         $this->addInvoice($options, $action);
