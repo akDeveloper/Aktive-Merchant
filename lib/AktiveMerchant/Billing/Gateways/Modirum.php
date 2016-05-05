@@ -31,13 +31,13 @@ abstract class Modirum extends Gateway implements
     const MPI_TEST_URL = '';
     const MPI_LIVE_URL = '';
 
-    const SALE      = 'Sale';
-    const AUTHORIZE = 'Authorisation';
-    const CAPTURE   = 'Capture';
-    const CANCEL    = 'Cancel';
-    const REFUND    = 'Refund';
-    const RECURRING = 'RecurringOperation';
-    const STATUS    = 'Status';
+    const SALE      = 'SaleRequest';
+    const AUTHORIZE = 'AuthorisationRequest';
+    const CAPTURE   = 'CaptureRequest';
+    const CANCEL    = 'CancelRequest';
+    const REFUND    = 'RefundRequest';
+    const RECURRING = 'RecurringOperationRequest';
+    const STATUS    = 'StatusRequest';
 
     /**
      * {@inheritdoc}
@@ -133,10 +133,10 @@ abstract class Modirum extends Gateway implements
     {
         $options = new Options($options);
 
-        $this->buildXml(static::SALE, $options);
+        $this->buildXml(static::AUTHORIZE, $options);
         $this->addInvoice($money, $options, static::AUTHORIZE);
         $this->addCreditcard($creditcard, $options, static::AUTHORIZE);
-        $this->addThreedSecure($options, static::AUTHORIZE);
+        $this->addThreedSecure($options);
 
         return $this->commit(static::AUTHORIZE, $money);
     }
@@ -151,7 +151,7 @@ abstract class Modirum extends Gateway implements
         $this->buildXml(static::SALE, $options);
         $this->addInvoice($money, $options, static::SALE);
         $this->addCreditcard($creditcard, $options, static::SALE);
-        $this->addThreedSecure($options, static::SALE);
+        $this->addThreedSecure($options);
 
         return $this->commit(static::SALE, $money);
     }
@@ -165,10 +165,9 @@ abstract class Modirum extends Gateway implements
 
         $options = new Options($options);
 
-        $this->buildXml(static::CAPTURE, $options, function ($xml) use ($money, $authorization, $options) {
-            $this->addInvoice($money, $options, $xml);
-            $this->addIdentification($authorization, $options, $xml);
-        });
+        $this->buildXml(static::CAPTURE, $options);
+        $this->addInvoice($money, $options, static::CAPTURE);
+        $this->addIdentification($authorization, $options, static::CAPTURE);
 
         return $this->commit(static::CAPTURE, $money);
     }
@@ -227,13 +226,12 @@ abstract class Modirum extends Gateway implements
 
     protected function buildXml($action, $options)
     {
-        $action = $action . 'Request';
         $messageId = md5(uniqid($options['order_id'], true));
         $this->xml = new SimpleXmlBuilder();
-        $this->xml->Message(null, null, array('lang' => 'en', 'messageId' => $messageId, 'version' => '1.0'));
-        $this->xml->$action(null, 'Message');
-        $this->xml->Authentication(null, $action);
-        $this->xml->Mid($this->options['merchant_id'], 'Authentication');
+        $this->xml->Message(null, null, array('lang' => 'en', 'messageId' => $messageId, 'version' => '1.0'))
+            ->$action(null, 'Message')
+            ->Authentication(null, $action)
+            ->Mid($this->options['merchant_id'], 'Authentication');
     }
 
     /**
@@ -243,15 +241,14 @@ abstract class Modirum extends Gateway implements
      */
     private function addInvoice($money, $options, $action)
     {
-        $xml = $this->xml;
-        $xml->OrderInfo(null, $action . 'Request');
-        $xml->OrderId($options['order_id'], 'OrderInfo');
-        $xml->OrderDesc($options['order_id'], 'OrderInfo');
-        $xml->OrderAmount($this->amount($money), 'OrderInfo');
-        $xml->Currency(static::$default_currency, 'OrderInfo');
-        $xml->PayerEmail("", 'OrderInfo');
+        $this->xml->OrderInfo(null, $action)
+            ->OrderId($options['order_id'], 'OrderInfo')
+            ->OrderDesc($options['order_id'], 'OrderInfo')
+            ->OrderAmount($this->amount($money), 'OrderInfo')
+            ->Currency(static::$default_currency, 'OrderInfo')
+            ->PayerEmail("", 'OrderInfo');
         if (true == $options['moto']) {
-            $xml->MOTO(1, 'OrderInfo');
+            $this->xml->MOTO(1, 'OrderInfo');
         }
     }
 
@@ -266,7 +263,7 @@ abstract class Modirum extends Gateway implements
         $year  = $this->cc_format($creditcard->year, 'two_digits');
         $month = $this->cc_format($creditcard->month, 'two_digits');
 
-        $xml->PaymentInfo(null, $action . 'Request')
+        $xml->PaymentInfo(null, $action)
             ->PayMethod(
                 $this->CARD_MAPPINGS[CreditCard::type($creditcard->number)],
                 'PaymentInfo'
@@ -281,37 +278,20 @@ abstract class Modirum extends Gateway implements
                 ->ExtInstallmentoffset(0, 'InstallmentParameters')
                 ->ExtInstallmentperiod($options['installments'], 'InstallmentParameters');
         }
-        return;
-        $xml->PaymentInfo(function ($xml) use ($creditcard, $options) {
-            $xml->PayMethod($this->CARD_MAPPINGS[CreditCard::type($creditcard->number)]);
-            $xml->CardPan($creditcard->number);
-            $year  = $this->cc_format($creditcard->year, 'two_digits');
-            $month = $this->cc_format($creditcard->month, 'two_digits');
-            $xml->CardExpDate("{$year}{$month}");
-            $xml->CardCvv2($creditcard->verification_value);
-            $xml->CardHolderName(trim($creditcard->name()));
-            if ($options['installments']) {
-                $xml->InstallmentParameters(function ($xml) use ($options) {
-                    $xml->ExtInstallmentoffset(0);
-                    $xml->ExtInstallmentperiod($options['installments']);
-                });
-            }
-        });
     }
 
-    private function addIdentification($identification, $options, $xml)
+    private function addIdentification($identification, $options, $action)
     {
-        $xml->PaymentInfo(function ($xml) use ($identification, $options) {
-            $xml->PayMethod($options['payment_method']);
-            $xml->CardPan($identification);
-        });
+        $this->xml->PaymentInfo(null, $action)
+            ->PayMethod($options['payment_method'], 'PaymentInfo')
+            ->CardPan($identification, 'PaymentInfo');
     }
 
-    private function addThreedSecure($options, $action)
+    private function addThreedSecure($options)
     {
         if ($options['enrollment_status']) {
             $xml = $this->xml;
-            $xml->ThreeDSecure(null, $action);
+            $xml->ThreeDSecure(null, 'PaymentInfo');
             $xml->EnrollmentStatus($options['enrollment_status'], 'ThreeDSecure');
             $xml->AuthenticationStatus($options['authentication_status'], 'ThreeDSecure');
             $xml->CAVV($options['cavv'], 'ThreeDSecure');
@@ -445,7 +425,8 @@ abstract class Modirum extends Gateway implements
 
         $data = $this->ssl_post($url, $xml, array('headers'=>$headers));
 
-        $response = $this->parse($data, $action . 'Response');
+        $responseAction = str_replace('Request', 'Response', $action);
+        $response = $this->parse($data, $responseAction);
 
         $test_mode = $this->isTest();
 
