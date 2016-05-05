@@ -15,7 +15,7 @@ class PinTest extends TestCase
     {
         Base::mode('test');
 
-        $options = $this->getFixtures()->offsetGet('pin_payment');
+        $options = $this->getFixtures()->offsetGet('pin_payments');
 
         $this->gateway = new Pin($options);
         $this->amount = 1000;
