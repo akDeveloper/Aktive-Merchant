@@ -2,7 +2,9 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-use AktiveMerchant\Billing\Gateways\Worldpay;
+namespace AktiveMerchant\Billing\Gateways;
+
+use AktiveMerchant\TestCase;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 
@@ -14,8 +16,7 @@ use AktiveMerchant\Billing\CreditCard;
  * @license http://www.opensource.org/licenses/mit-license.php MIT License
  *
  */
-
-class WorldpayTest extends \AktiveMerchant\TestCase
+class WorldpayTest extends TestCase
 {
     public $gateway;
     public $amount;
@@ -65,28 +66,41 @@ class WorldpayTest extends \AktiveMerchant\TestCase
 
     public function testSuccessfulAuthorization()
     {
-        $this->mock_request($this->successful_authorize_response());
+        $this->mock_request($this->successfulAuthorizeResponse());
         $resp = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
         $this->assertTrue($resp->success());
         $this->assertEquals($resp->authorization(), 'R50704213207145707');
+
+        $this->assertEquals($this->successfulAuthorizeRequest(), $this->request->getBody());
     }
 
     public function testFailedAuthorization()
     {
-        $this->mock_request($this->failed_authorize_response());
+        $this->mock_request($this->failedAuthorizeResponse());
         $resp = $this->gateway->authorize($this->amount, $this->creditcard, $this->options);
         $this->assertFalse($resp->success());
         $this->assertEquals($resp->message(), 'Invalid payment details : Card number : 4111********1111');
     }
 
-    public function testCapture()
+    public function testSuccessfulCapture()
     {
-        $this->mock_request($this->successful_capture_response());
+        $this->mock_request($this->successfulCaptureResponse());
         $resp = $this->gateway->capture($this->amount, 'R50704213207145707', $this->options);
         $this->assertTrue($resp->success());
+        $this->assertEquals($this->successfulCaptureRequest(), $this->request->getBody());
     }
 
-    private function successful_authorize_response()
+    private function successfulAuthorizeRequest()
+    {
+        return '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE paymentService PUBLIC "-//WorldPay//DTD WorldPay PaymentService v1//EN" "http://dtd.worldpay.com/paymentService_v1.dtd"><paymentService merchantCode="x" version="1.4"><submit><order orderCode="1234" installationId="inst_id"><description>Purchase</description><amount value="10000" currencyCode="GBP" exponent="2"/><paymentDetails><ECMC-SSL><cardNumber>5105105105105100</cardNumber><expiryDate><date month="11" year="2009"/></expiryDate><cardHolderName>John Doe</cardHolderName><cvc>000</cvc><cardAddress><address><firstName>John</firstName><lastName>Doe</lastName><street>my address</street><houseNumber>1234</houseNumber><postalCode>90210</postalCode><city>Neverland</city><state>ON</state><countryCode>CA</countryCode><telephoneNumber>555-555-5555</telephoneNumber></address></cardAddress></ECMC-SSL></paymentDetails></order></submit></paymentService>';
+    }
+
+    private function successfulCaptureRequest()
+    {
+        return '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE paymentService PUBLIC "-//WorldPay//DTD WorldPay PaymentService v1//EN" "http://dtd.worldpay.com/paymentService_v1.dtd"><paymentService merchantCode="x" version="1.4"><modify><orderModification orderCode="R50704213207145707"><capture><date dayOfMonth="05" month="05" year="2016"/><amount value="10000" currencyCode="GBP" exponent="2"/></capture></orderModification></modify></paymentService>';
+    }
+
+    private function successfulAuthorizeResponse()
     {
         return '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE paymentService PUBLIC "-//Bibit//DTD Bibit PaymentService v1//EN" "http://dtd.bibit.com/paymentService_v1.dtd">
@@ -110,7 +124,7 @@ class WorldpayTest extends \AktiveMerchant\TestCase
 </paymentService>';
     }
 
-    private function failed_authorize_response()
+    private function failedAuthorizeResponse()
     {
         return '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE paymentService PUBLIC "-//Bibit//DTD Bibit PaymentService v1//EN" "http://dtd.bibit.com/paymentService_v1.dtd">
@@ -123,7 +137,7 @@ class WorldpayTest extends \AktiveMerchant\TestCase
 </paymentService>';
     }
 
-    private function successful_capture_response()
+    private function successfulCaptureResponse()
     {
         return '<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE paymentService PUBLIC "-//Bibit//DTD Bibit PaymentService v1//EN" "http://dtd.bibit.com/paymentService_v1.dtd">

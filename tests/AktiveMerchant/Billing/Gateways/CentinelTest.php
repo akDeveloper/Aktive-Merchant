@@ -117,6 +117,6 @@ class CentinelTest extends TestCase
 
     private function getRequestBody()
     {
-        return str_replace('cmpi_msg=', null, urldecode($this->request->getBody()));
+        return '<?xml version="1.0" encoding="UTF-8"?>' . "\n" . str_replace('cmpi_msg=', null, urldecode($this->request->getBody()));
     }
 }
