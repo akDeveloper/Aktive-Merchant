@@ -114,7 +114,6 @@ class AlphaBankTest extends TestCase
             $this->options
         );
 
-        echo $this->request->getBody();
         $this->assert_success($response);
         $this->assertTrue($response->test());
 

@@ -138,7 +138,7 @@ abstract class Modirum extends Gateway implements
         $this->addCreditcard($creditcard, $options, static::AUTHORIZE);
         $this->addThreedSecure($options);
 
-        return $this->commit(static::AUTHORIZE, $money);
+        return $this->commit(static::AUTHORIZE);
     }
 
     /**
@@ -153,7 +153,7 @@ abstract class Modirum extends Gateway implements
         $this->addCreditcard($creditcard, $options, static::SALE);
         $this->addThreedSecure($options);
 
-        return $this->commit(static::SALE, $money);
+        return $this->commit(static::SALE);
     }
 
     /**
@@ -169,7 +169,7 @@ abstract class Modirum extends Gateway implements
         $this->addInvoice($money, $options, static::CAPTURE);
         $this->addIdentification($authorization, $options, static::CAPTURE);
 
-        return $this->commit(static::CAPTURE, $money);
+        return $this->commit(static::CAPTURE);
     }
 
     /**
@@ -182,12 +182,11 @@ abstract class Modirum extends Gateway implements
         $options = new Options($options);
 
         $money = $options['money'];
-        $this->buildXml(static::CANCEL, $options, function ($xml) use ($money, $authorization, $options) {
-            $this->addInvoice($money, $options, $xml);
-            $this->addIdentification($authorization, $options, $xml);
-        });
+        $this->buildXml(static::CANCEL, $options);
+        $this->addInvoice($money, $options, static::CANCEL);
+        $this->addIdentification($authorization, $options, static::CANCEL);
 
-        return $this->commit(static::CANCEL, $money);
+        return $this->commit(static::CANCEL);
     }
 
     /**
@@ -204,24 +203,21 @@ abstract class Modirum extends Gateway implements
 
         $options = new Options($options);
 
-        $this->buildXml(static::REFUND, $options, function ($xml) use ($money, $identification, $options) {
-            $this->addInvoice($money, $options, $xml);
-            $this->addIdentification($identification, $options, $xml);
-        });
+        $this->buildXml(static::REFUND, $options);
+        $this->addInvoice($money, $options, static::REFUND);
+        $this->addIdentification($identification, $options, static::REFUND);
 
-        return $this->commit(static::REFUND, $money);
+        return $this->commit(static::REFUND);
     }
 
     public function status($authorization)
     {
         $options['order_id'] = $this->generateUniqueId();
-        $this->buildXml(static::STATUS, $options, function ($xml) use ($authorization) {
-            $xml->TransactionInfo(function ($xml) use ($authorization) {
-                $xml->TxId($authorization);
-            });
-        });
+        $this->buildXml(static::STATUS, $options);
+        $this->xml->TransactionInfo(null, static::STATUS)
+            ->TxId($authorization, 'TransactionInfo');
 
-        return $this->commit(static::STATUS, null);
+        return $this->commit(static::STATUS);
     }
 
     protected function buildXml($action, $options)
@@ -393,7 +389,11 @@ abstract class Modirum extends Gateway implements
 
         preg_match('/messageId=\"[\w]+\"/', $messageXml, $m);
         $messageId = $m[0];
-        $messageXml = str_replace('version="1.0" '.$messageId, $messageId . ' version="1.0"', $messageXml);
+        $messageXml = str_replace(
+            'version="1.0" '.$messageId,
+            $messageId.' version="1.0"',
+            $messageXml
+        );
 
         return $messageXml;
     }
@@ -403,18 +403,17 @@ abstract class Modirum extends Gateway implements
         if (array_key_exists($error_code, static::$errorCode)) {
             return static::$errorCode[$error_code];
         }
+
         return $description;
     }
 
     /**
      *
      * @param  string $action
-     * @param  number $money
-     * @param  array  $parameters
      *
      * @return Response
      */
-    private function commit($action, $money, $parameters = array())
+    private function commit($action)
     {
         $url = $this->isTest() ? static::TEST_URL : static::LIVE_URL;
 
@@ -423,7 +422,7 @@ abstract class Modirum extends Gateway implements
         );
         $xml = $this->postData($action);
 
-        $data = $this->ssl_post($url, $xml, array('headers'=>$headers));
+        $data = $this->ssl_post($url, $xml, array('headers' => $headers));
 
         $responseAction = str_replace('Request', 'Response', $action);
         $response = $this->parse($data, $responseAction);
@@ -470,22 +469,19 @@ abstract class Modirum extends Gateway implements
      * build $this->post to the format that your payment gateway understands
      *
      * @param  string $action
-     * @param  array  $parameters
      *
-     * @return void
+     * @return string
      */
-    private function postData($action, $parameters = array())
+    private function postData($action)
     {
         $xml = $this->xml->__toString();
         $xml = str_replace('<?xml version="1.0" encoding="UTF-8"?>', null, $xml);
         $xml = str_replace("\n", null, $xml);
         $digest = $this->calculateDigest($xml);
+        $xml .= '<Digest>'.$digest.'</Digest>';
+        $content = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas">%s</VPOS>';
 
-        $xml .= '<Digest>' . $digest . '</Digest>';
-
-        return <<<XML
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas">$xml</VPOS>
-XML;
+        return sprintf($content, $xml);
     }
 
     /**
@@ -496,7 +492,7 @@ XML;
      */
     protected function calculateDigest($xml)
     {
-        $xml  = $this->canonicalize($xml);
+        $xml = $this->canonicalize($xml);
         $utf8 = utf8_encode($xml . $this->options['shared_secret']);
 
         return base64_encode(sha1($utf8, true));
