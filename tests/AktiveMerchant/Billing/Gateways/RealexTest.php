@@ -55,15 +55,13 @@ class RealexTest extends \AktiveMerchant\TestCase
 
     public function testSuccessfulPurchase()
     {
-        #$this->mock_request($this->successful_purchase_response());
+        $this->mock_request($this->successful_purchase_response());
 
         $response = $this->gateway->purchase(
             $this->amount,
             $this->creditcard,
             $this->options
         );
-
-        print_r($response);
 
         $this->assertInstanceOf('AktiveMerchant\\Billing\\Response', $response);
         $this->assert_success($response);
