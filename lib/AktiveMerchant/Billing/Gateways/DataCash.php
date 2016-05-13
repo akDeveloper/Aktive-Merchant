@@ -10,6 +10,7 @@ use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Options;
 use AktiveMerchant\Common\XmlBuilder;
+use AktiveMerchant\Common\SimpleXmlBuilder;
 
 /**
  * DataCash gateway implementation.
@@ -40,6 +41,11 @@ class DataCash extends Gateway implements
      * {@inheritdoc}
      */
     public static $money_format = 'dollars';
+
+    /**
+     * {@inheritdoc}
+     */
+    public static $default_currency = 'USD';
 
     /**
      * Additional options needed by gateway
@@ -86,10 +92,9 @@ class DataCash extends Gateway implements
     {
         $options = new Options($options);
 
-        $this->buildXml($options, function ($xml) use ($money, $creditcard, $options) {
-            $this->addInvoice($money, $options, $xml);
-            $this->addCreditcard($creditcard, static::AUTHORIZE, $xml, $options);
-        });
+        $this->buildXml();
+        $this->addInvoice($money, $options);
+        $this->addCreditcard($creditcard, static::AUTHORIZE, $options);
 
         return $this->commit();
     }
@@ -101,10 +106,9 @@ class DataCash extends Gateway implements
     {
         $options = new Options($options);
 
-        $this->buildXml($options, function ($xml) use ($money, $creditcard, $options) {
-            $this->addInvoice($money, $options, $xml);
-            $this->addCreditcard($creditcard, static::PURCHASE, $xml, $options);
-        });
+        $this->buildXml();
+        $this->addInvoice($money, $options);
+        $this->addCreditcard($creditcard, static::PURCHASE, $options);
 
         return $this->commit();
     }
@@ -118,14 +122,12 @@ class DataCash extends Gateway implements
 
         $reference = $this->parseAuthorization($authorization);
 
-        $this->buildXml($options, function ($xml) use ($money, $reference, $options) {
-            $this->addInvoice($money, $options, $xml);
-            $xml->HistoricTxn(function ($xml) use ($options, $reference) {
-                $xml->reference($reference['datacash_reference']);
-                $xml->authcode($reference['authcode']);
-                $xml->method(static::CAPTURE);
-            });
-        });
+        $this->buildXml();
+        $this->addInvoice($money, $options);
+        $this->xml->HistoricTxn(null, 'Transaction')
+            ->reference($reference['datacash_reference'], 'HistoricTxn')
+            ->authcode($reference['authcode'], 'HistoricTxn')
+            ->method(static::CAPTURE, 'HistoricTxn');
 
         return $this->commit();
     }
@@ -137,12 +139,10 @@ class DataCash extends Gateway implements
     {
         $reference = $this->parseAuthorization($authorization);
 
-        $this->buildXml($options, function ($xml) use ($reference) {
-            $xml->HistoricTxn(function ($xml) use ($reference) {
-                $xml->reference($reference['datacash_reference']);
-                $xml->method(static::VOID);
-            });
-        });
+        $this->buildXml();
+        $this->xml->HistoricTxn(null, 'Transaction')
+            ->reference($reference['datacash_reference'], 'HistoricTxn')
+            ->method(static::VOID, 'HistoricTxn');
 
         return $this->commit();
     }
@@ -159,15 +159,12 @@ class DataCash extends Gateway implements
     {
         $reference = $this->parseAuthorization($identification);
 
-        $this->buildXml($options, function ($xml) use ($money, $reference) {
-            $xml->TxnDetails(function ($xml) use ($money) {
-                $xml->amount($this->amount($money));
-            });
-            $xml->HistoricTxn(function ($xml) use ($reference) {
-                $xml->reference($reference['datacash_reference']);
-                $xml->method(static::CREDIT);
-            });
-        });
+        $this->buildXml();
+        $this->xml->TxnDetails(null, 'Transaction')
+            ->amount($this->amount($money), 'TxnDetails');
+        $this->xml->HistoricTxn(null, 'Transaction')
+            ->reference($reference['datacash_reference'], 'HistoricTxn')
+            ->method(static::CREDIT, 'HistoricTxn');
 
         return $this->commit();
     }
@@ -178,29 +175,23 @@ class DataCash extends Gateway implements
 
         $options = new Options($options);
 
-        $this->buildXml([], function ($xml) use ($creditcard, $options) {
-            $xml->TokenizeTxn(function ($xml) use ($creditcard, $options) {
-                $xml->Card(function ($xml) use ($creditcard) {
-                    $xml->pan($creditcard->number);
-                });
-                $xml->method('tokenize');
-            });
-            $xml->TxnDetails(function ($xml) use ($options) {
-                $xml->merchantreference($options['order_id']);
-            });
-        });
+        $this->buildXml();
+        $this->xml->TokenizeTxn(null, 'Transaction')
+            ->Card(null, 'TokenizeTxn')
+            ->pan($creditcard->number, 'Card')
+            ->method('tokenize', 'TokenizeTxn')
+            ->TxnDetails(null, 'Transaction')
+            ->merchantreference($options['order_id'], 'TxnDetails');
 
         return $this->commit();
     }
 
     public function query($authorization)
     {
-        $this->buildXml([], function ($xml) use ($authorization) {
-            $xml->HistoricTxn(function ($xml) use ($authorization) {
-                $xml->reference($authorization);
-                $xml->method(static::QUERY);
-            });
-        });
+        $this->buildXml();
+        $this->xml->HistoricTxn(null, 'Transaction')
+            ->reference($authorization, 'HistoricTxn')
+            ->method(static::QUERY, 'HistoricTxn');
 
         return $this->commit();
     }
@@ -239,19 +230,14 @@ class DataCash extends Gateway implements
         );
     }
 
-    protected function buildXml($options, $block)
+    protected function buildXml()
     {
-        $this->xml = new XmlBuilder();
-        $this->xml->instruct('1.0', 'UTF-8');
-        $this->xml->Request(function ($xml) use ($block) {
-            $xml->Authentication(function ($xml) {
-                $xml->client($this->options['client']);
-                $xml->password($this->options['password']);
-            });
-            $xml->Transaction(function ($xml) use ($block) {
-                $block($xml);
-            });
-        }, array('version' => '2'));
+        $this->xml = new SimpleXmlBuilder();
+        $this->xml->Request(null, null, array('version' => '2'))
+            ->Authentication(null, 'Request')
+            ->client($this->options['client'], 'Authentication')
+            ->password($this->options['password'], 'Authentication')
+            ->Transaction(null, 'Request');
     }
 
     /**
@@ -301,22 +287,20 @@ class DataCash extends Gateway implements
      *
      * @param array $options
      */
-    protected function addInvoice($money, $options, $xml)
+    protected function addInvoice($money, $options)
     {
-        $xml->TxnDetails(function ($xml) use ($money, $options) {
-            $xml->merchantreference($options['order_id']);
-            $xml->amount($this->amount($money), array('currency' => static::$default_currency));
-            $captureMethod = static::METHOD_ECOMM; # For 3D Secure or No 3D Secure transactions.
-            if ($options['moto']) {# MOTO transactions.
-                $captureMethod = static::METHOD_MOTO;
-            }
-            $xml->capturemethod($captureMethod);
-            if ($options['installments']) {
-                $xml->Instalments(function ($xml) use ($options) {
-                    $xml->number($options['installments']);
-                });
-            }
-        });
+        $this->xml->TxnDetails(null, 'Transaction')
+            ->merchantreference($options['order_id'], 'TxnDetails')
+            ->amount($this->amount($money), 'TxnDetails', array('currency'=> static::$default_currency));
+        $captureMethod = static::METHOD_ECOMM; # For 3D Secure or No 3D Secure transactions.
+        if ($options['moto']) {# MOTO transactions.
+            $captureMethod = static::METHOD_MOTO;
+        }
+        $this->xml->capturemethod($captureMethod, 'TxnDetails');
+        if ($options['installments']) {
+            $this->xml->Instalments(null, 'TxnDetails');
+            $this->xml->number($options['installments'], 'Installments');
+        }
     }
 
     /**
@@ -324,28 +308,29 @@ class DataCash extends Gateway implements
      *
      * @param CreditCard $creditcard
      */
-    protected function addCreditcard(CreditCard $creditcard, $action, $xml, $options = array())
+    protected function addCreditcard(CreditCard $creditcard, $action, $options = array())
     {
-        $xml->CardTxn(function ($xml) use ($creditcard, $action, $options) {
+        $this->xml->CardTxn(null, 'Transaction');
 
-            if ($options['reference']) {
-                $xml->card_details($options['reference'], array('type' => 'from_mpi'));
-            } else {
-                $xml->Card(function ($xml) use ($creditcard, $options) {
-                    $token = $options['token'] ? array('type' => 'token') : null;
-                    $xml->pan($creditcard->number, $token);
-                    $year  = $this->cc_format($creditcard->year, 'two_digits');
-                    $month = $this->cc_format($creditcard->month, 'two_digits');
-                    $xml->expirydate("{$month}/{$year}");
-                    if (null == $options['token']) {
-                        $xml->Cv2Avs(function ($xml) use ($creditcard) {
-                            $xml->cv2($creditcard->verification_value);
-                        });
-                    }
-                });
+        if ($options['reference']) {
+            $this->xml->card_details(
+                $options['reference'],
+                'CardTxn',
+                array('type' => 'from_mpi')
+            );
+        } else {
+            $this->xml->Card(null, 'CardTxn');
+            $token = $options['token'] ? array('type' => 'token') : null;
+            $this->xml->pan($creditcard->number, 'Card', $token);
+            $year = $this->cc_format($creditcard->year, 'two_digits');
+            $month = $this->cc_format($creditcard->month, 'two_digits');
+            $this->xml->expirydate("{$month}/{$year}", 'Card');
+            if (null == $options['token']) {
+                $this->xml->Cv2Avs(null, 'Card')
+                    ->cv2($creditcard->verification_value, 'Cv2Avs');
             }
-            $xml->method($action);
-        });
+        }
+        $this->xml->method($action, 'CardTxn');
     }
 
     /**
