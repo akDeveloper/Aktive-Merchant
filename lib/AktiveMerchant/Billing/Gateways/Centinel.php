@@ -193,10 +193,7 @@ class Centinel extends Gateway
     {
         $url = $this->isTest() ? static::TEST_URL : static::LIVE_URL;
 
-
-        $xml = $this->xml->__toString();
-
-        $data = $this->ssl_post($url, $this->postData($xml), $parameters->getArrayCopy());
+        $data = $this->ssl_post($url, $this->postData(), $parameters->getArrayCopy());
 
         $options = array('test' => $this->isTest());
 
@@ -247,8 +244,10 @@ class Centinel extends Gateway
         return $response['error_desc'];
     }
 
-    private function postData($xml)
+    private function postData()
     {
+        $xml = $this->xml->__toString();
+
         return "cmpi_msg=" . urlencode(trim($xml));
     }
 }

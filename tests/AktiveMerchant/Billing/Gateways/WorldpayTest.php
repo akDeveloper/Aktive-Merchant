@@ -97,7 +97,7 @@ class WorldpayTest extends TestCase
 
     private function successfulCaptureRequest()
     {
-        return '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE paymentService PUBLIC "-//WorldPay//DTD WorldPay PaymentService v1//EN" "http://dtd.worldpay.com/paymentService_v1.dtd"><paymentService merchantCode="x" version="1.4"><modify><orderModification orderCode="R50704213207145707"><capture><date dayOfMonth="05" month="05" year="2016"/><amount value="10000" currencyCode="GBP" exponent="2"/></capture></orderModification></modify></paymentService>';
+        return '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE paymentService PUBLIC "-//WorldPay//DTD WorldPay PaymentService v1//EN" "http://dtd.worldpay.com/paymentService_v1.dtd"><paymentService merchantCode="x" version="1.4"><modify><orderModification orderCode="R50704213207145707"><capture><date dayOfMonth="'.date('d').'" month="'.date('m').'" year="'.date('Y').'"/><amount value="10000" currencyCode="GBP" exponent="2"/></capture></orderModification></modify></paymentService>';
     }
 
     private function successfulAuthorizeResponse()

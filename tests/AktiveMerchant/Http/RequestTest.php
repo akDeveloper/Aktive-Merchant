@@ -10,14 +10,6 @@ use AktiveMerchant\Http\Adapter\cUrl;
 
 class RequestTest extends \PHPUnit_Framework_TestCase
 {
-
-    protected $ini;
-
-    public function setUp()
-    {
-        $this->ini = parse_ini_file(__DIR__ . "/../../fixtures.ini", true);
-    }
-
     public function testResquest()
     {
         $url = 'http://www.httpbin.org/get';
