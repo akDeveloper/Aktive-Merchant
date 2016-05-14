@@ -2,23 +2,24 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
-use AktiveMerchant\Billing\Gateways\DataCashMpi;
+namespace AktiveMerchant\Billing\Gateways;
+
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\TestCase;
 
-class DataCashMpiTest extends AktiveMerchant\TestCase
+class DataCashMpiTest extends TestCase
 {
     public $gateway;
     public $amount;
     public $options;
     public $creditcard;
 
-
     public function setUp()
     {
         Base::mode('test');
 
-        $login_info = $this->getFixtures()->offsetGet('nbg');
+        $login_info = $this->getFixtures()->offsetGet('datacash');
 
         $this->gateway = new DataCashMpi($login_info);
 
@@ -35,7 +36,7 @@ class DataCashMpiTest extends AktiveMerchant\TestCase
 
         $this->options = array(
             'order_id' => 'REF' . $this->gateway->generateUniqueId(),
-            'description' => 'NbgDataCash Test Transaction',
+            'description' => 'Mpi DataCash Test Transaction',
             'accept_headers' => "*/*",
             'user_agent' => 'IE/6.0',
             'merchant_url' => $login_info['merchant_url'],

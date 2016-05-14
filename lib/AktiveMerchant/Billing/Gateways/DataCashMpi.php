@@ -4,10 +4,10 @@
 
 namespace AktiveMerchant\Billing\Gateways;
 
-use AktiveMerchant\Billing\CreditCard;
-use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Options;
-use AktiveMerchant\Common\XmlBuilder;
+use AktiveMerchant\Billing\Response;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Common\SimpleXmlBuilder;
 
 /**
  * Support 3D Secure implementation for DataCash gateway.
@@ -33,10 +33,9 @@ class DataCashMpi extends DataCash
     {
         $options = new Options($options);
 
-        $this->buildXml($options, function ($xml) use ($money, $creditcard, $options) {
-            $this->addInvoice($money, $options, $xml);
-            $this->addMpiTransaction($creditcard, static::MPI, $xml);
-        });
+        $this->buildXml();
+        $this->addInvoice($money, $options);
+        $this->addMpiTransaction($creditcard, static::MPI);
 
         return $this->commit();
     }
@@ -50,13 +49,11 @@ class DataCashMpi extends DataCash
         $reference = $options['reference'];
         $pares  = $options['pares'];
 
-        $this->buildXml([], function ($xml) use ($reference, $pares) {
-            $xml->HistoricTxn(function ($xml) use ($reference, $pares) {
-                $xml->reference($reference);
-                $xml->pares_message($pares);
-                $xml->method(static::AUTHORIZATION);
-            });
-        });
+        $this->buildXml();
+        $this->xml->HistoricTxn(null, 'Transaction')
+            ->reference($reference, 'HistoricTxn')
+            ->pares_message($pares, 'HistoricTxn')
+            ->method(static::AUTHORIZATION, 'HistoricTxn');
 
         return $this->commit();
     }
@@ -86,36 +83,31 @@ class DataCashMpi extends DataCash
         return $response;
     }
 
-    protected function addThreeDSecure($xml, $options)
+    protected function addThreeDSecure($options)
     {
         Options::required('accept_headers, user_agent, merchant_url, description', $options);
 
-        $xml->ThreeDSecure(function ($xml) use ($options) {
-            $xml->Browser(function ($xml) use ($options) {
-                $xml->device_category(0);
-                $xml->accept_headers($options['accept_headers']);
-                $xml->user_agent($options['user_agent']);
-            });
-            $xml->purchase_datetime(date('Ymd H:i:s'));
-            $xml->merchant_url($options['merchant_url']);
-            $xml->purchase_desc($options['description']);
-        });
+        $this->xml->ThreeDSecure(null, 'TxnDetails')
+            ->Browser(null, 'ThreeDSecure')
+            ->device_category(0, 'Browser')
+            ->accept_headers($options['accept_headers'], 'Browser')
+            ->user_agent($options['user_agent'], 'Browser')
+            ->purchase_datetime(date('Ymd H:i:s'), 'ThreeDSecure')
+            ->merchant_url($options['merchant_url'], 'ThreeDSecure')
+            ->purchase_desc($options['description'], 'ThreeDSecure');
     }
 
-    protected function addMpiTransaction($creditcard, $action, $xml)
+    protected function addMpiTransaction($creditcard, $action)
     {
-        $xml->MpiTxn(function ($xml) use ($creditcard, $action) {
-            $xml->Card(function ($xml) use ($creditcard) {
-                $xml->pan($creditcard->number);
-                $year  = $this->cc_format($creditcard->year, 'two_digits');
-                $month = $this->cc_format($creditcard->month, 'two_digits');
-                $xml->expirydate("{$month}/{$year}");
-                $xml->Cv2Avs(function ($xml) use ($creditcard) {
-                    $xml->cv2($creditcard->verification_value);
-                });
-            });
-            $xml->method($action);
-        });
+        $this->xml->MpiTxn(null, 'Transaction')
+            ->Card(null, 'MpiTxn')
+            ->pan($creditcard->number, 'Card');
+        $year = $this->cc_format($creditcard->year, 'two_digits');
+        $month = $this->cc_format($creditcard->month, 'two_digits');
+        $this->xml->expirydate("{$month}/{$year}", 'Card')
+            ->Cv2Avs(null, 'Card')
+            ->cv2($creditcard->verification_value, 'Cv2Avs');
+        $this->xml->method($action, 'MpiTxn');
     }
 
     /**
@@ -123,13 +115,16 @@ class DataCashMpi extends DataCash
      *
      * @param array $options
      */
-    protected function addInvoice($money, $options, $xml)
+    protected function addInvoice($money, $options)
     {
-        $xml->TxnDetails(function ($xml) use ($money, $options) {
-            $xml->merchantreference($options['order_id']);
-            $xml->amount($this->amount($money), array('currency' => self::$default_currency));
-            $this->addThreeDSecure($xml, $options);
-        });
+        $this->xml->TxnDetails(null, 'Transaction')
+            ->merchantreference($options['order_id'], 'TxnDetails')
+            ->amount(
+                $this->amount($money),
+                'TxnDetails',
+                array('currency' => self::$default_currency)
+            );
+        $this->addThreeDSecure($options);
     }
 
     /**

@@ -9,7 +9,6 @@ use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Options;
-use AktiveMerchant\Common\XmlBuilder;
 use AktiveMerchant\Common\SimpleXmlBuilder;
 
 /**
