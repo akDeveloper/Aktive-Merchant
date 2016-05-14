@@ -282,7 +282,7 @@ class Iridium extends Gateway implements
         $this->xml->{'soap:Envelope'}(null, null, $this->SOAP_ATTRIBUTES);
         $this->xml->{'soap:Body'}(null, 'soap:Envelope');
 
-        $this->xml->$call(null, 'soap:Body', [], 'https://www.thepaymentgateway.net/');
+        $this->xml->$call(null, 'soap:Body', array(), 'https://www.thepaymentgateway.net/');
         $this->xml->PaymentMessage(null, $call);
 
         $this->xml->MerchantAuthentication(

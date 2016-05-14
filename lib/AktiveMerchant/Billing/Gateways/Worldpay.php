@@ -4,12 +4,11 @@
 
 namespace AktiveMerchant\Billing\Gateways;
 
-use AktiveMerchant\Billing\Gateway;
-use AktiveMerchant\Billing\CreditCard;
-use AktiveMerchant\Billing\Response;
-use AktiveMerchant\Common\XmlBuilder;
-use AktiveMerchant\Common\SimpleXmlBuilder;
 use AktiveMerchant\Common\Options;
+use AktiveMerchant\Billing\Gateway;
+use AktiveMerchant\Billing\Response;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Common\SimpleXmlBuilder;
 
 /**
  * Integration of WorldPay gateway

@@ -1,7 +1,7 @@
 {
     "name": "aktive_merchant/aktive_merchant",
     "description": "Aktive-Merchant provides a common interface to process payments using multiple gateways.",
-    "keywords": ["payments", "merchant", "gateway"],
+    "keywords": ["payments", "creditcard", "merchant", "gateway", "stripe", "authorize-net", "paypal", "datacash", "bridgepay", "cardstream", "centinel", "eway", "exact", "fatzebra", "hsbc", "mercury", "modirum", "moneris", "pin", "psigate", "realex", "worldpay"],
     "homepage": "https://github.com/akDeveloper/Aktive-Merchant",
     "type": "library",
     "license": "MIT",
@@ -12,18 +12,11 @@
         }
     ],
     "require": {
-        "php": ">=5.4",
+        "php": ">=5.3.3",
         "ext-curl": "*",
         "ext-simplexml": "*",
-        "thapp/xmlbuilder": "0.1.*",
         "symfony/event-dispatcher": "~2.3,<3.0"
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/tomdmaguire/xmlbuilder"
-        }
-    ],
      "require-dev": {
         "phpunit/phpunit": "4.8.*"
     },

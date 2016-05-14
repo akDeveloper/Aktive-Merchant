@@ -301,7 +301,7 @@ class Stripe extends Gateway implements
         $body = json_decode($body, true);
 
         if (empty($body)) {
-            $body = [];
+            $body = array();
         }
         return new Options($body);
     }

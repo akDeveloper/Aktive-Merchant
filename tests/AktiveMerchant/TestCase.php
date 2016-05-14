@@ -6,7 +6,6 @@ namespace AktiveMerchant;
 
 class TestCase extends \PHPUnit_Framework_TestCase
 {
-
     public function getFixtures()
     {
         $ini = parse_ini_file(__DIR__ . "/../fixtures.ini", true);

@@ -156,7 +156,7 @@ class Eway extends Gateway implements
             "TotalAmount" => $this->amount($money)
         );
 
-        $cc = new CreditCard([]);
+        $cc = new CreditCard(array());
         $this->addCreditcard($cc);
         #$this->addInvoice($options);
         $this->addOptionalData();
@@ -417,7 +417,6 @@ class Eway extends Gateway implements
         $xml = new \SimpleXMLElement('<ewaygateway></ewaygateway>');
 
         foreach ($this->post as $name => $value) {
-
             $xml->addChild("eway$name", $value);
         }
 
