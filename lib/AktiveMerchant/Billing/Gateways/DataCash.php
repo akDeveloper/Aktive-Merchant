@@ -44,7 +44,7 @@ class DataCash extends Gateway implements
     /**
      * {@inheritdoc}
      */
-    public static $default_currency = 'USD';
+    public static $default_currency = 'GBP';
 
     /**
      * Additional options needed by gateway

@@ -27,7 +27,7 @@ class DataCashMpi extends DataCash
     /**
      * {@inheritdoc}
      */
-    public static $default_currency = 'EUR';
+    public static $default_currency = 'GBP';
 
     public function lookup($money, CreditCard $creditcard, $options)
     {

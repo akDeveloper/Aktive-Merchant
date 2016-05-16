@@ -14,4 +14,6 @@ class NbgMpi extends DataCashMpi
 {
     const TEST_URL = 'https://accreditation.datacash.com/Transaction/acq_a';
     const LIVE_URL = 'https://mars.transaction.datacash.com/Transaction';
+
+    public static $default_currency = 'EUR';
 }
