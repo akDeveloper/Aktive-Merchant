@@ -134,7 +134,7 @@ class Options implements \ArrayAccess, \Iterator
                 $exists = $options->offsetExists(trim($r));
             }
 
-            if (!isset($exists)) {
+            if (!isset($exists) || false === $exists) {
                 throw new \InvalidArgumentException($r . " parameter is required!");
             }
         }

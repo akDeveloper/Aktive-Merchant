@@ -155,7 +155,6 @@ class Beanstream extends Gateway implements
      */
     public function void($authorization, $options = array())
     {
-        Options::required('amount', $options);
         $this->post = array(
             'card' => array(
                 'complete' => true,
