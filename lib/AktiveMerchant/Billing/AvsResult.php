@@ -65,7 +65,7 @@ class AvsResult
         'X' => array('G', 'S'),
         null => array('E', 'F', 'I', 'R', 'U')
     );
-    protected $code = 'X';
+    protected $code = 'U';
     protected $message;
     protected $street_match;
     protected $postal_match;
