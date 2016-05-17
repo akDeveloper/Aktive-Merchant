@@ -134,22 +134,6 @@ class Worldpay extends Gateway
             'year' => $now->format('Y'),
         ));
         $this->addAmount($money, $options, 'capture');
-        return;
-        $this->xml->orderModification(function ($xml) use ($money, $authorization, $options) {
-            $xml->capture(function ($xml) use ($money, $authorization, $options) {
-                $now = new \DateTime(null, new \DateTimeZone('UTC'));
-                $xml->date(
-                    null,
-                    array(
-                        'dayOfMonth' => $now->format('d'),
-                        'month' => $now->format('m'),
-                        'year' => $now->format('Y'),
-                    )
-                );
-
-                $this->addAmount($money, $options);
-            });
-        }, array('orderCode' => $authorization));
     }
 
     private function addPaymentMethod($money, $creditcard, $options)
