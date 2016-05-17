@@ -54,6 +54,8 @@ class BeanstreamTest extends TestCase
         );
 
         $this->assert_success($response);
+
+        return $response->authorization();
     }
 
     public function testSuccessfulAuthorize()
@@ -66,6 +68,8 @@ class BeanstreamTest extends TestCase
         );
 
         $this->assert_success($response);
+
+        return $response->authorization();
     }
 
     public function testSuccessfulCapture()
@@ -79,26 +83,32 @@ class BeanstreamTest extends TestCase
         $this->assert_success($response);
     }
 
-    public function testSuccessfulCredit()
+    /**
+     * @depends testSuccessfulPurchase
+     */
+    public function testSuccessfulCredit($identification)
     {
         $this->mock_request($this->successfulCreditResponse());
         $response = $this->gateway->credit(
             $this->amount,
-            '10000011'
+            $identification
         );
 
         $this->assert_success($response);
     }
 
-    /*public function testSuccessfulVoid()
+    /**
+     * @depends testSuccessfulAuthorize
+     */
+    public function testSuccessfulVoid($authorization)
     {
+        $this->mock_request($this->successfulVoidResponse());
         $response = $this->gateway->void(
-            '10000016',
-            array('amount' => $this->amount)
+            $authorization
         );
 
-        print_r($response);
-    }*/
+        $this->assert_success($response);
+    }
 
     public function successfulPurchaseResponse()
     {
@@ -118,5 +128,10 @@ class BeanstreamTest extends TestCase
     public function successfulCreditResponse()
     {
         return '{"id":"10000013","approved":"1","message_id":"1","message":"Approved","auth_code":"TEST","created":"2016-05-16T01:15:55","order_number":"REF1183576352","type":"R","payment_method":"CC","card":{"card_type":"MC","cvd_match":0,"address_match":0,"postal_result":0},"links":[{"rel":"void","href":"https://www.beanstream.com/api/v1/payments/10000013/void","method":"POST"},{"rel":"return","href":"https://www.beanstream.com/api/v1/payments/10000013/returns","method":"POST"}]}';
+    }
+
+    public function successfulVoidResponse()
+    {
+        return '{"id":"10000029","approved":"1","message_id":"1","message":"Approved","auth_code":"TEST","created":"2016-05-17T23:14:08","order_number":"REF1023634709","type":"PAC","payment_method":"CC","card":{"card_type":"MC","cvd_match":0,"address_match":0,"postal_result":0},"links":[{"rel":"return","href":"https://www.beanstream.com/api/v1/payments/10000029/returns","method":"POST"},{"rel":"complete","href":"https://www.beanstream.com/api/v1/payments/10000029/completions","method":"POST"}]}';
     }
 }

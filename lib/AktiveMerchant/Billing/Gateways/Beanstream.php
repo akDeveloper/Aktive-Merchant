@@ -157,10 +157,13 @@ class Beanstream extends Gateway implements
     {
         Options::required('amount', $options);
         $this->post = array(
-            'amount' => $this->amount($options['amount']),
+            'card' => array(
+                'complete' => true,
+            ),
+            'amount' => $this->amount(0),
         );
 
-        $action = sprintf(self::VOID, $authorization);
+        $action = sprintf(self::CAPTURE, $authorization);
 
         return $this->commit($action);
     }
@@ -347,7 +350,7 @@ class Beanstream extends Gateway implements
     }
 
     /**
-     * Returns message (error explanation  or success) from gateway response
+     * Returns message (error explanation or success) from gateway response
      *
      * @param array $response
      *
