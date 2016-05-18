@@ -12,12 +12,10 @@ use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Options;
 
 /**
- * Merchant driver for {link http://authorize.net/ Authorize.net}.
+ * Integration of  {link http://authorize.net/ Authorize.net}.
  *
- * @package Aktive-Merchant
- * @author  Andreas Kollaros
+ * @author Andreas Kollaros <andreas@larium.net>
  * @license http://www.opensource.org/licenses/mit-license.php
- * @see http://authorize.net/
  */
 class AuthorizeNet extends Gateway implements
     Interfaces\Charge,
@@ -31,8 +29,6 @@ class AuthorizeNet extends Gateway implements
 
     const TEST_URL = "https://test.authorize.net/gateway/transact.dll";
     const TEST_ARB_URL = 'https://apitest.authorize.net/xml/v1/request.api';
-
-    public $duplicate_window;
 
     const APPROVED = 1;
     const DECLINED = 2;
@@ -54,16 +50,28 @@ class AuthorizeNet extends Gateway implements
     const RESPONSE_REASON_DUPLICATE = 11;
     const RESPONSE_REASON_AUTHCODE_REQUIRED = 12;
 
-    public static $supported_countries = array('US');
+    public static $supported_countries = array('AD', 'AT', 'AU', 'BE', 'BG', 'CA', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GB', 'GI', 'GR', 'HU', 'IE', 'IS', 'IT', 'LI', 'LT', 'LU', 'LV', 'MC', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'SM', 'TR', 'US', 'VA');
+
     public static $supported_cardtypes = array('visa', 'master', 'american_express', 'discover');
+
     public static $homepage_url = 'http://www.authorize.net/';
+
     public static $display_name = 'Authorize.Net';
+
+    public $duplicate_window;
+
     private $post = array();
+
     private $xml;
+
     private $options = array();
+
     private $CARD_CODE_ERRORS = array('N', 'S');
+
     private $AVS_ERRORS = array('A', 'E', 'N', 'R', 'W', 'Z');
+
     private $AUTHORIZE_NET_ARB_NAMESPACE = 'AnetApi/xml/v1/schema/AnetApiSchema.xsd';
+
     private $RECURRING_ACTIONS = array(
         'create' => 'ARBCreateSubscriptionRequest',
         'update' => 'ARBUpdateSubscriptionRequest',
@@ -88,14 +96,14 @@ class AuthorizeNet extends Gateway implements
     public function authorize($money, CreditCard $creditcard, $options = array())
     {
         $this->post = array();
-        
+
         $options = new Options($options);
 
-        $this->add_invoice($options);
-        $this->add_creditcard($creditcard);
-        $this->add_address($options);
-        $this->add_customer_data($options);
-        $this->add_duplicate_window();
+        $this->addInvoice($options);
+        $this->addCreditcard($creditcard);
+        $this->addAddress($options);
+        $this->addCustomerData($options);
+        $this->addDuplicateWindow();
 
         return $this->commit('AUTH_ONLY', $money);
     }
@@ -111,14 +119,14 @@ class AuthorizeNet extends Gateway implements
     public function purchase($money, CreditCard $creditcard, $options = array())
     {
         $this->post = array();
-        
+
         $options = new Options($options);
 
-        $this->add_invoice($options);
-        $this->add_creditcard($creditcard);
-        $this->add_address($options);
-        $this->add_customer_data($options);
-        $this->add_duplicate_window();
+        $this->addInvoice($options);
+        $this->addCreditcard($creditcard);
+        $this->addAddress($options);
+        $this->addCustomerData($options);
+        $this->addDuplicateWindow();
 
         return $this->commit('AUTH_CAPTURE', $money);
     }
@@ -136,7 +144,7 @@ class AuthorizeNet extends Gateway implements
         $options = new Options($options);
 
         $this->post = array('trans_id' => $authorization);
-        $this->add_customer_data($options);
+        $this->addCustomerData($options);
         return $this->commit('PRIOR_AUTH_CAPTURE', $money);
     }
 
@@ -170,18 +178,18 @@ class AuthorizeNet extends Gateway implements
         );
 
 
-        $this->add_invoice($options);
+        $this->addInvoice($options);
         return $this->commit('CREDIT', $money);
     }
 
     /**
      * {@inheritdoc}
      * Optional $options are:
-     *  - 'occurrences' Number of billing occurrences or payments for the 
-     *                  subscription. Default is 9999 for a no end date 
+     *  - 'occurrences' Number of billing occurrences or payments for the
+     *                  subscription. Default is 9999 for a no end date
      *                  (an ongoing subscription).
      */
-    public function recurring($money, CreditCard $creditcard, $options=array())
+    public function recurring($money, CreditCard $creditcard, $options = array())
     {
         $options = new Options($options);
 
@@ -191,15 +199,15 @@ class AuthorizeNet extends Gateway implements
         );
 
         Options::required(
-            'first_name, last_name', 
+            'first_name, last_name',
             $options['billing_address']
         );
 
         if (null == $options->occurrences) {
             $options->occurrences = '9999';
         }
-        
-        if ( null == $options->trial_occurrences) {
+
+        if (null == $options->trial_occurrences) {
             $options->trial_occurrences = 0;
         }
 
@@ -209,16 +217,17 @@ class AuthorizeNet extends Gateway implements
 
         $this->xml = "<refId>$ref_id</refId>";
         $this->xml .= "<subscription>";
-        $this->arb_add_subscription($amount, $options);
-        $this->arb_add_creditcard($creditcard);
-        $this->arb_add_address($options['billing_address']);
+        $this->arbAddSubscription($amount, $options);
+        $this->arbAddCreditcard($creditcard);
+        $this->arbAddAddress($options['billing_address']);
         $this->xml .= "</subscription>";
-        return $this->recurring_commit('create');
+
+        return $this->recurringCommit('create');
     }
 
     /**
      *
-     * @param string     $subscription_id subscription id returned from 
+     * @param string     $subscription_id subscription id returned from
      *                                    recurring method
      * @param CreditCard $creditcard
      *
@@ -230,15 +239,15 @@ class AuthorizeNet extends Gateway implements
             <subscriptionId>$subscription_id</subscriptionId>
               <subscription>
 XML;
-        $this->arb_add_creditcard($creditcard);
+        $this->arbAddCreditcard($creditcard);
         $this->xml .= "</subscription>";
 
-        return $this->recurring_commit('update');
+        return $this->recurringCommit('update');
     }
 
     /**
      *
-     * @param string $subscription_id subscription id return from recurring 
+     * @param string $subscription_id subscription id return from recurring
      *                                method
      *
      * @return Response
@@ -247,7 +256,7 @@ XML;
     {
         $this->xml = "<subscriptionId>$subscription_id</subscriptionId>";
 
-        return $this->recurring_commit('cancel');
+        return $this->recurringCommit('cancel');
     }
 
     /* Private */
@@ -274,8 +283,8 @@ XML;
         }
 
         $data = $this->ssl_post(
-            $url, 
-            $this->post_data($action, $parameters, $this->post)
+            $url,
+            $this->postData($action, $parameters, $this->post)
         );
 
         $response = $this->parse($data);
@@ -284,43 +293,44 @@ XML;
         if (empty($response['response_code'])) {
             throw new Exception("Error parsing merchant response: No status information");
         }
-        switch($response['response_code']) {
-          case self::ERROR:
-            switch($response['response_reason_code']) {
-              case self::RESPONSE_REASON_CARD_INVALID:
-              case self::RESPONSE_REASON_CARD_EXPIRATION_INVALID:
-              case self::RESPONSE_REASON_CARD_EXPIRED:
-              case self::RESPONSE_REASON_ABA_INVALID:
-              case self::RESPONSE_REASON_ACCOUNT_INVALID:
-              case self::RESPONSE_REASON_DUPLICATE:
-              case self::RESPONSE_REASON_AUTHCODE_REQUIRED:
-                // These should be treated like a decline
+
+        switch ($response['response_code']) {
+            case self::ERROR:
+                switch ($response['response_reason_code']) {
+                    case self::RESPONSE_REASON_CARD_INVALID:
+                    case self::RESPONSE_REASON_CARD_EXPIRATION_INVALID:
+                    case self::RESPONSE_REASON_CARD_EXPIRED:
+                    case self::RESPONSE_REASON_ABA_INVALID:
+                    case self::RESPONSE_REASON_ACCOUNT_INVALID:
+                    case self::RESPONSE_REASON_DUPLICATE:
+                    case self::RESPONSE_REASON_AUTHCODE_REQUIRED:
+                        // These should be treated like a decline
+                        break;
+                    default:
+                        throw new Exception("Merchant error: $response[response_reason_text] (code $response[response_code]/$response[response_reason_code])");
+                }
                 break;
-              default:
-                throw new Exception("Merchant error: $response[response_reason_text] (code $response[response_code]/$response[response_reason_code])");
-            }
-            break;
-	      case self::APPROVED:
-	      case self::DECLINED:
-	      case self::FRAUD_REVIEW:
-	        // These are OK
-	        break;
-	      default:
-	        throw new Exception("Merchant error: Unknown status '$response[response_code]'");
+            case self::APPROVED:
+            case self::DECLINED:
+            case self::FRAUD_REVIEW:
+                // These are OK
+                break;
+            default:
+                throw new Exception("Merchant error: Unknown status '$response[response_code]'");
         }
 
-        $message = $this->message_from($response);
+        $message = $this->messageFrom($response);
 
         $test_mode = $this->isTest();
 
         return new Response(
-            $this->success_from($response),
+            $this->successFrom($response),
             $message,
             $response,
             array(
                 'test' => $test_mode,
                 'authorization' => $response['transaction_id'],
-                'fraud_review' => $this->fraud_review_from($response),
+                'fraud_review' => $this->fraudReviewFrom($response),
                 'avs_result' => array('code' => $response['avs_result_code']),
                 'cvv_result' => $response['card_code']
             )
@@ -333,7 +343,7 @@ XML;
      *
      * @return bool
      */
-    private function success_from($response)
+    private function successFrom($response)
     {
         return $response['response_code'] == self::APPROVED;
     }
@@ -344,7 +354,7 @@ XML;
      *
      * @return bool
      */
-    private function fraud_review_from($response)
+    private function fraudReviewFrom($response)
     {
         return $response['response_code'] == self::FRAUD_REVIEW;
     }
@@ -355,7 +365,7 @@ XML;
      *
      * @return string
      */
-    private function message_from($response)
+    private function messageFrom($response)
     {
         if ($response['response_code'] == self::DECLINED) {
             if (in_array($response['card_code'], $this->CARD_CODE_ERRORS)) {
@@ -368,8 +378,8 @@ XML;
             }
         }
 
-        return $response['response_reason_text'] === null 
-            ? '' 
+        return $response['response_reason_text'] === null
+            ? ''
             : $response['response_reason_text'];
     }
 
@@ -404,9 +414,11 @@ XML;
         return $response;
     }
 
-    private function post_data($action, $parameters = array(), $post = NULL)
+    private function postData($action, $parameters = array(), $post = null)
     {
-        if ($post === NULL) $post = $this->post;
+        if ($post === null) {
+            $post = $this->post;
+        }
         $post['version'] = self::API_VERSION;
         $post['login'] = $this->options['login'];
         $post['tran_key'] = $this->options['password'];
@@ -425,18 +437,19 @@ XML;
         return rtrim($request, '& ');
     }
 
-    private function add_invoice($options)
+    private function addInvoice($options)
     {
         $this->post['invoice_num'] = $options['order_id'];
         $this->post['description'] = $options['description'];
     }
 
-    private function add_creditcard(CreditCard $creditcard)
+    private function addCreditcard(CreditCard $creditcard)
     {
         $this->post['method'] = 'CC';
         $this->post['card_num'] = $creditcard->number;
-        if ($creditcard->require_verification_value)
+        if ($creditcard->require_verification_value) {
             $this->post['card_code'] = $creditcard->verification_value;
+        }
         $this->post['exp_date'] = $this->expdate($creditcard);
         $this->post['first_name'] = $creditcard->first_name;
         $this->post['last_name'] = $creditcard->last_name;
@@ -449,10 +462,10 @@ XML;
         return $month . $year;
     }
 
-    private function add_address($options)
+    private function addAddress($options)
     {
-        $address = isset($options['billing_address']) 
-            ? $options['billing_address'] 
+        $address = isset($options['billing_address'])
+            ? $options['billing_address']
             : $options['address'];
 
         $this->post['address']  = $address['address1'];
@@ -464,7 +477,7 @@ XML;
         $this->post['state']    = $address['state'];
     }
 
-    private function add_customer_data($options)
+    private function addCustomerData($options)
     {
         $this->post['email'] = $options['email'];
         $this->post['email_customer'] = false;
@@ -472,7 +485,7 @@ XML;
         $this->post['customer_ip'] = $options['ip'];
     }
 
-    private function add_duplicate_window()
+    private function addDuplicateWindow()
     {
         if ($this->duplicate_window != null) {
             $this->post['duplicate_window'] = $this->duplicate_window;
@@ -481,26 +494,26 @@ XML;
 
     /* ARB */
 
-    private function recurring_commit($action, $parameters=array())
+    private function recurringCommit($action, $parameters = array())
     {
         $url = $this->isTest() ? self::TEST_ARB_URL : self::LIVE_ARB_URL;
 
         $headers = array("Content-Type: text/xml");
 
         $data = $this->ssl_post(
-            $url, 
-            $this->arb_post_data($action, $parameters), 
+            $url,
+            $this->arbPostData($action, $parameters),
             array('headers' => $headers)
         );
 
-        $response = $this->arb_parse($data);
+        $response = $this->arbParse($data);
 
-        $message = $this->arb_message_from($response);
+        $message = $this->arbMessageFrom($response);
 
         $test_mode = $this->isTest();
 
         return new Response(
-            $this->arb_success_from($response),
+            $this->arbSuccessFrom($response),
             $message,
             $response,
             array(
@@ -510,7 +523,7 @@ XML;
         );
     }
 
-    private function arb_parse($body)
+    private function arbParse($body)
     {
 
         $response = array();
@@ -529,26 +542,26 @@ XML;
         /*
          * Used parsing method from authorize.net example
          */
-        $response['ref_id']          = $this->substring_between($body, '<refId>', '</refId>');
-        $response['result_code']     = $this->substring_between($body, '<resultCode>', '</resultCode>');
-        $response['code']            = $this->substring_between($body, '<code>', '</code>');
-        $response['text']            = $this->substring_between($body, '<text>', '</text>');
-        $response['subscription_id'] = $this->substring_between($body, '<subscriptionId>', '</subscriptionId>');
+        $response['ref_id']          = $this->substringBetween($body, '<refId>', '</refId>');
+        $response['result_code']     = $this->substringBetween($body, '<resultCode>', '</resultCode>');
+        $response['code']            = $this->substringBetween($body, '<code>', '</code>');
+        $response['text']            = $this->substringBetween($body, '<text>', '</text>');
+        $response['subscription_id'] = $this->substringBetween($body, '<subscriptionId>', '</subscriptionId>');
 
         return $response;
     }
 
-    private function arb_message_from($response)
+    private function arbMessageFrom($response)
     {
         return $response['text'];
     }
 
-    private function arb_success_from($response)
+    private function arbSuccessFrom($response)
     {
         return $response['result_code'] == 'Ok';
     }
 
-    private function arb_add_creditcard(CreditCard $creditcard)
+    private function arbAddCreditcard(CreditCard $creditcard)
     {
         $expiration_date = $this->cc_format($creditcard->year, 'four_digits') . "-" .
             $this->cc_format($creditcard->month, 'two_Digits');
@@ -563,7 +576,7 @@ XML;
 XML;
     }
 
-    private function arb_add_address($address)
+    private function arbAddAddress($address)
     {
         $this->xml .= <<< XML
         <billTo>
@@ -573,7 +586,7 @@ XML;
 XML;
     }
 
-    private function arb_add_subscription($amount, $options)
+    private function arbAddSubscription($amount, $options)
     {
         $this->xml .= <<< XML
       <name>Subscription of {$options['billing_address']['first_name']} {$options['billing_address']['last_name']}</name>
@@ -591,7 +604,7 @@ XML;
 XML;
     }
 
-    private function arb_post_data($action)
+    private function arbPostData($action)
     {
         $xml = <<<XML
 <?xml version="1.0" encoding="utf-8"?>
@@ -611,7 +624,7 @@ XML;
      * ARB parsing xml
      */
 
-    private function substring_between($haystack, $start, $end)
+    private function substringBetween($haystack, $start, $end)
     {
         if (strpos($haystack, $start) === false || strpos($haystack, $end) === false) {
             return false;
@@ -621,7 +634,4 @@ XML;
             return substr($haystack, $start_position, $end_position - $start_position);
         }
     }
-
 }
-
-?>

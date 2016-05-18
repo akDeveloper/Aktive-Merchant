@@ -65,7 +65,7 @@ class AvsResult
         'X' => array('G', 'S'),
         null => array('E', 'F', 'I', 'R', 'U')
     );
-    protected $code = 'X';
+    protected $code = 'U';
     protected $message;
     protected $street_match;
     protected $postal_match;
@@ -95,11 +95,17 @@ class AvsResult
         }
         $this->POSTAL_MATCH_CODE = $postal_match_code;
 
-        if (null === $attr)
+        if (null === $attr) {
             $attr = array();
+        }
 
-        if (isset($attr['code']) && !empty($attr['code']) && $attr['code'] != 'null')
+        if (isset($attr['code'])
+            && !empty($attr['code'])
+            && $attr['code'] != 'null'
+        ) {
             $this->code = strtoupper($attr['code']);
+        }
+
         $this->message = self::$MESSAGES[$this->code];
 
         if (!isset($attr['street_match'])) {
@@ -124,5 +130,4 @@ class AvsResult
             'postal_match' => $this->postal_match
         );
     }
-
 }

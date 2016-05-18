@@ -14,10 +14,12 @@ use AktiveMerchant\Http\AdapterInterface;
 use AktiveMerchant\Http\Adapter\cUrl;
 use AktiveMerchant\Common\Options;
 use AktiveMerchant\Common\Inflect;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Gateway abstract class
- * 
+ *
  * @package Aktive-Merchant
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
@@ -37,27 +39,27 @@ abstract class Gateway
      * The currency supported by the gateway as ISO 4217 currency code.
      *
      * @var string The ISO 4217 currency code
-     */   
+     */
     public static $default_currency;
 
     /**
      * The countries supported by the gateway as 2 digit ISO country codes.
      *
      * @var array
-     */   
+     */
     public static $supported_countries = array();
 
     /**
      * The card types supported by the payment gateway
      *
      * @var array
-     */   
+     */
     public static $supported_cardtypes = array(
-        'visa', 
-        'master', 
-        'american_express', 
-        'switch', 
-        'solo', 
+        'visa',
+        'master',
+        'american_express',
+        'switch',
+        'solo',
         'maestro'
     );
 
@@ -65,34 +67,44 @@ abstract class Gateway
      * The homepage URL of the gateway
      *
      * @var string
-     */   
+     */
     public static $homepage_url;
 
     /**
      * The display name of the gateway
      *
      * @var string
-     */   
+     */
     public static $display_name;
-     
+
     /**
      * Request instance.
-     * 
+     *
      * @var RequestInterface
-     * @access protected
      */
     protected $request;
-    
+
     /**
      * Adapter to use for request.
-     * 
+     *
      * @var AdapterInterface
-     * @access protected
      */
     protected $adapter;
 
     private $debit_cards = array('switch', 'solo');
-    
+
+    private $dispatcher;
+
+    public function __construct($options = array())
+    {
+        $options = new Options($options);
+
+        static::$default_currency = $options['currency']
+            ?: static::$default_currency;
+
+        $this->options = $options;
+    }
+
     public function money_format()
     {
         $class = get_class($this);
@@ -124,7 +136,7 @@ abstract class Gateway
     public function factory_name()
     {
         $class = str_replace('ActiveMerchant\\Billing\\Gateways\\', '', get_class($this));
-        
+
         return Inflect::underscore($class);
     }
 
@@ -141,9 +153,8 @@ abstract class Gateway
     }
 
     /**
-     * Checks if gateway is in test mode. 
-     * 
-     * @access public
+     * Checks if gateway is in test mode.
+     *
      * @return boolean
      */
     public function isTest()
@@ -152,33 +163,35 @@ abstract class Gateway
     }
 
     /**
-     * Accepts the anount of money in base unit and returns cants or base unit 
+     * Accepts the amount of money in base unit and returns cents or base unit
      * amount according to the @see $money_format propery.
      *
+     * @param $money The amount of money in base unit, not in cents.
+     *
      * @throws \InvalidArgumentException
-     * @param  $money The amount of money in base unit, not in cents.
-     * @access public 
+     *
      * @return integer|float
      */
     public function amount($money)
     {
-        if (null === $money)
+        if (null === $money) {
             return null;
+        }
 
         $cents = $money * 100;
         if (!is_numeric($money) || $money < 0) {
             throw new \InvalidArgumentException('money amount must be a positive number.');
         }
-        
-        return ($this->money_format() == 'cents') 
-            ? number_format($cents, 0, '', '') 
+
+        return ($this->money_format() == 'cents')
+            ? number_format($cents, 0, '', '')
             : number_format($money, 2);
     }
 
     protected function card_brand($source)
     {
         $result = isset($source->brand) ? $source->brand : $source->type;
-        
+
         return strtolower($result);
     }
 
@@ -187,7 +200,6 @@ abstract class Gateway
         $card_band = $this->card_brand($creditcard);
 
         if (empty($card_band)) {
-            
             return false;
         }
 
@@ -197,9 +209,9 @@ abstract class Gateway
     /**
      * Sets the request instance.
      * Usefull for testing purposes.
-     * 
-     * @param  RequestInterface $request 
-     * @access public
+     *
+     * @param RequestInterface $request
+     *
      * @return void
      */
     public function setRequest(RequestInterface $request)
@@ -209,9 +221,8 @@ abstract class Gateway
 
     /**
      * Gets the adapter to execute the request.
-     * Defaulr is cUrl. 
-     * 
-     * @access public
+     * Defaulr is cUrl.
+     *
      * @return AdapterInterface
      */
     public function getAdapter()
@@ -224,9 +235,9 @@ abstract class Gateway
     /**
      * Sets a custom adapter to perform the request.
      * Adapter must implements AdapterInterface.
-     * 
-     * @param  AdapterInterface $adapter 
-     * @access public
+     *
+     * @param  AdapterInterface $adapter
+     *
      * @return void
      */
     public function setAdapter(AdapterInterface $adapter)
@@ -236,12 +247,14 @@ abstract class Gateway
 
     /**
      * Send an HTTPS GET request to a remote server, and return the response.
-     * 
+     *
      * @param string $endpoint URL of remote endpoint to connect to
-     * @param string $data Body to include with the request 
-     * @param array $options Additional options for the request (see {@link Merchant_Connection::request()})
-	 * @return string Response from server
+     * @param string $data Body to include with the request
+     * @param array $options Additional options for the request (see {@link AktiveMerchant\Http\Request})
+     *
      * @throws AktiveMerchant\Billing\Exception If the request fails at the HTTP layer
+     *
+     * @return string Response from server
      */
     protected function ssl_get($endpoint, $data, $options = array())
     {
@@ -250,12 +263,14 @@ abstract class Gateway
 
     /**
      * Send an HTTPS POST request to a remote server, and return the response.
-     * 
+     *
      * @param string $endpoint URL of remote endpoint to connect to
-     * @param string $data Body to include with the request 
-     * @param array $options Additional options for the request (see {@link Merchant_Connection::request()})
-	 * @return string Response from server
+     * @param string $data Body to include with the request
+     * @param array $options Additional options for the request (see {@link AktiveMerchant\Http\Request})
+     *
      * @throws AktiveMerchant\Billing\Exception If the request fails at the HTTP layer
+     *
+     * @return string Response from server
      */
     protected function ssl_post($endpoint, $data, $options = array())
     {
@@ -264,42 +279,44 @@ abstract class Gateway
 
     /**
      * Send a request to a remote server, and return the response.
-     * 
-     * @throws AktiveMerchant\Billing\Exception If the request fails at the HTTP layer
      *
      * @param string $method Method to use ('post' or 'get')
      * @param string $endpoint URL of remote endpoint to connect to
-     * @param string $data Body to include with the request 
-     * @param array $options Additional options for the request (see {@link Merchant_Connection::request()})
+     * @param string $data Body to include with the request
+     * @param array $options Additional options for the request (see {@link AktiveMerchant\Http\Request})
      *
-	 * @return string Response from server
+     * @throws AktiveMerchant\Billing\Exception If the request fails at the HTTP layer
+     *
+     * @return string Response from server
      */
-    protected function ssl_request($method, $endpoint, $data, $options = array())
-    { 
+    protected function ssl_request($method, $endpoint, $data, array $options = array())
+    {
         $request = $this->request ?: new Request(
-            $endpoint, 
-            $method, 
+            $endpoint,
+            $method,
             $options
         );
 
+        $request->setMethod($method);
+        $request->setUrl($endpoint);
         $request->setBody($data);
+        $request->setDispatcher($this->getDispatcher());
 
         $request->setAdapter($this->getAdapter());
 
         if (true == $request->send()) {
-            
             return $request->getResponseBody();
         }
     }
 
-    
+
     /* -(  Utils  ) -------------------------------------------------------- */
 
     /**
-     * Returns a unique identifier. 
-     * 
-     * @access public
-     * @since  Method available since Release 1.0.0
+     * Returns a unique identifier.
+     *
+     * @since Method available since Release 1.0.0
+     *
      * @return string
      */
     public function generateUniqueId()
@@ -308,15 +325,16 @@ abstract class Gateway
     }
 
     /**
-     * Returns a unique identifier. 
-     * 
-     * @access public
+     * Returns a unique identifier.
+     *
      * @deprecated Method deprecated in Release 1.0.0
+     *
      * @return string
      */
     public function generate_unique_id()
     {
         trigger_error('generate_unique_id method is deprecated. Use generateUniqueId');
+
         return $this->generateUniqueId();
     }
 
@@ -325,7 +343,8 @@ abstract class Gateway
     /**
      * Convert an associative array to url parameters
      *
-     * @params array key/value hash of parameters
+     * @param array key/value hash of parameters
+     *
      * @return string
      */
     protected function urlize($params)
@@ -338,11 +357,11 @@ abstract class Gateway
     }
 
     /**
-     * required_options 
-     * 
+     * required_options
+     *
      * @param string comma seperated parameters. Represent keys of $options array
      * @param array  the key/value hash of options to compare with
-     * @access protected
+     *
      * @return boolean
      */
     protected function required_options($required, $options = array())
@@ -354,10 +373,10 @@ abstract class Gateway
      * Formats values from a credit card.
      *
      * Used to format mont or year values to 2 or 4 digit numbers.
-     * 
-     * @param  integer $number  The number to format
-     * @param  string  $options 'two_digits' or 'four_digits'
-     * @access protected
+     *
+     * @param integer $number  The number to format
+     * @param string  $options 'two_digits' or 'four_digits'
+     *
      * @return void
      */
     protected function cc_format($number, $options)
@@ -379,13 +398,13 @@ abstract class Gateway
                 break;
         }
     }
-    
+
     /**
      * Lookup for numeric currency codes and returns numeric represantation
      * of ISO 4217 currency code.
-     * 
-     * @param  string $code 
-     * @access protected
+     *
+     * @param string $code
+     *
      * @return string|false
      */
     protected function currency_lookup($code)
@@ -397,5 +416,45 @@ abstract class Gateway
         }
 
         return false;
+    }
+
+    /**
+     * Add a listener to gateway event.
+     *
+     * @param string $eventName
+     * @param string $listener
+     * @param int $priority
+     *
+     * @return void
+     */
+    public function addListener($eventName, $listener, $priority = 0)
+    {
+        $this->getDispatcher()->addListener($eventName, $listener, $priority);
+    }
+
+    /**
+     * Gets dispatcher.
+     *
+     * @since Method available since Release 1.1.0
+     *
+     * @return EventDispatcherInterface
+     */
+    public function getDispatcher()
+    {
+        return $this->dispatcher ?: $this->dispatcher = new EventDispatcher();
+    }
+
+    /**
+     * Sets dispatcher.
+     *
+     * @param EventDispatcherInterface $dispatcher
+     *
+     * @since Method available since Release 1.1.0
+     *
+     * @return void
+     */
+    public function setDispatcher(EventDispatcherInterface $dispatcher)
+    {
+        $this->dispatcher = $dispatcher;
     }
 }

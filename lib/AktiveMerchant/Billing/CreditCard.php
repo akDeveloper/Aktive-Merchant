@@ -53,7 +53,6 @@ namespace AktiveMerchant\Billing;
 
 class CreditCard extends CreditCardMethods
 {
-
     /**
      * Card holder first name
      *
@@ -72,17 +71,32 @@ class CreditCard extends CreditCardMethods
     public $type;
     public $number;
     public $verification_value;
+    public $token;
+
     /**
      * Required for Switch / Solo cards
      */
     public $start_month;
     public $start_year;
     public $issue_number;
-    private $errors;
+
     public $require_verification_value = true;
+
+    private $errors;
+
 
     public function __construct($options)
     {
+        $defaults = array(
+            'first_name' => null,
+            'last_name' => null,
+            'month' => null,
+            'year' => null,
+            'number' => null,
+            'token' => null,
+        );
+
+        $options = array_merge($defaults, $options);
 
         $this->first_name = $options['first_name'];
         $this->last_name = $options['last_name'];
@@ -90,22 +104,27 @@ class CreditCard extends CreditCardMethods
         $this->year = $options['year'];
         $this->number = $options['number'];
 
-        if (isset($options['verification_value']))
+        if (isset($options['verification_value'])) {
             $this->verification_value = $options['verification_value'];
+        }
 
-        if (isset($options['start_month']))
+        if (isset($options['start_month'])) {
             $this->start_month = $options['start_month'];
+        }
 
-        if (isset($options['start_year']))
+        if (isset($options['start_year'])) {
             $this->start_year = $options['start_year'];
+        }
 
-        if (isset($options['issue_number']))
+        if (isset($options['issue_number'])) {
             $this->issue_number = $options['issue_number'];
+        }
 
-        if (isset($options['type']))
+        if (isset($options['type'])) {
             $this->type = $options['type'];
-        else
+        } else {
             $this->type = self::type($this->number);
+        }
 
         $this->errors = new \AktiveMerchant\Common\Error();
     }
@@ -149,11 +168,16 @@ class CreditCard extends CreditCardMethods
 
     private function validate()
     {
+        if ($this->token !== null) {
+            return true;
+        }
+
         $this->validate_essential_attributes();
 
         // Skip test if gateway is Bogus
-        if (self::type($this->number) == 'bogus')
+        if (self::type($this->number) == 'bogus') {
             return true;
+        }
 
         $this->validate_card_type();
         $this->validate_card_number();
@@ -163,60 +187,71 @@ class CreditCard extends CreditCardMethods
 
     private function validate_card_number()
     {
-        if (self::isValidNumber($this->number) === false)
+        if (self::isValidNumber($this->number) === false) {
             $this->errors->add('number', 'is not a valid credit card number');
-        if (self::isMatchingType($this->number, $this->type) === false)
+        }
+        if (self::isMatchingType($this->number, $this->type) === false) {
             $this->errors->add('type', 'is not the correct card type');
+        }
     }
 
     private function validate_card_type()
     {
-        if ($this->type === null || $this->type == "")
+        if ($this->type === null || $this->type == "") {
             $this->errors->add('type', 'is required');
+        }
         $card_companies = self::getCardCompanies();
-        if (!isset($card_companies[$this->type]))
+        if (!isset($card_companies[$this->type])) {
             $this->errors->add('type', 'is invalid');
+        }
     }
 
     private function validate_verification_value()
     {
         if ($this->require_verification_value === true) {
-            if ($this->verification_value === null || $this->verification_value == "")
+            if ($this->verification_value === null
+                || $this->verification_value == "") {
                 $this->errors->add('verification_value', 'is required');
+            }
         }
     }
 
     private function validate_switch_or_solo_attributes()
     {
         if (in_array($this->type, array('solo', 'switch'))) {
-            if (( self::isValidMonth($this->start_month) === false
-                && self::isValidStartYear($this->start_year) == false )
-                || self::isValidIssueNumber($this->issue_number) == false) {
-
-                if (self::isValidMonth($this->start_month) === false)
+            if ((self::isValidMonth($this->start_month) === false
+                && self::isValidStartYear($this->start_year) == false)
+                || self::isValidIssueNumber($this->issue_number) == false
+            ) {
+                if (self::isValidMonth($this->start_month) === false) {
                     $this->errors->add('start month', 'is invalid');
-                if (self::isValidStartYear($this->start_year) === false)
+                }
+                if (self::isValidStartYear($this->start_year) === false) {
                     $this->errors->add('start year', 'is invalid');
-                if (self::isValidIssueNumber($this->issue_number) === false)
+                }
+                if (self::isValidIssueNumber($this->issue_number) === false) {
                     $this->errors->add('issue number', 'cannot be empty');
+                }
             }
         }
     }
 
     private function validate_essential_attributes()
     {
-        if ($this->first_name === null || $this->first_name == "")
+        if ($this->first_name === null || $this->first_name == "") {
             $this->errors->add('first_name', 'cannot be empty');
-        if ($this->last_name === null || $this->last_name == "")
+        }
+        if ($this->last_name === null || $this->last_name == "") {
             $this->errors->add('last_name', 'cannot be empty');
-        if (self::isValidMonth($this->month) === false)
+        }
+        if (self::isValidMonth($this->month) === false) {
             $this->errors->add('month', 'is not a valid month');
-        if ($this->isExpired() === true)
+        }
+        if ($this->isExpired() === true) {
             $this->errors->add('year', 'expired');
-        if (self::isValidExpiryYear($this->year) === false)
+        }
+        if (self::isValidExpiryYear($this->year) === false) {
             $this->errors->add('year', 'is not a valid year');
+        }
     }
-
 }
-
-?>

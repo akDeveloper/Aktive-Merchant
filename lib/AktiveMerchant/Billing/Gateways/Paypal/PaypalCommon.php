@@ -5,11 +5,11 @@
 namespace AktiveMerchant\Billing\Gateways\Paypal;
 
 use AktiveMerchant\Billing\Gateway;
+
 /**
  * Description of PaypalCommon
  *
- * @package Aktive-Merchant
- * @author  Andreas Kollaros
+ * @author Andreas Kollaros <andreas@larium.net>
  * @license http://www.opensource.org/licenses/mit-license.php
  */
 class PaypalCommon extends Gateway
@@ -46,17 +46,22 @@ class PaypalCommon extends Gateway
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
         $response = $this->parse(
-            $this->ssl_post($url, $this->post_data($action))
+            $this->ssl_post($url, $this->postData($action))
         );
 
         $options = array();
         $options['test'] = $this->isTest();
-        $options['authorization'] = $this->authorization_from($response);
-        $options['fraud_review'] = $this->fraud_review_from($response);
-        $options['avs_result'] = $this->avs_result_from($response);
+        $options['authorization'] = $this->authorizationFrom($response);
+        $options['fraud_review'] = $this->fraudReviewFrom($response);
+        $options['avs_result'] = $this->avsResultFrom($response);
         $options['cvv_result'] = isset($response['CVV2MATCH']) ? $response['CVV2MATCH'] : null;
 
-        return $this->build_response($this->success_from($response), $this->message_from($response), $response, $options);
+        return $this->buildResponse(
+            $this->successFrom($response),
+            $this->messageFrom($response),
+            $response,
+            $options
+        );
     }
 
     /**
@@ -65,7 +70,7 @@ class PaypalCommon extends Gateway
      * @param array $response
      * @return string
      */
-    private function success_from($response)
+    private function successFrom($response)
     {
         return (in_array($response['ACK'], $this->SUCCESS_CODES));
     }
@@ -76,7 +81,7 @@ class PaypalCommon extends Gateway
      * @param array $response
      * @return string
      */
-    private function message_from($response)
+    private function messageFrom($response)
     {
         return ( isset($response['L_LONGMESSAGE0']) ? $response['L_LONGMESSAGE0'] : $response['ACK'] );
     }
@@ -87,10 +92,12 @@ class PaypalCommon extends Gateway
      * @param array $response
      * @return boolean
      */
-    private function fraud_review_from($response)
+    private function fraudReviewFrom($response)
     {
-        if (isset($response['L_ERRORCODE0']))
+        if (isset($response['L_ERRORCODE0'])) {
             return ($response['L_ERRORCODE0'] == self::FRAUD_REVIEW_CODE);
+        }
+
         return false;
     }
 
@@ -101,7 +108,7 @@ class PaypalCommon extends Gateway
      * @param array $response
      * @return array
      */
-    private function avs_result_from($response)
+    private function avsResultFrom($response)
     {
         return array('code' => isset($response['AVSCODE']) ? $response['AVSCODE'] : null);
     }
@@ -111,17 +118,20 @@ class PaypalCommon extends Gateway
      * @param array $response
      * @return boolean
      */
-    private function authorization_from($response)
+    private function authorizationFrom($response)
     {
-        if (isset($response['TRANSACTIONID']))
+        if (isset($response['TRANSACTIONID'])) {
             return $response['TRANSACTIONID'];
-        if (isset($response['AUTHORIZATIONID']))
+        }
+        if (isset($response['AUTHORIZATIONID'])) {
             return $response['AUTHORIZATIONID'];
-        if (isset($response['REFUNDTRANSACTIONID']))
+        }
+        if (isset($response['REFUNDTRANSACTIONID'])) {
             return $response['REFUNDTRANSACTIONID'];
-        if (isset($response['PAYMENTINFO_0_TRANSACTIONID']))
+        }
+        if (isset($response['PAYMENTINFO_0_TRANSACTIONID'])) {
             return $response['PAYMENTINFO_0_TRANSACTIONID'];
+        }
         return false;
     }
-
 }

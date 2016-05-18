@@ -5,15 +5,15 @@
 namespace AktiveMerchant\Common;
 
 /**
- * Address class allows mapping user defined fields of an address array to 
+ * Address class allows mapping user defined fields of an address array to
  * corresponding fields of a gateway.
- * 
+ *
  * <code>
  *      $user_address = array(
  *          'city' => 'Athens',
  *          'country' => 'Greece',
  *      );
- *      
+ *
  *      $address = new Address($user_address); // create new instance
  *
  *      $address->map('city', 'GATEWAY_CITY')    // maps the city field.
@@ -24,15 +24,15 @@ namespace AktiveMerchant\Common;
  *      // Output:
  *      // Array(
  *      //      'GATEWAY_CITY' => 'Athens',
- *      //      'GATEWAY_COUNTRY' => 'Greece' 
+ *      //      'GATEWAY_COUNTRY' => 'Greece'
  *      // )
  *
  *
  * </code>
  *
- * 
+ *
  * @package Aktive-Merchant
- * @author  Andreas Kollaros 
+ * @author  Andreas Kollaros
  * @license http://opensource.org/licenses/mit-license.php
  */
 class Address
@@ -40,7 +40,7 @@ class Address
 
     /**
      * An array or Options class with user definded fields of an address.
-     * 
+     *
      * @var array|Options
      */
     protected $fields = array();
@@ -58,12 +58,12 @@ class Address
     }
 
     /**
-     * Maps an address field from user to the corresponding field from the 
-     * gateway.  
-     * 
-     * @param string $user_field 
-     * @param string $gateway_field 
-     * 
+     * Maps an address field from user to the corresponding field from the
+     * gateway.
+     *
+     * @param string $user_field
+     * @param string $gateway_field
+     *
      * @access public
      *
      * @return Address
@@ -77,9 +77,9 @@ class Address
 
     /**
      * Sets an array with address fields
-     * 
-     * @param array $fields 
-     * 
+     *
+     * @param array $fields
+     *
      * @access public
      *
      * @return void
@@ -91,7 +91,7 @@ class Address
 
     /**
      * Gets an array with address fields.
-     * 
+     *
      * @access public
      *
      * @return array
@@ -105,15 +105,14 @@ class Address
      * Gets an array with mapped address fields.
      *
      * @access public
-     * 
+     *
      * @return array
      */
     public function getMappedFields()
     {
         $mapped = array();
 
-        foreach ($this->fields as $key=>$value) {
-        
+        foreach ($this->fields as $key => $value) {
             if (array_key_exists($key, $this->mappings)) {
                 $map = $this->mappings[$key];
                 $mapped[$map] = $value;

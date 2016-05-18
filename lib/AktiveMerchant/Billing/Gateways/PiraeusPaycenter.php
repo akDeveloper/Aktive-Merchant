@@ -8,6 +8,9 @@ use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
+use AktiveMerchant\Http\Adapter\SoapClientAdapter;
+use AktiveMerchant\Common\Options;
+use AktiveMerchant\Http\Adapter\Exception as AdapterException;
 
 /**
  * PiraeusPaycenter gateway
@@ -18,11 +21,18 @@ use AktiveMerchant\Billing\Response;
  */
 class PiraeusPaycenter extends Gateway implements
     Interfaces\Charge,
-    Interfaces\Credit
+    Interfaces\Credit,
+    Interfaces\Store
 {
-    const TEST_URL = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
-    const LIVE_URL = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
-    const TICKET_URL = 'https://paycenter.piraeusbank.gr/services/tickets/issuer.asmx';
+    const TEST_URL     = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
+    const LIVE_URL     = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx';
+    const WSDL         = 'https://paycenter.piraeusbank.gr/services/paymentgateway.asmx?WSDL';
+    const TOKEN_WSDL   = 'https://paycenter.piraeusbank.gr/services/TokenService.asmx?WSDL';
+    const BIN_WSDL     = 'https://paycenter.piraeusbank.gr/Services/BinServiceClient.asmx?WSDL';
+
+    const ACTION       = 'ProcessTransaction';
+    const TOKEN_ACTION = 'RequestToken';
+    const BIN_ACTION   = 'GetInstallmentsSupported';
 
     /**
      * {@inheritdoc }
@@ -46,7 +56,7 @@ class PiraeusPaycenter extends Gateway implements
 
     private $options;
 
-    private $post;
+    private $post = array();
 
     private $CURRENCY_MAPPINGS = array(
         'USD' => 840, 'GRD' => 300, 'EUR' => 978
@@ -72,8 +82,13 @@ class PiraeusPaycenter extends Gateway implements
     );
 
     private $CARD_MAPPINGS = array(
-        'visa' => 'VISA',
-        'master' => 'MasterCard'
+        'visa'              => 'VISA',
+        'master'            => 'MasterCard',
+        'maestro'           => 'Maestro',
+        'diners_club'       => 'DinersClub',
+        'discover'          => 'DinersClub',
+        'american_express'  => 'AMEX',
+        'UNKNOWN'           => 'UNKNOWN'
     );
 
     /**
@@ -82,12 +97,18 @@ class PiraeusPaycenter extends Gateway implements
      */
     public function __construct($options = array())
     {
-      $this->required_options('acquire_id, merchant_id, pos_id, user, password, channel_type', $options);
+        $this->required_options('acquire_id, merchant_id, pos_id, user, password, channel_type', $options);
 
-        if (isset($options['currency']))
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
+        }
 
         $this->options = $options;
+    }
+
+    public function amount($money)
+    {
+        return number_format($money, 2, '.', '');
     }
 
     /**
@@ -98,13 +119,18 @@ class PiraeusPaycenter extends Gateway implements
      *
      * @return Merchant_Billing_Response
      */
-    public function authorize($money, CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options = array())
     {
-        $this->post = null;
-        $this->add_invoice($money, $options);
-        $this->post .= '<ns:ExpirePreauth>30</ns:ExpirePreauth>';
-        $this->add_creditcard($creditcard);
-        $this->add_centinel_data($options);
+        $this->post = array();
+        $authorizeDays = isset($options['authorize_days'])
+            ? (int) $options['authorize_days']
+            : 30;
+        $this->addInvoice($money, $options);
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['ExpirePreauth'] = $authorizeDays;
+        $this->addCreditcard($creditcard);
+        if ($creditcard->type !== 'UNKNOWN') {
+            $this->addCentinelData($options);
+        }
 
         return $this->commit('AUTHORIZE', $money);
     }
@@ -117,12 +143,14 @@ class PiraeusPaycenter extends Gateway implements
      *
      * @return Response
      */
-    public function purchase($money, CreditCard $creditcard, $options=array())
+    public function purchase($money, CreditCard $creditcard, $options = array())
     {
-        $this->post = null;
-        $this->add_invoice($money, $options);
-        $this->add_creditcard($creditcard);
-        $this->add_centinel_data($options);
+        $this->post = array();
+        $this->addInvoice($money, $options);
+        $this->addCreditcard($creditcard);
+        if ($creditcard->type !== 'UNKNOWN') {
+            $this->addCentinelData($options);
+        }
 
         return $this->commit('SALE', $money);
     }
@@ -137,34 +165,36 @@ class PiraeusPaycenter extends Gateway implements
      */
     public function capture($money, $authorization, $options = array())
     {
-        $this->post = null;
+        $this->post = array();
         $amount = $this->amount($money);
-        $this->post .= <<<XML
-      <ns:TransactionReferenceID>{$authorization}</ns:TransactionReferenceID>
-      <ns:CurrencyCode>{$this->currency_lookup(self::$default_currency)}</ns:CurrencyCode>
-      <ns:Amount>$amount</ns:Amount>
-XML;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['TransactionReferenceID'] = $authorization;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CurrencyCode'] = $this->currency_lookup(self::$default_currency);
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['Amount'] = $amount;
+
         return $this->commit('SETTLE', $money);
     }
 
     /**
      *
      * @param string $authorization
-     * @param array  $options
-     *
+     * @param array  $options Required options are:
+     *                        money The amount to refund.
+     *                        order_id Unique merchant reference.
      * @return Response
      */
     public function void($authorization, $options = array())
     {
-        $this->post = null;
+        Options::required('money, order_id', $options);
+
+        $this->post = array();
         $money = $options['money'];
         $amount = $this->amount($money);
-        $this->post .= <<<XML
-      <ns:TransactionReferenceID>{$authorization}</ns:TransactionReferenceID>
-      <ns:CurrencyCode>{$this->currency_lookup(self::$default_currency)}</ns:CurrencyCode>
-      <ns:Amount>$amount</ns:Amount>
-XML;
-        return $this->commit('REFUND', null);
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['MerchantReference'] = $options['order_id'];
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['TransactionReferenceID'] = $authorization;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CurrencyCode'] = $this->currency_lookup(self::$default_currency);
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['Amount'] = $amount;
+
+        return $this->commit('VOIDREQUEST', null);
     }
 
     /**
@@ -177,14 +207,66 @@ XML;
      */
     public function credit($money, $identification, $options = array())
     {
-        $this->post = null;
+        $this->post = array();
         $amount = $this->amount($money);
-        $this->post .= <<<XML
-      <ns:TransactionReferenceID>{$identification}</ns:TransactionReferenceID>
-      <ns:CurrencyCode>{$this->currency_lookup(self::$default_currency)}</ns:CurrencyCode>
-      <ns:Amount>$amount</ns:Amount>
-XML;
-        return $this->commit('VOIDREQUEST', $money);
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['MerchantReference'] = $options['order_id'];
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['TransactionReferenceID'] = $identification;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CurrencyCode'] = $this->currency_lookup(self::$default_currency);
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['Amount'] = $amount;
+
+        return $this->commit('REFUND', $money);
+    }
+
+    public function store(CreditCard $creditcard, $options = array())
+    {
+        Options::required('order_id', $options);
+
+        $this->post = array();
+        $password = md5($this->options['password']);
+        $month = $this->cc_format($creditcard->month, 'two_digits');
+        $this->post[static::TOKEN_ACTION]['Request']['CRS'] = $this->options['crs'];
+        $this->post[static::TOKEN_ACTION]['Request']['Username'] = $this->options['user'];
+        $this->post[static::TOKEN_ACTION]['Request']['Password'] = $password;
+        $this->post[static::TOKEN_ACTION]['Request']['MerchantReference'] = $options['order_id'];
+        $this->post[static::TOKEN_ACTION]['Request']['CardNumber'] = $creditcard->number;
+        $this->post[static::TOKEN_ACTION]['Request']['ExpirationMonth'] = $month;
+        $this->post[static::TOKEN_ACTION]['Request']['ExpirationYear'] = $creditcard->year;
+
+        return $this->commit('TOKEN', 0);
+    }
+
+    public function unstore($reference, $options = array())
+    {
+
+    }
+
+    public function followUp($merchantReference)
+    {
+        $this->post = array();
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['MerchantReference'] = $merchantReference;
+
+        return $this->commit('FOLLOW_UP', 0);
+    }
+
+    public function isAvailable()
+    {
+        $this->post = array();
+
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['MerchantReference'] = $this->generateUniqueId();
+        return $this->commit('ISAVAILABLE', 0);
+    }
+
+
+    public function supportsInstallment($amount, CreditCard $creditcard)
+    {
+        $this->post[static::BIN_ACTION]['request']['Header']['Merchant']['MerchantID']  = $this->options['merchant_id'];
+        $this->post[static::BIN_ACTION]['request']['Header']['Merchant']['AcquirerID']  = $this->options['acquire_id'];
+        $this->post[static::BIN_ACTION]['request']['Header']['Merchant']['User']        = $this->options['user'];
+        $this->post[static::BIN_ACTION]['request']['Header']['Merchant']['Password']    = md5($this->options['password']);
+        $this->post[static::BIN_ACTION]['request']['Body']['Amount']                    = $this->amount($amount);
+        $this->post[static::BIN_ACTION]['request']['Body']['Bin']                       = substr($creditcard->number, 0, 8);
+
+        return $this->commit('BIN', 0);
     }
 
     /* Private */
@@ -193,39 +275,41 @@ XML;
      *
      * @param array $options
      */
-    private function add_invoice($money, $options)
+    private function addInvoice($money, $options)
     {
+        $options = new Options($options);
+        $currency = $options['currency'] ?: self::$default_currency;
         $amount = $this->amount($money);
-        $this->post .= <<<XML
-      <ns:MerchantReference>{$options['order_id']}</ns:MerchantReference>
-      <ns:EntryType>KeyEntry</ns:EntryType>
-      <ns:CurrencyCode>{$this->currency_lookup(self::$default_currency)}</ns:CurrencyCode>
-      <ns:Amount>$amount</ns:Amount>
-XML;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['MerchantReference'] = $options['order_id'];
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['EntryType'] = 'KeyEntry';
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CurrencyCode'] = $this->currency_lookup($currency);
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['Amount'] = $amount;
+        if (isset($options['installments'])) {
+            $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['Installments'] = $options['installments'];
+        }
     }
 
     /**
      *
      * @param CreditCard $creditcard
      */
-    private function add_creditcard(CreditCard $creditcard)
+    private function addCreditcard(CreditCard $creditcard)
     {
-        $month = $this->cc_format($creditcard->month, 'two_digits');
+        $month = null;
+        if ($creditcard->month) {
+            $month = $this->cc_format($creditcard->month, 'two_digits');
+        }
 
-        $cardholdername = strtoupper($creditcard->name());
-        $this->post .= <<<XML
-      <ns:CardInfo>
-        <ns:CardType>{$this->CARD_MAPPINGS[$creditcard->type]}</ns:CardType>
-        <ns:CardNumber>$creditcard->number</ns:CardNumber>
-        <ns:CardHolderName>$cardholdername</ns:CardHolderName>
-        <ns:ExpirationMonth>$month</ns:ExpirationMonth>
-        <ns:ExpirationYear>$creditcard->year</ns:ExpirationYear>
-        <ns:Cvv2>$creditcard->verification_value</ns:Cvv2>
-        <ns:Aid/>
-        <ns:Emv/>
-        <ns:PinBlock/>
-      </ns:CardInfo>
-XML;
+        $cardholdername = trim(strtoupper($creditcard->name())) ?: null;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['CardType'] = $this->CARD_MAPPINGS[$creditcard->type];
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['CardNumber'] = $creditcard->number;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['CardHolderName'] = $cardholdername;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['ExpirationMonth'] = $month;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['ExpirationYear'] = $creditcard->year;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Cvv2'] = $creditcard->verification_value;
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Aid'] = '';
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['Emv'] = '';
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['CardInfo']['PinBlock'] = '';
     }
 
     /**
@@ -233,19 +317,16 @@ XML;
      *
      * @param array $options
      */
-    private function add_centinel_data($options)
+    private function addCentinelData($options)
     {
         $this->required_options('cavv, eci_flag, xid, enrolled, pares_status, signature_verification', $options);
-        $this->post .= <<<XML
-      <ns:AuthInfo>
-        <ns:Cavv>{$options['cavv']}</ns:Cavv>
-        <ns:Eci>{$options['eci_flag']}</ns:Eci>
-        <ns:Xid>{$options['xid']}</ns:Xid>
-        <ns:Enrolled>{$this->ENROLLED_MAPPINGS[$options['enrolled']]}</ns:Enrolled>
-        <ns:PAResStatus>{$this->PARES_MAPPINGS[$options['pares_status']]}</ns:PAResStatus>
-        <ns:SignatureVerification>{$this->SIGNATURE_MAPPINGS[$options['signature_verification']]}</ns:SignatureVerification>
-      </ns:AuthInfo>
-XML;
+
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['AuthInfo']['Cavv'] = $options['cavv'];
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['AuthInfo']['Eci'] = $options['eci_flag'];
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['AuthInfo']['Xid'] = $options['xid'];
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['AuthInfo']['Enrolled'] = $this->ENROLLED_MAPPINGS[$options['enrolled']];
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['AuthInfo']['PAResStatus'] = $this->PARES_MAPPINGS[$options['pares_status']];
+        $this->post['ProcessTransaction']['TransactionRequest']['Body']['TransactionInfo']['AuthInfo']['SignatureVerification'] = $this->SIGNATURE_MAPPINGS[$options['signature_verification']];
     }
 
     /**
@@ -254,24 +335,59 @@ XML;
      */
     private function parse($body)
     {
-        $body = preg_replace('#(</?)soap:#', '$1', $body);
-        $xml = simplexml_load_string($body);
+        $response = array(
+            'result_code' => 500,
+            'result_description' => null
+        );
 
-        $response = array();
+        if (isset($body->TransactionResponse)) { # Handle transaction response.
 
-        $header = $xml->Body->ProcessTransactionResponse->TransactionResponse->Header;
-        $transaction = $xml->Body->ProcessTransactionResponse->TransactionResponse->Body->TransactionInfo;
+            $header = $body->TransactionResponse->Header;
+            $transaction = $body->TransactionResponse->Body->TransactionInfo;
 
+            $response['request_type'] = $header->RequestType;
+            $response['result_code'] = (string) $header->ResultCode;
+            $response['result_description'] = (string) $header->ResultDescription;
+            $response['support_reference_id'] = (string) $header->SupportReferenceID;
 
-        $response['status'] = (string) $transaction->StatusFlag;
-        $response['result_description'] = (string) $header->ResultDescription;
-        $response['support_reference_id'] = (string) $header->SupportReferenceID;
-        $response['response_description'] = (string) $transaction->ResponseDescription;
-        $response['authorization_id'] = (string) $transaction->TransactionID;
-        $response['result_code'] = (string) $header->ResultCode;
-        $response['response_code'] = (string) $transaction->ResponseCode;
-        $response['approval_code'] = (string) $transaction->ApprovalCode;
-        $response['package_no'] = (string) $transaction->PackageNo;
+            $response['status'] = (string) $transaction->StatusFlag;
+
+            if ($response['result_code'] == 0) {
+                $response['response_description'] = (string) $transaction->ResponseDescription;
+                $response['authorization_id'] = (string) $transaction->TransactionID;
+                $response['response_code'] = (string) $transaction->ResponseCode;
+                $response['approval_code'] = (string) $transaction->ApprovalCode;
+                $response['package_no'] = (string) $transaction->PackageNo;
+                $response['retrieval_ref'] = (string) $transaction->RetrievalRef;
+                $response['merchant_reference'] = (string) $transaction->MerchantReference;
+                $response['transaction_trace_num'] = (string) $transaction->TransactionTraceNum;
+                $response['transaction_date_time'] = (string) $transaction->TransactionDateTime;
+                if (isset($transaction->Token)) {
+                    $response['token'] = (string) $transaction->Token;
+                }
+            }
+        }
+
+        if (isset($body->RequestTokenResult)) { # Handle tokenization response.
+            $result = $body->RequestTokenResult;
+            $response['result_code'] = (string) $result->ResultCode;
+            $response['result_description'] = (string) $result->ResultDescription;
+            $response['status'] = (string) $result->StatusFlag;
+            $response['support_reference_id'] = (string) $result->SupportReferenceID;
+            $response['merchant_reference'] = (string) $result->MerchantReference;
+            if ($response['result_code'] == 0) {
+                $response['authorization_id'] = (string) $result->Token;
+            }
+        }
+
+        if (isset($body->GetInstallmentsSupportedResult)) {
+            $result = $body->GetInstallmentsSupportedResult;
+            $response['support_reference_id'] = (string) $result->Header->SupportReferenceID;
+            $response['supports_installments'] = (string) $result->Body->SupportsInstallments;
+            $response['installments'] = (string) $result->Body->Installments;
+            $response['result_code'] = (string) $result->Body->ResultCode;
+            $response['result_description'] = (string) $result->Body->ResultDescription;
+        }
 
         return $response;
     }
@@ -284,35 +400,49 @@ XML;
      *
      * @return Response
      */
-    private function commit($action, $money, $parameters=array())
+    private function commit($action, $money, $parameters = array())
     {
-        $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
+        $postData = $this->postData($action, $parameters);
 
-        $header = 'http://piraeusbank.gr/paycenter/ProcessTransaction';
+        $adapter = new SoapClientAdapter();
+        $adapter->setOption('action', static::ACTION);
+        $url = static::WSDL;
+        if ($action == 'TOKEN') {
+            $adapter->setOption('action', static::TOKEN_ACTION);
+            $url = static::TOKEN_WSDL;
+        }
+        if ($action == 'BIN') {
+            $adapter->setOption('action', static::BIN_ACTION);
+            $url = static::BIN_WSDL;
+        }
 
-        $post_data = $this->post_data($action, $parameters);
-
-        $headers = array(
-            "POST /services/paymentgateway.asmx HTTP/1.1",
-            "Host: paycenter.piraeusbank.gr",
-            "Content-type: text/xml; charset=\"utf-8\"",
-            "Content-length: " . strlen($post_data),
-            "SOAPAction: \"$header\""
-        );
-
-        $data = $this->ssl_post($url, $post_data, array('headers' => $headers));
-
-        $response = $this->parse($data);
+        $this->setAdapter($adapter);
 
         $test_mode = $this->isTest();
 
+        try {
+            $data = $this->ssl_post($url, $postData);
+        } catch (AdapterException $e) {
+            return new Response(
+                false,
+                $e->getMessage(),
+                array(),
+                array(
+                    'test' => $test_mode,
+                    'authorization' => null
+                )
+            );
+        }
+
+        $response = $this->parse($data);
+
         return new Response(
-            $this->success_from($response),
-            $this->message_from($response),
+            $this->successFrom($response, $action == 'TOKEN', $action == 'BIN'),
+            $this->messageFrom($response),
             $response,
             array(
                 'test' => $test_mode,
-                'authorization' => $response['authorization_id']
+                'authorization' => isset($response['authorization_id']) ? $response['authorization_id'] : null
             )
         );
     }
@@ -323,9 +453,21 @@ XML;
      *
      * @return string
      */
-    private function success_from($response)
+    private function successFrom($response, $token = false, $bin = false)
     {
-        return $response['status'] == 'Success';
+        if ($token) {
+            return $response['result_code'] == '0'
+                && $response['status'] == 'Success';
+        }
+
+        if ($bin) {
+            return $response['result_code'] == 0;
+        }
+
+        return $response['result_code'] == '0'
+            && isset($response['response_code'])
+            && ($response['response_code'] == '00'
+            || $response['response_code'] == '11');
     }
 
     /**
@@ -334,11 +476,11 @@ XML;
      *
      * @return string
      */
-    private function message_from($response)
+    private function messageFrom($response)
     {
-        return $response['response_description'] == ''
-            ? $response['result_description']
-            : $response['response_description'];
+        return isset($response['response_description'])
+            ? $response['response_description']
+            : $response['result_description'];
     }
 
     /**
@@ -347,7 +489,7 @@ XML;
      *
      * @return string
      */
-    private function fraud_review_from($response)
+    private function fraudReviewFrom($response)
     {
 
     }
@@ -358,7 +500,7 @@ XML;
      *
      * @return array
      */
-    private function avs_result_from($response)
+    private function avsResultFrom($response)
     {
         return array('code' => $response['avs_result_code']);
     }
@@ -368,43 +510,25 @@ XML;
      * @param string $action
      * @param array  $parameters
      */
-    private function post_data($action, $parameters = array())
+    private function postData($action, $parameters = array())
     {
+        if ($action == 'TOKEN') {
+            return $this->post;
+        }
         /**
          * Add final parameters to post data and
          * build $this->post to the format that your payment gateway understands
          */
         $password = md5($this->options['password']);
-        $xml = <<<XML
+        $this->post['ProcessTransaction']['TransactionRequest']['Header']['RequestType'] = $action;
+        $this->post['ProcessTransaction']['TransactionRequest']['Header']['RequestMethod'] = 'SYNCHRONOUS';
+        $this->post['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['AcquirerID'] = $this->options['acquire_id'];
+        $this->post['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['MerchantID'] = $this->options['merchant_id'];
+        $this->post['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['PosID'] = $this->options['pos_id'];
+        $this->post['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['ChannelType'] = $this->options['channel_type'];
+        $this->post['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['User'] = $this->options['user'];
+        $this->post['ProcessTransaction']['TransactionRequest']['Header']['MerchantInfo']['Password'] = $password;
 
-      <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:pay="http://piraeusbank.gr/paycenter" xmlns:ns="http://piraeusbank.gr/paycenter/1.0">
-        <soap:Header/>
-        <soap:Body>
-          <pay:ProcessTransaction>
-            <ns:TransactionRequest>
-              <ns:Header>
-                <ns:RequestType>$action</ns:RequestType>
-                <ns:RequestMethod>SYNCHRONOUS</ns:RequestMethod>
-                <ns:MerchantInfo>
-                  <ns:AcquirerID>{$this->options['acquire_id']}</ns:AcquirerID>
-                  <ns:MerchantID>{$this->options['merchant_id']}</ns:MerchantID>
-                  <ns:PosID>{$this->options['pos_id']}</ns:PosID>
-                  <ns:ChannelType>{$this->options['channel_type']}</ns:ChannelType>
-                  <ns:User>{$this->options['user']}</ns:User>
-                  <ns:Password>{$password}</ns:Password>
-                </ns:MerchantInfo>
-              </ns:Header>
-              <ns:Body>
-                <ns:TransactionInfo>
-                {$this->post}
-                </ns:TransactionInfo>
-              </ns:Body>
-            </ns:TransactionRequest>
-          </pay:ProcessTransaction>
-        </soap:Body>
-      </soap:Envelope>
-XML;
-
-        return ($xml);
+        return $this->post;
     }
 }

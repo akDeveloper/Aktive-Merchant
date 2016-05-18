@@ -10,13 +10,10 @@ use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
 
 /**
- * Description of Example
+ * Integration of Example gateway
  *
- * @category Gateways
- * @package  Aktive-Merchant
  * @author   Your name <your@email.com>
  * @license  MIT License http://www.opensource.org/licenses/mit-license.php
- * @link     https://github.com/akDeveloper/Aktive-Merchant
  */
 class Example extends Gateway implements
     Interfaces\Charge,
@@ -78,19 +75,18 @@ class Example extends Gateway implements
     private $post;
 
     /**
-     * creates gateway instance from given options.
+     * Creates gateway instance from given options.
      *
-     * @param array $options an array contains login parameters of merchant
+     * @param array $options An array contains login parameters of merchant
      *                       and optional currency.
-     *
-     * @return Gateway The gateway instance.
      */
     public function __construct($options = array())
     {
         $this->required_options('login, password', $options);
 
-        if (isset($options['currency']))
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
+        }
 
         $this->options = $options;
     }
@@ -98,12 +94,12 @@ class Example extends Gateway implements
     /**
      * {@inheritdoc}
      */
-    public function authorize($money, CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options = array())
     {
-        $this->add_invoice($options);
-        $this->add_creditcard($creditcard);
-        $this->add_address($options);
-        $this->add_customer_data($options);
+        $this->addInvoice($options);
+        $this->addCreditCard($creditcard);
+        $this->addAddress($options);
+        $this->addCustomerData($options);
 
         return $this->commit('authonly', $money);
     }
@@ -111,12 +107,12 @@ class Example extends Gateway implements
     /**
      * {@inheritdoc}
      */
-    public function purchase($money, CreditCard $creditcard, $options=array())
+    public function purchase($money, CreditCard $creditcard, $options = array())
     {
-        $this->add_invoice($options);
-        $this->add_creditcard($creditcard);
-        $this->add_address($options);
-        $this->add_customer_data($options);
+        $this->addInvoice($options);
+        $this->addCreditcard($creditcard);
+        $this->addAddress($options);
+        $this->addCustomerData($options);
 
         return $this->commit('sale', $money);
     }
@@ -127,7 +123,7 @@ class Example extends Gateway implements
     public function capture($money, $authorization, $options = array())
     {
         $this->post = array('authorization_id' => $authorization);
-        $this->add_customer_data($options);
+        $this->addCustomerData($options);
 
         return $this->commit('capture', $money);
     }
@@ -142,29 +138,22 @@ class Example extends Gateway implements
     }
 
     /**
-     *
-     * @param  number $money
-     * @param  string $identification
-     * @param  array  $options
-     *
-     * @return Response
+     * {@inheritdoc}
      */
     public function credit($money, $identification, $options = array())
     {
         $this->post = array('authorization' => $identification);
 
-        $this->add_invoice($options);
+        $this->addInvoice($options);
         return $this->commit('credit', $money);
     }
-
-    // Private methods
 
     /**
      * Customer data like e-mail, ip, web browser used for transaction etc
      *
      * @param array $options
      */
-    private function add_customer_data($options)
+    private function addCustomerData($options)
     {
 
     }
@@ -192,21 +181,21 @@ class Example extends Gateway implements
      * $shipping_address = $options['shipping_address'];
      * </code>
      *
-     * @param  array $options
+     * @param array $options
      *
      * @return void
      */
-    private function add_address($options)
+    private function addAddress($options)
     {
 
     }
 
     /**
-     * Adds invoice info if exists.
+     * Adds invoice info if exist.
      *
      * @param array $options
      */
-    private function add_invoice($options)
+    private function addInvoice($options)
     {
 
     }
@@ -216,7 +205,7 @@ class Example extends Gateway implements
      *
      * @param CreditCard $creditcard
      */
-    private function add_creditcard(CreditCard $creditcard)
+    private function addCreditcard(CreditCard $creditcard)
     {
 
     }
@@ -225,6 +214,8 @@ class Example extends Gateway implements
      * Parse the raw data response from gateway
      *
      * @param string $body
+     *
+     * @return array|stdClass The parsed response data.
      */
     private function parse($body)
     {
@@ -233,9 +224,9 @@ class Example extends Gateway implements
 
     /**
      *
-     * @param  string $action
-     * @param  number $money
-     * @param  array  $parameters
+     * @param string $action
+     * @param number $money
+     * @param array  $parameters
      *
      * @return Response
      */
@@ -250,17 +241,17 @@ class Example extends Gateway implements
         $test_mode = $this->isTest();
 
         return new Response(
-            $this->success_from($response),
-            $this->message_from($response),
+            $this->successFrom($response),
+            $this->messageFrom($response),
             $response,
             array(
                 'test' => $test_mode,
                 'authorization' => $response['authorization_id'],
-                'fraud_review' => $this->fraud_review_from($response),
-                'avs_result' => $this->avs_result_from($response),
+                'fraud_review' => $this->fraudReviewFrom($response),
+                'avs_result' => $this->avsResultFrom($response),
                 'cvv_result' => $response['card_code']
             )
-	    );
+        );
     }
 
     /**
@@ -270,7 +261,7 @@ class Example extends Gateway implements
      *
      * @return string
      */
-    private function success_from($response)
+    private function successFrom($response)
     {
         return $response['success_code_from_gateway'];
     }
@@ -282,7 +273,7 @@ class Example extends Gateway implements
      *
      * @return string
      */
-    private function message_from($response)
+    private function messageFrom($response)
     {
         return $response['message_from_gateway'];
     }
@@ -294,7 +285,7 @@ class Example extends Gateway implements
      *
      * @return string
      */
-    private function fraud_review_from($response)
+    private function fraudReviewFrom($response)
     {
 
     }
@@ -307,7 +298,7 @@ class Example extends Gateway implements
      *
      * @return string
      */
-    private function avs_result_from($response)
+    private function avsResultFrom($response)
     {
         return array('code' => $response['avs_result_code']);
     }
@@ -321,9 +312,8 @@ class Example extends Gateway implements
      *
      * @return void
      */
-    private function post_data($action, $parameters = array())
+    private function postData($action, $parameters = array())
     {
 
     }
-
 }

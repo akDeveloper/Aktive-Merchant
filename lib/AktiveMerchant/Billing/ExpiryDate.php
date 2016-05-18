@@ -40,26 +40,33 @@ class ExpiryDate
 
     public function expiration()
     {
-        return strtotime($this->year . "-" . $this->month . "-" . $this->_month_days() . " 23:59:59");
+        $date = $this->year
+            . "-"
+            . $this->month
+            . "-"
+            . $this->monthDays()
+            . " 23:59:59";
+        return strtotime($date);
     }
 
-    private function _month_days()
+    private function monthDays()
     {
         $mdays = array(null, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
-        if ($this->_is_leap())
+        if ($this->isLeap()) {
             $mdays[2] = 29;
+        }
+
         return $mdays[$this->month];
     }
 
-    private function _is_leap()
+    private function isLeap()
     {
         $time = strtotime($this->year . "-02-29");
         $time_array = localtime($time);
-        if ($time_array[4] == 1)
+        if ($time_array[4] == 1) {
             return true;
+        }
+
         return false;
     }
-
 }
-
-?>

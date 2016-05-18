@@ -12,7 +12,6 @@ namespace AktiveMerchant\Billing;
  */
 class CvvResult
 {
-
     private static $MESSAGES = array(
         'D' => 'Suspicious transaction',
         'I' => 'Failed data validation check',
@@ -23,13 +22,16 @@ class CvvResult
         'U' => 'Issuer unable to process request',
         'X' => 'Card does not support verification'
     );
+
     protected $code = 'X';
+
     protected $message;
 
     public function __construct($code)
     {
-        if ($code != "")
+        if ($code != "") {
             $this->code = $code;
+        }
 
         $this->message = isset(self::$MESSAGES[$this->code]) ? self::$MESSAGES[$this->code] : 'Unknown';
     }
@@ -46,7 +48,4 @@ class CvvResult
             'message' => $this->message
         );
     }
-
 }
-
-?>

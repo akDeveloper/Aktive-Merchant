@@ -56,6 +56,7 @@ class cUrl implements AdapterInterface
         'ssl_verify_peer' => CURLOPT_SSL_VERIFYPEER,
         'ssl_verify_host' => CURLOPT_SSL_VERIFYHOST,
         'user_agent'      => CURLOPT_USERAGENT,
+        'ssl_version'     => CURLOPT_SSLVERSION,
     );
 
     /**
@@ -68,12 +69,14 @@ class cUrl implements AdapterInterface
         if ($request->getMethod() == RequestInterface::METHOD_POST) {
             curl_setopt($this->ch, CURLOPT_POST, 1);
             curl_setopt($this->ch, CURLOPT_POSTFIELDS, $request->getBody());
-        } elseif ($request->getMethod() == RequestInterface::METHOD_GET)  {
+        } elseif ($request->getMethod() == RequestInterface::METHOD_GET) {
             curl_setopt($this->ch, CURLOPT_HTTPGET, 1);
         } elseif ($request->getMethod() == RequestInterface::METHOD_PUT) {
             curl_setopt($this->ch, CURLOPT_POST, 1);
             curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'PUT');
             curl_setopt($this->ch, CURLOPT_POSTFIELDS, $request->getBody());
+        } elseif ($request->getMethod() == RequestInterface::METHOD_DELETE) {
+            curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
         }
 
         $response = curl_exec($this->ch);
@@ -95,7 +98,7 @@ class cUrl implements AdapterInterface
             return $this->sendRequest($request);
         }
 
-        if (   $curl_info['http_code'] < 200
+        if ($curl_info['http_code'] < 200
             || $curl_info['http_code'] >= 500
         ) {
             $this->response_body = substr($response, -$curl_info['size_download']);
@@ -234,7 +237,7 @@ class cUrl implements AdapterInterface
     {
         $map = array();
 
-        foreach ($config as $o=>$c) {
+        foreach ($config as $o => $c) {
             $key = $this->map_config[$o];
             $map[$key] = $c;
         }

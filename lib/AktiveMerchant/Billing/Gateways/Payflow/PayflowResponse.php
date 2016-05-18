@@ -8,17 +8,17 @@ use AktiveMerchant\Billing\Response;
 class PayflowResponse extends Response
 {
 
-    function profileId()
+    public function profileId()
     {
         return $this->params['profileId'];
     }
 
-    function paymentHistory()
+    public function paymentHistory()
     {
-        if (is_array($this->params['rpPaymentResult']))
+        if (is_array($this->params['rpPaymentResult'])) {
             return $this->params['rpPaymentResult'];
-        else
-            return array();
-    }
+        }
 
+        return array();
+    }
 }

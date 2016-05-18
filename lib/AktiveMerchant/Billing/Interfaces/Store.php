@@ -8,23 +8,23 @@ use AktiveMerchant\Billing\CreditCard;
 
 /**
  * Credit card storage interface
- * 
+ *
  * Using Store actions, a merchant can store a reference of a creditcard.
- * Then can charge customers using this reference instead of real data of 
+ * Then can charge customers using this reference instead of real data of
  * a credit card.
  *
  * @package Aktive-Merchant
- * @author Andreas Kollaros 
+ * @author Andreas Kollaros
  * @license MIT {@link http://opensource.org/licenses/mit-license.php}
  */
-interface Store 
+interface Store
 {
 
     /**
      * Stores a reference of a credit card.
-     * 
-     * @param CreditCard $creditcard 
-     * @param array      $options 
+     *
+     * @param CreditCard $creditcard
+     * @param array      $options
      * @access public
      * @return void
      */
@@ -32,9 +32,9 @@ interface Store
 
     /**
      * Unstores a reference of a credit card.
-     * 
-     * @param mixed $reference 
-     * @param array $options 
+     *
+     * @param mixed $reference
+     * @param array $options
      * @access public
      * @return void
      */

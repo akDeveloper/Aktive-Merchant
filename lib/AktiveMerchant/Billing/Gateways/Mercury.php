@@ -11,20 +11,15 @@ use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Options;
 
 /**
- * Description of Mercury gateway
+ * Integration of Mercury gateway.
  *
  * If your Mercury account has tokenization turned off you should pass the
  * option argument 'tokenization' => false when creating the gateway.
  * In this case you have to pass the credit card again for the actions capture/credit
  * and void.
  *
- *
- *
- * @category Gateways
- * @package  Aktive-Merchant
- * @author   Andreas Kollaros <andreaskollaros@ymail.com>
- * @license  MIT License http://www.opensource.org/licenses/mit-license.php
- * @link     https://github.com/akDeveloper/Aktive-Merchant
+ * @author Andreas Kollaros <andreas@larium.net>
+ * @license MIT License http://www.opensource.org/licenses/mit-license.php
  */
 class Mercury extends Gateway implements
     Interfaces\Charge,
@@ -120,8 +115,9 @@ class Mercury extends Gateway implements
     {
         Options::required('login, password', $options);
 
-        if (isset($options['currency']))
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
+        }
 
         $this->options = new Options($options);
 
@@ -133,13 +129,13 @@ class Mercury extends Gateway implements
     /**
      * {@inheritdoc}
      */
-    public function authorize($money, CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options = array())
     {
 
         Options::required('order_id', $options);
 
         $options = array_merge($options, array('authorized'=>$this->amount($money)));
-        $this->build_non_authorized_request('PreAuth', $money, $creditcard, $options);
+        $this->buildNonAuthorizedRequest('PreAuth', $money, $creditcard, $options);
 
         return $this->commit('PreAuth', $money, $options);
     }
@@ -147,11 +143,11 @@ class Mercury extends Gateway implements
     /**
      * {@inheritdoc}
      */
-    public function purchase($money, CreditCard $creditcard, $options=array())
+    public function purchase($money, CreditCard $creditcard, $options = array())
     {
 
         Options::required('order_id', $options);
-        $this->build_non_authorized_request('Sale', $money, $creditcard, $options);
+        $this->buildNonAuthorizedRequest('Sale', $money, $creditcard, $options);
 
         return $this->commit('Sale', $money);
     }
@@ -166,7 +162,7 @@ class Mercury extends Gateway implements
         }
 
         $options = array_merge($options, array('authorized'=>$this->amount($money)));
-        $this->build_authorized_request('PreAuthCapture', $money, $authorization, $options);
+        $this->buildAuthorizedRequest('PreAuthCapture', $money, $authorization, $options);
 
         return $this->commit('PreAuthCapture', $money);
     }
@@ -181,7 +177,7 @@ class Mercury extends Gateway implements
         }
 
         $options = array_merge($options, array('reversal'=>true));
-        $this->build_authorized_request('VoidSale', null, $authorization, $options);
+        $this->buildAuthorizedRequest('VoidSale', null, $authorization, $options);
 
         return $this->commit('VoidSale', null);
     }
@@ -200,18 +196,18 @@ class Mercury extends Gateway implements
             Options::required('creditcard', $options);
         }
 
-        $this->build_authorized_request('Return', $money, $identification, $options);
+        $this->buildAuthorizedRequest('Return', $money, $identification, $options);
 
         return $this->commit('Return', $money);
     }
 
     // Private methods
 
-    private function build_non_authorized_request($action, $money, $creditcard, array $options = array())
+    private function buildNonAuthorizedRequest($action, $money, $creditcard, array $options = array())
     {
         $options = new Options($options);
 
-        $this->post = $this->create_body_xml();
+        $this->post = $this->createBodyXml();
 
         $trans = $this->post->addChild('Transaction');
         $trans->addChild('TranType', 'Credit');
@@ -220,15 +216,15 @@ class Mercury extends Gateway implements
             $trans->addChild('PartialAuth', 'Allow');
         }
 
-        $this->add_invoice($trans, $options->order_id, null, $options);
-        $this->add_reference($trans, 'RecordNumberRequested');
-        $this->add_customer_data($trans, $options);
-        $this->add_amount($trans, $money, $options);
-        $this->add_creditcard($trans, $creditcard);
-        $this->add_address($trans, $options);
+        $this->addInvoice($trans, $options->order_id, null, $options);
+        $this->addReference($trans, 'RecordNumberRequested');
+        $this->addCustomerData($trans, $options);
+        $this->addAmount($trans, $money, $options);
+        $this->addCreditcard($trans, $creditcard);
+        $this->addAddress($trans, $options);
     }
 
-    private function build_authorized_request($action, $money, $authorization, array $options = array())
+    private function buildAuthorizedRequest($action, $money, $authorization, array $options = array())
     {
         $options = new Options($options);
 
@@ -238,7 +234,7 @@ class Mercury extends Gateway implements
             $ref_no = $invoice_no;
         }
 
-        $this->post = $this->create_body_xml();
+        $this->post = $this->createBodyXml();
 
         $trans = $this->post->addChild('Transaction');
         $trans->addChild('TranType', 'Credit');
@@ -249,14 +245,14 @@ class Mercury extends Gateway implements
 
         $trans->addChild('TranCode', $this->use_tokenization ? $action.'ByRecordNo' : $action);
 
-        $this->add_invoice($trans, $invoice_no, $ref_no, $options);
-        $this->add_reference($trans, $record_no);
-        $this->add_customer_data($trans, $options);
-        $this->add_amount($trans, isset($money) ? $money : ($amount/100), $options);
+        $this->addInvoice($trans, $invoice_no, $ref_no, $options);
+        $this->addReference($trans, $record_no);
+        $this->addCustomerData($trans, $options);
+        $this->addAmount($trans, isset($money) ? $money : ($amount/100), $options);
         if ($options->creditcard) {
-            $this->add_creditcard($trans, $options->creditcard);
+            $this->addCreditcard($trans, $options->creditcard);
         }
-        $this->add_address($trans, $options);
+        $this->addAddress($trans, $options);
 
         $info = $trans->addChild('TranInfo');
         $info->addChild('AuthCode', $auth_code);
@@ -266,12 +262,12 @@ class Mercury extends Gateway implements
         }
     }
 
-    private function create_body_xml()
+    private function createBodyXml()
     {
         return new \SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><TStream></TStream>');
     }
 
-    private function add_reference($trans, $record_no)
+    private function addReference($trans, $record_no)
     {
         if ($this->use_tokenization) {
             $trans->addChild('Frequency', 'OneTime');
@@ -279,7 +275,7 @@ class Mercury extends Gateway implements
         }
     }
 
-    private function add_amount($trans, $money, $options = array())
+    private function addAmount($trans, $money, $options = array())
     {
 
         $amount = $trans->addChild('Amount');
@@ -294,7 +290,7 @@ class Mercury extends Gateway implements
      *
      * @param array $options
      */
-    private function add_customer_data($trans, $options)
+    private function addCustomerData($trans, $options)
     {
         if ($options->ip) {
             $trans->addChild('IpAddress', $options->ip);
@@ -334,7 +330,7 @@ class Mercury extends Gateway implements
      *
      * @return void
      */
-    private function add_address($trans, $options)
+    private function addAddress($trans, $options)
     {
         if ($address = $options['billing_address'] ?: $options['address']) {
             $avs = $trans->addChild('AVS');
@@ -348,14 +344,14 @@ class Mercury extends Gateway implements
      *
      * @param array $options
      */
-    private function add_invoice($trans, $invoice_no, $ref_no, $options)
+    private function addInvoice($trans, $invoice_no, $ref_no, $options)
     {
         $trans->addChild('InvoiceNo', $invoice_no);
         $trans->addChild('RefNo', $ref_no ?: $invoice_no);
-        if($options['merchant']) {
+        if ($options['merchant']) {
             $trans->addChild('OperatorID', $options['merchant']);
         }
-        if($options['description']) {
+        if ($options['description']) {
             $trans->addChild('Memo', $options['description']);
         }
     }
@@ -365,7 +361,7 @@ class Mercury extends Gateway implements
      *
      * @param CreditCard $creditcard
      */
-    private function add_creditcard($trans, CreditCard $creditcard)
+    private function addCreditcard($trans, CreditCard $creditcard)
     {
         $account = $trans->addChild('Account');
         $account->addChild('AcctNo', $creditcard->number);
@@ -388,7 +384,7 @@ class Mercury extends Gateway implements
      */
     private function parse($body)
     {
-        $body = $this->substring_between($body, '<CreditTransactionResult>', '</CreditTransactionResult>');
+        $body = $this->substringBetween($body, '<CreditTransactionResult>', '</CreditTransactionResult>');
 
         $body = html_entity_decode($body);
         $xml = new \SimpleXMLElement($body);
@@ -396,12 +392,12 @@ class Mercury extends Gateway implements
         $resonse = array();
 
         $cmd= $xml->xpath('//CmdResponse');
-        foreach ($cmd[0] as $name=>$value) {
+        foreach ($cmd[0] as $name => $value) {
             $response[$name] = (string) $value;
         }
 
         if ($tran = $xml->xpath('//TranResponse')) {
-            foreach ($tran[0] as $name=>$value) {
+            foreach ($tran[0] as $name => $value) {
                 if ($name == 'Amount') {
                     foreach ($value as $key => $amount) {
                         $response[$key] = (string) $amount;
@@ -416,7 +412,7 @@ class Mercury extends Gateway implements
 
     }
 
-    private function substring_between($haystack, $start, $end)
+    private function substringBetween($haystack, $start, $end)
     {
         if (strpos($haystack, $start) === false || strpos($haystack, $end) === false) {
             return false;
@@ -439,24 +435,24 @@ class Mercury extends Gateway implements
     {
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
-        $data = $this->ssl_post($url, $this->post_data($action, $parameters), array('headers'=>$this->headers));
+        $data = $this->ssl_post($url, $this->postData($action, $parameters), array('headers'=>$this->headers));
 
         $response = $this->parse($data);
 
         $test_mode = $this->isTest();
 
         return new Response(
-            $this->success_from($response),
-            $this->message_from($response),
+            $this->successFrom($response),
+            $this->messageFrom($response),
             $response->getArrayCopy(),
             array(
                 'test' => $test_mode,
-                'authorization' => $this->authorization_from($response),
-                'fraud_review' => $this->fraud_review_from($response),
-                'avs_result' => $this->avs_result_from($response),
+                'authorization' => $this->authorizationFrom($response),
+                'fraud_review' => $this->fraudReviewFrom($response),
+                'avs_result' => $this->avsResultFrom($response),
                 'cvv_result' => $response->CVVResult
             )
-	    );
+        );
     }
 
     /**
@@ -466,7 +462,7 @@ class Mercury extends Gateway implements
      *
      * @return string
      */
-    private function success_from($response)
+    private function successFrom($response)
     {
         return in_array($response['CmdStatus'], $this->success_codes);
     }
@@ -478,12 +474,12 @@ class Mercury extends Gateway implements
      *
      * @return string
      */
-    private function message_from($response)
+    private function messageFrom($response)
     {
         return $response['TextResponse'];
     }
 
-    private function authorization_from($response)
+    private function authorizationFrom($response)
     {
         if ($response->Purchase) {
             list($dollars, $cents) = explode('.', $response->Purchase);
@@ -509,7 +505,7 @@ class Mercury extends Gateway implements
      *
      * @return string
      */
-    private function fraud_review_from($response)
+    private function fraudReviewFrom($response)
     {
 
     }
@@ -522,7 +518,7 @@ class Mercury extends Gateway implements
      *
      * @return string
      */
-    private function avs_result_from($response)
+    private function avsResultFrom($response)
     {
         return array('code' => null);
     }
@@ -536,7 +532,7 @@ class Mercury extends Gateway implements
      *
      * @return void
      */
-    private function post_data($action, $parameters = array())
+    private function postData($action, $parameters = array())
     {
         $str ='<?xml version="1.0" encoding="utf-8"?><soap:Envelope';
         foreach ($this->envelope_namespaces as $ns) {

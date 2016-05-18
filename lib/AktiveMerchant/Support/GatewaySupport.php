@@ -16,8 +16,12 @@ class GatewaySupport
 
         if ($handle = opendir($dir_path)) {
             while (false !== ($file = readdir($handle))) {
-                if (is_dir($dir_path . "/" . $file) || $file === "." || $file === "..")
+                if (is_dir($dir_path . "/" . $file)
+                    || $file === "."
+                    || $file === ".."
+                ) {
                     continue;
+                }
                 $this->supported_gateways[] = str_replace(".php", "", $file);
             }
         }
@@ -74,7 +78,7 @@ class GatewaySupport
 
     public function features()
     {
-        $max = array_map(function($a) {
+        $max = array_map(function ($a) {
             $gateway = "AktiveMerchant\\Billing\\Gateways\\".$a;
             return strlen($gateway::$display_name);
         }, $this->supported_gateways);
@@ -125,5 +129,4 @@ class GatewaySupport
 
         return $to_string;
     }
-
 }

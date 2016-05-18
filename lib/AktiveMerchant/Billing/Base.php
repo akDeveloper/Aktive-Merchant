@@ -18,7 +18,7 @@ class Base
     /**
      * @var string
      */
-    const VERSION = "1.0.17";
+    const VERSION = "1.1.0";
 
     /**
      * @var string
@@ -69,12 +69,13 @@ class Base
      *
      * @return AktiveMerchant\Billing\Gateway the gateway instance
      */
-    public static function gateway($name=null, $options = array())
+    public static function gateway($name = null, $options = array())
     {
         $gateway = "\\AktiveMerchant\\Billing\\Gateways\\" . Inflect::camelize($name);
 
-        if (class_exists($gateway))
+        if (class_exists($gateway)) {
             return new $gateway($options);
+        }
 
         throw new Exception("Unable to load class: {$gateway}.");
     }

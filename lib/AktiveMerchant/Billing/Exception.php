@@ -11,7 +11,7 @@ namespace AktiveMerchant\Billing;
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Exception extends \Exception 
+class Exception extends \Exception
 {
-  
+
 }

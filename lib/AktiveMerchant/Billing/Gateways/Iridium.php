@@ -4,24 +4,33 @@
 
 namespace AktiveMerchant\Billing\Gateways;
 
-use AktiveMerchant\Billing\Interfaces as Interfaces;
 use AktiveMerchant\Billing\Gateway;
-use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Common\Options;
-use AktiveMerchant\Billing\Response;
-use Thapp\XmlBuilder\XmlBuilder;
-use AktiveMerchant\Common\Address;
-use AktiveMerchant\Billing\Gateways\Worldpay\XmlNormalizer;
 use AktiveMerchant\Common\Country;
+use AktiveMerchant\Billing\Response;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Common\SimpleXmlBuilder;
+use AktiveMerchant\Billing\Interfaces as Interfaces;
 
+/**
+ * Integration of Iridium gateway.
+ *
+ * @author Dimitris Giannakakis <Dim.Giannakakis@yahoo.com>
+ * @author Andreas Kollaros <andreas@larium.net>
+ * @license MIT License http://www.opensource.org/licenses/mit-license.php
+ */
 class Iridium extends Gateway implements
     Interfaces\Charge,
     Interfaces\Credit
 {
-
     const TEST_URL = 'https://gw1.iridiumcorp.net/';
     const LIVE_URL = 'https://gw1.iridiumcorp.net/';
-    const DISPLAY_NAME = 'Iridium';
+
+    const PURCHASE = 'SALE';
+    const AUTHORIZE = 'PREAUTH';
+    const CAPTURE = 'COLLECTION';
+    const CREDIT = 'REFUND';
+    const VOID = 'VOID';
 
     public static $money_format = 'cents';
 
@@ -47,13 +56,15 @@ class Iridium extends Gateway implements
         'diners_club'
     );
 
-    protected $soap;
+    protected $options;
 
-    protected $reply = array();
-
-    protected $success;
-
-    protected $message;
+    private $soapCall = array(
+        self::PURCHASE => 'CardDetailsTransaction',
+        self::AUTHORIZE => 'CardDetailsTransaction',
+        self::CAPTURE => 'CrossReferenceTransaction',
+        self::CREDIT => 'CrossReferenceTransaction',
+        self::VOID => 'CrossReferenceTransaction',
+    );
 
     /**
      * {@inheritdoc}
@@ -71,8 +82,7 @@ class Iridium extends Gateway implements
     public static $default_currency = 'EUR';
 
 
-    protected $SOAP_ATTRIBUTES = array (
-
+    protected $SOAP_ATTRIBUTES = array(
         'xmlns:soap' => 'http://schemas.xmlsoap.org/soap/envelope/',
         'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
         'xmlns:xsd' => 'http://www.w3.org/2001/XMLSchema'
@@ -82,236 +92,91 @@ class Iridium extends Gateway implements
     {
         $this->required_options('merchant_id, password', $options);
 
-        if (isset($options['currency']))
-            self::$default_currency = $options['currency'];
-
-        $this->options = $options;
-
+        parent::__construct($options);
     }
 
     public function authorize($money, CreditCard $creditcard, $options = array())
     {
         $options = new Options($options);
+        $this->createXmlBuilder(self::AUTHORIZE);
+        $this->addTransactionDetails($money, self::AUTHORIZE, $options['order_id']);
+        $this->addCreditcard($creditcard);
+        $this->addCustomerDetails($options);
 
-        $this->setup_address_hash($options);
-
-        if (isset($creditcard->number)) {
-
-           return $this->commit($this->build_purchase_request('PREAUTH', $money, $creditcard, $options), $options);
-
-        } else {
-
-           return $this->commit($this->build_reference_request('PREAUTH', $money, $creditcard, $options), $options);
-        }
+        return $this->commit(self::AUTHORIZE, $options);
     }
 
     public function purchase($money, CreditCard $creditcard, $options = array())
     {
         $options = new Options($options);
+        $this->createXmlBuilder(self::PURCHASE);
+        $this->addTransactionDetails($money, self::PURCHASE, $options['order_id']);
+        $this->addCreditcard($creditcard);
+        $this->addCustomerDetails($options);
 
-        $this->setup_address_hash($options);
-
-        if (isset($creditcard->number)) {
-
-           return $this->commit($this->build_purchase_request('SALE', $money, $creditcard, $options),$options);
-
-        } else {
-
-           return $this->commit($this->build_reference_request('SALE', $money, $creditcard, $options), $options);
-        }
+        return $this->commit(self::PURCHASE, $options);
     }
 
     public function capture($money, $authorization, $options = array())
     {
-
         $options = new Options($options);
+        list($orderId, $crossReference, $authCode) = $this->splitAuthorization($authorization);
 
-        return $this->commit($this->build_reference_request('COLLECTION', $money, $authorization, $options), $options);
+        $this->createXmlBuilder(self::CAPTURE);
+        $this->addTransactionDetails($money, self::CAPTURE, $options['order_id'] ?: $orderId, $crossReference);
+
+        return $this->commit(self::CAPTURE, $options);
     }
 
     public function credit($money, $authorization, $options = array())
     {
         $options = new Options($options);
+        list($orderId, $crossReference, $authCode) = $this->splitAuthorization($authorization);
 
-        return $this->commit($this->build_reference_request('REFUND', $money, $authorization, $options), $options);
+        $this->createXmlBuilder(self::CREDIT);
+        $this->addTransactionDetails($money, self::CREDIT, $options['order_id'] ?: $orderId, $crossReference);
+
+        return $this->commit(self::CREDIT, $options);
     }
 
     public function void($authorization, $options = array())
     {
         $options = new Options($options);
+        list($orderId, $crossReference, $authCode) = $this->splitAuthorization($authorization);
 
-        return $this->commit($this->build_reference_request('VOID', null, $authorization, $options), $options);
+        $this->createXmlBuilder(self::VOID);
+        $this->addTransactionDetails(0, self::VOID, $options['order_id'] ?: $orderId, $crossReference);
+
+        return $this->commit(self::VOID, $options);
     }
 
-    private function commit($request, $options)
+    private function commit($action, Options $options)
     {
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
+
+        $call = $this->soapCall[$action];
 
         $headers = array(
             'headers' => array(
                 'Content-Type: text/xml; charset=utf-8;',
-                'SOAPAction: https://www.thepaymentgateway.net/'.$options->action
+                'SOAPAction: https://www.thepaymentgateway.net/'.$call
             ),
             'request_timeout' => 10
         );
 
-        $data = $this->ssl_post($url, $request, $headers);
+        $data = $this->ssl_post($url, $this->xml->__toString(), $headers);
 
-        $this->parse($data);
-
-        $test_mode = $this->isTest();
-        $this->success = $this->reply['transaction_result']['StatusCode'] == "0";
-        $this->message = $this->reply['transaction_result']['Message'];
+        $response = new Options($this->parse($data));
 
         return new Response(
-            $this->success,
-            $this->message,
-            $this->reply,
+            $response['StatusCode'] == "0",
+            $response['Message'],
+            $response->getArrayCopy(),
             array(
-
-                'test' => $test_mode,
-                'authorization' => $this->authorization_from($options),
+                'test' => $this->isTest(),
+                'authorization' => $this->authorizationFrom($response, $options),
             )
         );
-    }
-
-    private function setup_address_hash(Options $options)
-    {
-        if($options->billing_address) {
-
-            $adr = $options->billing_address;
-
-        } else if($options->address) {
-
-            $adr = $options->address;
-
-        } else {
-
-            $adr = null;
-        }
-
-        $options->billing_address = $adr;
-        $options->shipping_address = ($options->shipping_address)? $options->shipping_address : null;
-    }
-
-    private function build_purchase_request(
-        $type,
-        $money,
-        CreditCard $creditcard,
-        $options
-    ) {
-
-        $options->action ='CardDetailsTransaction';
-        $this->build_request($options, $money, $type, $creditcard);
-
-        return $this->builderSoapEnvelope($this->soap);
-    }
-
-    private function build_reference_request(
-        $type,
-        $money,
-        $authorization,
-        $options
-    ){
-
-        $options->action ='CrossReferenceTransaction';
-
-        $this->build_request($options, $money, $type, $authorization);
-
-        return $this->builderSoapEnvelope($this->soap);
-    }
-
-    private function build_request(
-        $options,
-        $money,
-        $type,
-        $payment_source
-    ){
-
-        $this->required_options('action', $options);
-
-        $merchant_data = $this->add_merchant($options);
-        $purchase_data = isset($payment_source->number) ? $this->add_purchase_data($type, $money, $options) : array();
-        $credit_data = isset($payment_source->number) ? $this->add_creditcard($payment_source, $options) : array();
-        $customer_details = isset($payment_source->number) ? $this->add_customer_details($payment_source, $options) : array();
-
-        if(!$purchase_data) {
-
-            $reference = $this->reference_details( $options, $money, $type, $payment_source);
-
-        } else {
-
-            $reference  = array();
-        }
-
-        $this->soap = array(
-            'soapBody' => array(
-                $options->action => array (
-                    '@attributes'=> array(
-                        'xmlns' => "https://www.thepaymentgateway.net/"
-
-                    ),
-                    'PaymentMessage'=> array(
-                        array_merge($merchant_data, $purchase_data, $credit_data, $customer_details, $reference) ,
-                    )
-                )
-            )
-        );
-    }
-
-    private function add_merchant($options)
-    {
-        $merchant = array(
-            'MerchantAuthentication' => array(
-                '@attributes' => array(
-                    'MerchantID' => $this->options['merchant_id'],
-                    'Password' => $this->options['password']
-                )
-            )
-        );
-
-        return $merchant;
-    }
-
-    private function builderSoapEnvelope(&$data)
-    {
-        $xml = new XmlBuilder('soap:Envelope', new XmlNormalizer());
-        $data['@attributes'] = $this->SOAP_ATTRIBUTES;
-        $xml->load($this->soap);
-        $xml->setRenderTypeAttributes(false);
-
-        $request = $xml->createXML(true);
-
-        $request = str_replace("soapBody","soap:Body",$request);
-
-        return $request;
-    }
-
-    private function add_purchase_data($type, $money, $options)
-    {
-        $this->required_options('order_id', $options);
-
-        $purchase_data = array(
-            'TransactionDetails' => array(
-                '@attributes' => array(
-                    'Amount' => $this->amount($money),
-                    'CurrencyCode' => ($options->currency)? $this->currency_lookup($options->currency) :$this->currency_lookup(self::$default_currency)
-                ),
-                'MessageDetails' => array(
-                    '@attributes' => array(
-                        'TransactionType' => $type
-                    )
-                ),
-                'OrderID' => $options->order_id,
-                'TransactionControl' => array(
-                    'ThreeDSecureOverridePolicy' => 'FALSE',
-                    'EchoAVSCheckResult' => 'TRUE',
-                    'EchoCV2CheckResult' => 'TRUE'
-                )
-            )
-        );
-
-        return $purchase_data;
     }
 
     /**
@@ -320,103 +185,41 @@ class Iridium extends Gateway implements
      * @param CreditCard $creditcard
      * @param array reference $post
      */
-    private function add_creditcard(CreditCard $creditcard, $options)
+    private function addCreditcard(CreditCard $creditcard)
     {
-        $credit = array(
-            'CardDetails' => array(
-                'CardName' => $creditcard->name(),
-                'CV2' => $creditcard->verification_value,
-                'CardNumber' => $creditcard->number,
-                'ExpiryDate' => array(
-                    '@attributes'=> array(
-                        'Month' =>  $this->cc_format($creditcard->month, 'two_digits'),
-                        'Year' => $this->cc_format($creditcard->year, 'two_digits' )
-                    )
-                )
-            )
-        );
-
-        return $credit;
+        $this->xml->CardDetails(null, 'PaymentMessage');
+        $this->xml->CardName($creditcard->name(), 'CardDetails');
+        $this->xml->CV2($creditcard->verification_value, 'CardDetails');
+        $this->xml->CardNumber($creditcard->number, 'CardDetails');
+        $this->xml->ExpiryDate(null, 'CardDetails', array(
+            'Month' => $creditcard->month,
+            'Year' => $this->cc_format($creditcard->year, 'two_digits'),
+        ));
     }
 
-    private function add_customer_details($creditcard, $options, $shipTo = false)
+    private function addCustomerDetails($options)
     {
-        $customer = array(
-            'CustomerDetails' => array(
-                'BillingAddress'=> array(
-                    'Address1' => $options->billing_address->address1,
-                    'Address2' => $options->billing_address->address2,
-                    'City' => $options->billing_address->city,
-                    'State' => $options->billing_address->state,
-                    'PostCode' => $options->billing_address->zip,
-                    'CountryCode' => ($options->billing_address->country) ? Country::find($options->billing_address->country)->getCode('numeric')->__toString() : null
-                ),
-                'PhoneNumber' => $options->billing_address->phone,
-                'EmailAddress' => $options->email,
-                'CustomerIPAddress' => ($options->ip) ? $options->ip : "127.0.0.1"
-            ),
+        $billingAddress = $options['billingAddress'] ?: $options['address'];
 
-        );
-
-        return $customer;
-    }
-
-    private function split_authorization($authorization)
-    {
-        list($transaction_id, $amount, $last_four) = explode(';', $authorization);
-
-        $array = array(
-            'order_id' => $transaction_id,
-            'cross_reference' => $amount,
-            'auth_id' => $last_four
-        );
-
-        return $array;
-    }
-
-    private function reference_details( $options, $money, $type, $authorization)
-    {
-        $author = $this->split_authorization($authorization);
-
-        if ($money) {
-
-            $details = array(
-                'TransactionDetails' => array(
-                    '@attributes' => array(
-                        'Amount' => $this->amount($money),
-                        'CurrencyCode' => ($options->currency)? $this->currency_lookup($options->currency) :$this->currency_lookup(self::$default_currency)
-                    ),
-                    'MessageDetails' => array(
-                        '@attributes' => array(
-                            'TransactionType' => $type,
-                            'CrossReference' => $author['cross_reference']
-                        )
-                    ),
-                    'OrderID' => ($options->order_id) ? $options->order_id : $author['order_id'],
-                )
-            );
-
-        } else {
-
-            $details =array(
-                'TransactionDetails' => array(
-                    '@attributes' => array(
-                        'Amount' =>'0',
-                        'CurrencyCode' => $this->currency_lookup(self::$default_currency)
-                    ),
-                    'MessageDetails' => array(
-                        '@attributes' => array(
-                            'TransactionType' => $type,
-                            'CrossReference' =>$author['cross_reference']
-                        )
-                    ),
-                    'OrderID' => ($options->order_id) ? $options->order_id :$author['order_id']
-                )
-            );
-
+        $country = null;
+        if ($billingAddress['country']) {
+            $country = Country::find($billingAddress['country'])->getCode('numeric');
         }
 
-        return $details;
+        $this->xml->CustomerDetails(null, 'PaymentMessage');
+        $this->xml->BillingAddress(null, 'CustomerDetails');
+        $this->xml->Address1($billingAddress['address1'], 'BillingAddress');
+        $this->xml->City($billingAddress['city'], 'BillingAddress');
+        $this->xml->State($billingAddress['state'], 'BillingAddress');
+        $this->xml->PostCode($billingAddress['zip'], 'BillingAddress');
+        $this->xml->CountryCode($country, 'BillingAddress');
+        $this->xml->EmailAddress($options['email'], 'CustomerDetails');
+        $this->xml->CustomerIPAddress($options['ip'], 'CustomerDetails');
+    }
+
+    private function splitAuthorization($authorization)
+    {
+        return explode(';', $authorization);
     }
 
     /**
@@ -426,100 +229,95 @@ class Iridium extends Gateway implements
      */
     private function parse($body)
     {
-        $body = $this->substring_between($body, '<soap:Body>', '</soap:Body>');
+        $xml = simplexml_load_string($body);
 
-        $xml = new \SimpleXMLElement($body);
+        $data = $xml->xpath('//soap:Body');
 
-        foreach ($xml as $child => $value) {
+        $response = array();
 
-            $this->parse_element($child, $value);
-        }
-    }
-
-    private function parse_element($child, $value)
-    {
-        if (($child == 'CardDetailsTransactionResult'  ) || ($child == 'CrossReferenceTransactionResult')) {
-            $attributes = $value->attributes();
-
-            if (isset($attributes)) {
-
-                foreach ($attributes as $key => $att) {
-                    $this->reply['transaction_result'][$key] = (string) $att;
-                }
-            }
-
-            foreach ($value as $key => $value) {
-                $this->reply['transaction_result'][$key] = (string) $value;
-            }
-
-        } elseif ($child == 'TransactionOutputData') {
-
-            $attributes = $value->attributes();
-
-            if (isset($attributes)) {
-
-                foreach ($attributes as $key => $att) {
-                    $this->reply['transaction_output_data'][$key] = (string) $att;
-                }
-            }
-
-            foreach ($value as $child_node => $child_value ) {
-
-                if ($child_node == 'GatewayEntryPoints') {
-
-                    $index = 0;
-
-                    foreach ($child_value as $key => $att) {
-
-                        $attributes = $att->attributes();
-
-                        if (isset($attributes)) {
-
-                            foreach ($attributes as $att_key => $att_value) {
-                                $this->reply['transaction_output_data']['gateway_entry_points'][$index][$att_key] = (string) $att_value;
-
-                            }
-                        }
-                        $index++;
-                    }
-                }
-
-                $this->reply['transaction_output_data'][$child_node] = (string) $child_value;
-            }
+        foreach ($data as $node) {
+            $this->parseElement($response, $node);
         }
 
+        return $response;
     }
 
-    private function substring_between($haystack, $start, $end)
+    private function parseElement(&$response, $node)
     {
-        if (strpos($haystack, $start) === false || strpos($haystack, $end) === false) {
+        foreach ($node->attributes() as $k => $v) {
+            $response[$node->getName() . '_' . $k] = trim($v->__toString());
+        }
 
-            return false;
-
+        if ($node->count() > 0) {
+            if ($node->getName()) {
+                $response[$node->getName()] = true;
+                foreach ($node as $n) {
+                    $this->parseElement($response, $n);
+                }
+            }
         } else {
-
-            $start_position = strpos($haystack, $start) + strlen($start);
-
-            $end_position = strpos($haystack, $end);
-
-            return substr($haystack, $start_position, $end_position - $start_position);
+            $response[$node->getName()] = trim($node->__toString());
         }
     }
 
-    private function authorization_from(Options $options)
+    private function authorizationFrom(Options $response, Options $options)
     {
-        if ($this->success) :
+        if ($response['StatusCode'] == "0") {
+            $authCode = $response['AuthCode'] ?: null;
 
-            $auth_code = isset($this->reply['transaction_output_data']['AuthCode']) ? $this->reply['transaction_output_data']['AuthCode'] : null ;
-            $auth =  $options->order_id.';'.$this->reply['transaction_output_data']['CrossReference'].
-            ';'.$auth_code;
+            return implode(';', array(
+                $options['order_id'],
+                $response['TransactionOutputData_CrossReference'],
+                $authCode,
+            ));
+        }
+    }
 
-        else :
+    private function createXmlBuilder($action)
+    {
+        $call = $this->soapCall[$action];
 
-            $auth = null;
+        $this->xml = new SimpleXmlBuilder('1.0', 'UTF-8');
 
-        endif;
+        $this->xml->{'soap:Envelope'}(null, null, $this->SOAP_ATTRIBUTES);
+        $this->xml->{'soap:Body'}(null, 'soap:Envelope');
 
-        return $auth;
+        $this->xml->$call(null, 'soap:Body', array(), 'https://www.thepaymentgateway.net/');
+        $this->xml->PaymentMessage(null, $call);
+
+        $this->xml->MerchantAuthentication(
+            null,
+            'PaymentMessage',
+            array(
+                'MerchantID' => $this->options['merchant_id'],
+                'Password' => $this->options['password']
+            )
+        );
+    }
+
+    private function addTransactionDetails($money, $action, $orderId, $crossReference = null)
+    {
+        $this->xml->TransactionDetails(
+            null,
+            'PaymentMessage',
+            array(
+                'Amount' => $this->amount($money),
+                'CurrencyCode' => $this->currency_lookup(self::$default_currency),
+            )
+        );
+
+        $messageDetails = array('TransactionType' => $action);
+        if ($crossReference) {
+            $messageDetails['CrossReference'] = $crossReference;
+        }
+        $this->xml->MessageDetails(null, 'TransactionDetails', $messageDetails);
+
+        $this->xml->OrderID($orderId, 'TransactionDetails');
+        if (null == $crossReference) {
+            $this->xml->TransactionControl(null, 'TransactionDetails');
+            $this->xml->ThreeDSecureOverridePolicy('FALSE', 'TransactionControl');
+            $this->xml->EchoAVSCheckResult('TRUE', 'TransactionControl');
+            $this->xml->EchoCV2CheckResult('TRUE', 'TransactionControl');
+        }
     }
 }

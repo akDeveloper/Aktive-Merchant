@@ -12,7 +12,6 @@ use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Billing\Gateways\Paypal\PaypalCommon;
 use AktiveMerchant\Common\Country;
 
-
 /**
  * Description of Paypal
  *
@@ -20,8 +19,8 @@ use AktiveMerchant\Common\Country;
  * @author  Andreas Kollaros
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class Paypal extends PaypalCommon implements 
-    Interfaces\Charge, 
+class Paypal extends PaypalCommon implements
+    Interfaces\Charge,
     Interfaces\Credit
 {
 
@@ -32,7 +31,7 @@ class Paypal extends PaypalCommon implements
      * @var string Money format 'dollars' | 'cents'
      */
     public static $money_format = 'dollars'; # or cents
-    
+
     /**
      * The countries supported by the gateway as 2 digit ISO country codes.
      *
@@ -63,7 +62,7 @@ class Paypal extends PaypalCommon implements
 
     /**
      * The currency supported by the gateway as ISO 4217 currency code.
-     * the format 
+     * the format
      *
      * @var string The ISO 4217 currency code
      */
@@ -72,9 +71,9 @@ class Paypal extends PaypalCommon implements
     private $options;
 
     private $post = array();
-    
+
     private $version = '85.0';
-    
+
     private $credit_card_types = array(
         'visa'             => 'Visa',
         'master'           => 'MasterCard',
@@ -93,8 +92,9 @@ class Paypal extends PaypalCommon implements
     {
         $this->required_options('login, password, signature', $options);
 
-        if (isset($options['currency']))
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
+        }
 
         $this->options = $options;
     }
@@ -107,12 +107,12 @@ class Paypal extends PaypalCommon implements
      *
      * @return Response
      */
-    public function authorize($money, CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options = array())
     {
         $this->post = array();
-        
-        $this->add_creditcard($creditcard);
-        $this->add_address($options);
+
+        $this->addCreditcard($creditcard);
+        $this->addAddress($options);
         $this->post['PAYMENTACTION'] = 'Authorization';
         $this->post['AMT'] = $this->amount($money);
         $this->post['IPADDRESS'] = isset($options['ip']) ? $options['ip'] : $_SERVER['REMOTE_ADDR'];
@@ -127,12 +127,12 @@ class Paypal extends PaypalCommon implements
      *
      * @return Response
      */
-    public function purchase($money, CreditCard $creditcard, $options=array())
+    public function purchase($money, CreditCard $creditcard, $options = array())
     {
         $this->post = array();
 
-        $this->add_creditcard($creditcard);
-        $this->add_address($options);
+        $this->addCreditcard($creditcard);
+        $this->addAddress($options);
         $this->post['PAYMENTACTION'] = 'Sale';
         $this->post['AMT'] = $this->amount($money);
         $this->post['IPADDRESS'] = isset($options['ip']) ? $options['ip'] : $_SERVER['REMOTE_ADDR'];
@@ -152,11 +152,11 @@ class Paypal extends PaypalCommon implements
         $this->required_options('complete_type', $options);
 
         $this->post = array();
-        
+
         $this->post['AUTHORIZATIONID'] = $authorization;
         $this->post['AMT'] = $this->amount($money);
         $this->post['COMPLETETYPE'] = $options['complete_type']; # Complete or NotComplete
-        $this->add_invoice($options);
+        $this->addInvoice($options);
 
         return $this->commit('DoCapture');
     }
@@ -171,7 +171,7 @@ class Paypal extends PaypalCommon implements
     public function void($authorization, $options = array())
     {
         $this->post = array();
-        
+
         $this->post['AUTHORIZATIONID'] = $authorization;
         $this->post['NOTE'] = isset($options['note']) ? $options['note'] : null;
 
@@ -191,14 +191,15 @@ class Paypal extends PaypalCommon implements
         $this->required_options('refund_type', $options);
 
         $this->post = array();
-        
+
         $this->post['REFUNDTYPE'] = $options['refund_type']; //Must be Other, Full or Partial
-        if ($this->post['REFUNDTYPE'] != 'Full')
+        if ($this->post['REFUNDTYPE'] != 'Full') {
             $this->post['AMT'] = $this->amount($money);
+        }
 
         $this->post['TRANSACTIONID'] = $identification;
 
-        $this->add_invoice($options);
+        $this->addInvoice($options);
         return $this->commit('RefundTransaction');
     }
 
@@ -223,7 +224,7 @@ class Paypal extends PaypalCommon implements
      *
      * @param array $options
      */
-    private function add_address($options)
+    private function addAddress($options)
     {
         $billing_address = isset($options['billing_address']) ? $options['billing_address'] : $options['address'];
         $this->post['STREET'] = isset($billing_address['address1']) ? $billing_address['address1'] : null;
@@ -237,7 +238,7 @@ class Paypal extends PaypalCommon implements
      *
      * @param CreditCard $creditcard
      */
-    private function add_creditcard(CreditCard $creditcard)
+    private function addCreditcard(CreditCard $creditcard)
     {
 
         $this->post['CREDITCARDTYPE'] = $this->credit_card_types[$creditcard->type];
@@ -255,8 +256,9 @@ class Paypal extends PaypalCommon implements
                 $this->post['STARTDATE'] = $startYear . $startMonth;
             }
 
-            if (!is_null($creditcard->issue_number))
+            if (!is_null($creditcard->issue_number)) {
                 $this->post['ISSUENUMBER'] = $this->cc_format($creditcard->issue_number, 'two_digits');
+            }
         }
     }
 
@@ -264,7 +266,7 @@ class Paypal extends PaypalCommon implements
      *
      * @param array $options
      */
-    private function add_invoice($options)
+    private function addInvoice($options)
     {
         $this->post['INVNUM'] = isset($options['order_id']) ? $options['order_id'] : null;
         $this->post['NOTE'] = isset($options['note']) ? $options['note'] : null;
@@ -278,7 +280,7 @@ class Paypal extends PaypalCommon implements
      * @param string $action
      * @param array  $parameters
      */
-    protected function post_data($action)
+    protected function postData($action)
     {
         $this->post['METHOD'] = $action;
         $this->post['VERSION'] = $this->version;
@@ -298,9 +300,8 @@ class Paypal extends PaypalCommon implements
      *
      * @return Response
      */
-    protected function build_response($success, $message, $response, $options=array())
+    protected function buildResponse($success, $message, $response, $options = array())
     {
         return new Response($success, $message, $response, $options);
     }
-
 }

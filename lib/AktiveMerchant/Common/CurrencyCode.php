@@ -7,26 +7,26 @@ namespace AktiveMerchant\Common;
 /**
  * Allows to access the numeric value of a currency from the given ISO 4217
  * currency code.
- * 
+ *
  * @package Aktive-Merchant
- * @author  Andreas Kollaros 
+ * @author  Andreas Kollaros
  * @license MIT {@link http://opensource.org/licenses/mit-license.php}
  */
 class CurrencyCode implements \ArrayAccess
 {
-    
+
     /* -(  ArrayAccess  )--------------------------------------------------- */
-    
-    public function offsetExists($offset) 
+
+    public function offsetExists($offset)
     {
         return array_key_exists($offset, $this->CURRENCY_CODES);
     }
-        
+
     public function offsetGet($offset)
     {
-        return $this->CURRENCY_CODES[$offset]; 
+        return $this->CURRENCY_CODES[$offset];
     }
-    
+
     public function offsetSet($offset, $value)
     {
         $this->CURRENCY_CODES[$offset] = $value;
@@ -41,7 +41,7 @@ class CurrencyCode implements \ArrayAccess
 
     /**
      * An array mapping the ISO 4217 code of a country with its numeric value.
-     * 
+     *
      * @var array
      * @access private
      */

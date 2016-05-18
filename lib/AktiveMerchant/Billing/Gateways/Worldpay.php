@@ -1,22 +1,31 @@
 <?php
+
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
 namespace AktiveMerchant\Billing\Gateways;
 
+use AktiveMerchant\Common\Options;
 use AktiveMerchant\Billing\Gateway;
-use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
-use AktiveMerchant\Billing\Gateways\Worldpay\XmlNormalizer;
+use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\Common\SimpleXmlBuilder;
 
 /**
- * WorldPay
+ * Integration of WorldPay gateway
  *
- * @package Aktive-Merchant
+ * @author Tom Maguire
+ * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Worldpay extends Gateway
 {
     const TEST_URL = 'https://secure-test.worldpay.com/jsp/merchant/xml/paymentService.jsp';
     const LIVE_URL = 'https://secure.worldpay.com/jsp/merchant/xml/paymentService.jsp';
+
+    const VERSION = '1.4';
+
+    const SUCCESS_OK = 'ok';
+
+    const SUCCESS_AUTHORISED = 'AUTHORISED';
 
     public static $default_currency = 'GBP';
     public static $money_format = 'cents';
@@ -51,138 +60,106 @@ class Worldpay extends Gateway
 
         $this->timestamp = strftime("%Y%m%d%H%M%S");
 
-        if (isset($options['currency']))
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
+        }
 
         $this->options = $options;
     }
 
-    public function authorize($money, CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options = array())
     {
+        $options = new Options($options);
         $this->required_options('order_id', $options);
-        $this->build_authorization_request($money, $creditcard, $options);
-        return $this->commit('AUTHORISED');
+        $this->buildAuthorizationRequest($money, $creditcard, $options);
+
+        return $this->commit(self::SUCCESS_AUTHORISED);
     }
 
     public function capture($money, $authorization, $options = array())
     {
-        $this->build_capture_request($money, $authorization, $options);
-        return $this->commit('ok');
+        $this->buildCaptureRequest($money, $authorization, $options);
+
+        return $this->commit(self::SUCCESS_OK);
     }
 
-    public function build_authorization_request($money, $creditcard, $options, $testingXmlGeneration = false)
+    public function buildAuthorizationRequest($money, $creditcard, $options)
     {
-        $this->xml = $this->createXmlBuilder();
-        
-        $this->xml->load(array(
-            'merchantCode' => $this->options['login'],
-            'version' => '1.4',
-            'submit' => array(
-                'order' => $this->add_order($money, $creditcard, $options)
-            )
-        ));
+        $this->createXmlBuilder();
 
-        if ($testingXmlGeneration) {
-            return $this->xml->createXML(true);
-        }
+        $this->xml->submit(null, 'paymentService');
+        $this->addOrder($money, $creditcard, $options);
     }
 
-    public function build_capture_request($money, $authorization, $options, $testingXmlGeneration = false)
+    public function buildCaptureRequest($money, $authorization, $options)
     {
-        $this->xml = $this->createXmlBuilder();
+        $this->createXmlBuilder();
 
-        $this->xml->load(array(
-            'merchantCode' => $this->options['login'],
-            'version' => '1.4',
-            'modify' => $this->add_capture_modification($money, $authorization, $options)
-        ));
-
-        if ($testingXmlGeneration) {
-            return $this->xml->createXML(true);
-        }
+        $this->xml->modify(null, 'paymentService');
+        $this->addCaptureModification($money, $authorization, $options);
     }
 
     private function createXmlBuilder()
     {
-        $xml = new \Thapp\XmlBuilder\XmlBuilder('paymentService', new XmlNormalizer);
-        $xml->setDocType(
-            'paymentService', 
-            '-//WorldPay//DTD WorldPay PaymentService v1//EN', 
-            'http://dtd.worldpay.com/paymentService_v1.dtd'
+        $this->xml = new SimpleXmlBuilder();
+
+        $paymentAttributes = array(
+            'merchantCode' => $this->options['login'],
+            'version' => self::VERSION,
         );
 
-        $xml->setRenderTypeAttributes(false);
-        $xml->setAttributeMapp(array('paymentService' => array('merchantCode', 'version')));
-        
-        return $xml;
+        $this->xml->paymentService(null, null, $paymentAttributes);
     }
 
-    private function add_order($money, $creditcard, $options)
+    private function addOrder($money, $creditcard, $options)
     {
-        $attrs = array('orderCode' => $options['order_id']);
-        $attrs['installationId'] = $this->options['inst_id'];
-
-        return array(
-            '@attributes' => $attrs,
-            array(
-                'description' => 'Purchase',
-                'amount' => $this->add_amount($money, $options),
-                'paymentDetails' => $this->add_payment_method($money, $creditcard, $options)
-            )
+        $orderAttributes = array(
+            'orderCode' => $options['order_id'],
+            'installationId' => 'inst_id',
         );
+        $this->xml->order(null, 'submit', $orderAttributes)
+            ->description('Purchase', 'order');
+        $this->addAmount($money, $options, 'order');
+        $this->addPaymentMethod($money, $creditcard, $options);
     }
 
-    private function add_capture_modification($money, $authorization, $options)
+    private function addCaptureModification($money, $authorization, $options)
     {
+        $this->xml->orderModification(null, 'modify', array('orderCode' => $authorization));
+        $this->xml->capture(null, 'orderModification');
         $now = new \DateTime(null, new \DateTimeZone('UTC'));
-
-        return array(
-            'orderModification' => array(
-                '@attributes' => array('orderCode' => $authorization),
-                array(
-                    'capture' => array(
-                        'date' => array(
-                            '@attributes' => array(
-                                'dayOfMonth' => $now->format('d'),
-                                'month' => $now->format('m'),
-                                'year' => $now->format('Y')
-                            )
-                        ),
-                        'amount' => $this->add_amount($money, $options)
-                    )
-                )
-            )
-        );
+        $this->xml->date(null, 'capture', array(
+            'dayOfMonth' => $now->format('d'),
+            'month' => $now->format('m'),
+            'year' => $now->format('Y'),
+        ));
+        $this->addAmount($money, $options, 'capture');
     }
 
-    private function add_payment_method($money, $creditcard, $options)
+    private function addPaymentMethod($money, $creditcard, $options)
     {
         $cardCode = self::$card_codes[$creditcard->type];
 
-        return array(
-            $cardCode => array(
-                'cardNumber' => $creditcard->number,
-                'expiryDate' => array(
-                    'date' => array(
-                        '@attributes' => array(
-                            'month' => $this->cc_format($creditcard->month, 'two_digits'),
-                            'year' => $this->cc_format($creditcard->year, 'four_digits')
-                        )
-                    )
-                ),
-                'cardHolderName' => $creditcard->name(),
-                'cvc' => $creditcard->verification_value,
-                'cardAddress' => $this->add_address($options)
-            )
-        );
+        $month = $this->cc_format($creditcard->month, 'two_digits');
+        $year = $this->cc_format($creditcard->year, 'four_digits');
+        $this->xml->paymentDetails(null, 'order')
+            ->$cardCode(null, 'paymentDetails')
+            ->cardNumber($creditcard->number, $cardCode)
+            ->expiryDate(null, $cardCode)
+            ->date(null, 'expiryDate', array('month' => $month, 'year' => $year))
+            ->cardHolderName($creditcard->name(), $cardCode)
+            ->cvc($creditcard->verification_value, $cardCode);
+        $this->addAddress($options, $cardCode);
     }
 
-    private function add_amount($money, $options)
+    private function addAmount($money, $options, $parentNode)
     {
         $currency = isset($options['currency']) ? $options['currency'] : self::$default_currency;
 
-        return array(
-            '@attributes' => array(
+        $this->xml->amount(
+            null,
+            $parentNode,
+            array(
                 'value' => $this->amount($money),
                 'currencyCode' => $currency,
                 'exponent' => 2
@@ -190,7 +167,7 @@ class Worldpay extends Gateway
         );
     }
 
-    private function add_address($options)
+    private function addAddress($options, $cardCode)
     {
         $address = isset($options['billing_address']) ? $options['billing_address'] : $options['address'];
 
@@ -234,7 +211,11 @@ class Worldpay extends Gateway
             $out['telephoneNumber'] = $address['phone'];
         }
 
-        return array('address' => $out);
+        $this->xml->cardAddress(null, $cardCode)
+            ->address(null, 'cardAddress');
+        foreach ($out as $name => $value) {
+            $this->xml->$name($value, 'address');
+        }
     }
 
     private function commit($successCriteria)
@@ -242,76 +223,111 @@ class Worldpay extends Gateway
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
         $options = array('headers' => array(
-            "Authorization: {$this->encoded_credentials()}"
+            "Authorization: {$this->encodedCredentials()}"
         ));
 
-        $response = $this->parse($this->ssl_post($url, $this->xml->createXML(true), $options));
-        $success = $this->success_from($response, $successCriteria);
+        $response = $this->parse(
+            $this->ssl_post($url, $this->postData(), $options)
+        );
+
+        $success = $this->successFrom($response, $successCriteria);
+
         return new Response(
-            $success, 
-            $this->message_from($success, $response, $successCriteria), 
-            $this->params_from($response), 
-            $this->options_from($response)
+            $success,
+            $this->messageFrom($success, $response, $successCriteria),
+            $response->getArrayCopy(),
+            $this->optionsFrom($response)
         );
     }
 
-    private function parse($response_xml)
+    /**
+     * Parse the raw data response from gateway
+     *
+     * @param string $body
+     */
+    private function parse($body)
     {
-        $xml = new \Thapp\XmlBuilder\XmlBuilder();
-        $dom = $xml->loadXml($response_xml, true, false);
-        return $xml->toArray($dom);
+        $response = array();
+
+        $data = simplexml_load_string($body);
+
+        foreach ($data as $node) {
+            $this->parseElement($response, $node);
+        }
+
+        return new Options($response);
     }
 
-    private function success_from($response, $successCriteria)
+    private function parseElement(&$response, $node)
+    {
+        foreach ($node->attributes() as $k => $v) {
+            $response[$node->getName() . '_' . $k] = $v->__toString();
+        }
+
+        if ($node->count() > 0) {
+            if ($node->getName()) {
+                $response[$node->getName()] = true;
+                foreach ($node as $n) {
+                    $this->parseElement($response, $n);
+                }
+            }
+        } else {
+            $response[$node->getName()] = $node->__toString();
+        }
+    }
+
+    private function successFrom($response, $successCriteria)
     {
         if ($successCriteria == 'ok') {
-            return isset($response['paymentService']['reply']['ok']);
+            return isset($response['ok']);
         }
-            
-        if (isset($response['paymentService']['reply']['orderStatus'])) {
-            return $response['paymentService']['reply']['orderStatus']['payment']['lastEvent'] == $successCriteria;
+
+        if (isset($response['lastEvent'])) {
+            return $response['lastEvent'] == $successCriteria;
         }
 
         return false;
     }
 
-    private function message_from($success, $response, $successCriteria)
+    private function messageFrom($success, $response, $successCriteria)
     {
         if ($success) {
             return "SUCCESS";
         }
 
-        if (isset($response['paymentService']['reply']['error'])) {
-            return $response['paymentService']['reply']['error']['nodevalue'];
+        if (isset($response['error'])) {
+            return trim($response['error']);
         }
 
         return "A transaction status of $successCriteria is required.";
     }
 
-    private function params_from($response)
-    {
-        return $response['paymentService']['reply'];
-    }
-
-    private function options_from($response)
+    private function optionsFrom($response)
     {
         $options = array('test' => $this->isTest());
 
-        if (isset($response['paymentService']['reply']['orderStatus'])) {
-            foreach ($response['paymentService']['reply']['orderStatus']['@attributes'] as $key => $value) {
-                if (preg_match('/orderCode$/', $key)) {
-                    $options['authorization'] = $value;
-                }
-            }
-        }
+        $options['authorization'] = $response['orderStatus_orderCode'];
+        $options['fraud_review'] = null;
+        $options['avs_result'] = array('code' => $response['AVSResultCode']);
+        $options['cvv_result'] = $response['CVCResultCode'];
 
         return $options;
     }
 
-    private function encoded_credentials()
+    private function encodedCredentials()
     {
         $credentials = $this->options['login'] . ':' . $this->options['password'];
         $encoded = base64_encode($credentials);
+
         return "Basic $encoded";
+    }
+
+    private function postData()
+    {
+        $xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>';
+        $docType = '<!DOCTYPE paymentService PUBLIC "-//WorldPay//DTD WorldPay PaymentService v1//EN" "http://dtd.worldpay.com/paymentService_v1.dtd">';
+        $xmlString = trim($this->xml->__toString());
+
+        return str_replace($xmlHeader."\n", $xmlHeader.$docType, $xmlString);
     }
 }

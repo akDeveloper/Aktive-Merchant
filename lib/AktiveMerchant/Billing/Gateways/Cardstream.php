@@ -10,10 +10,9 @@ use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
 
 /**
- * Description of Cardstream
+ * Integration of Cardstream gateway.
  *
- * @package Aktive-Merchant
- * @author  Andreas Kollaros
+ * @author Andreas Kollaros <andreas@larium.net>
  * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
@@ -22,36 +21,36 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
     const LIVE_URL = 'https://gateway.cardstream.com/process.ashx';
 
     /**
-     *  The countries the gateway supports merchants from as 2 digit ISO 
+     *  The countries the gateway supports merchants from as 2 digit ISO
      *  country codes.
      *
      * @var array
      */
     public static $supported_countries = array('GB');
 
-    /** 
-     * The card types supported by the payment gateway 
+    /**
+     * The card types supported by the payment gateway
      *
      * @var array
      */
     public static $supported_cardtypes = array(
-        'visa', 
-        'master', 
-        'american_express', 
-        'switch', 
-        'solo', 
+        'visa',
+        'master',
+        'american_express',
+        'switch',
+        'solo',
         'maestro'
     );
 
-    /** 
+    /**
      * The homepage URL of the gateway
      *
      * @var string
      */
     public static $homepage_url = 'http://www.cardstream.com';
 
-    /** 
-     * The display name of the gateway 
+    /**
+     * The display name of the gateway
      *
      * @var string
      */
@@ -133,17 +132,18 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
     /**
      * creates gateway instance from given options.
      *
-     * @param array $options an array contains login parameters of merchant 
+     * @param array $options an array contains login parameters of merchant
      *                       and optional currency.
-     * 
+     *
      * @return CardStream the Cardstream gateway instance.
      */
     public function __construct($options = array())
     {
-      $this->required_options('login, password', $options);
+        $this->required_options('login, password', $options);
 
-        if (isset($options['currency']))
+        if (isset($options['currency'])) {
             self::$default_currency = $options['currency'];
+        }
 
         $this->options = $options;
     }
@@ -151,7 +151,7 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
     /**
      * bind the given amount to customer creditcard
      *
-     * creditcard is not charged yet. a capture action required for charging the 
+     * creditcard is not charged yet. a capture action required for charging the
      * creditcard
      *
      * @param  number     $money      the amount of money to authorize
@@ -160,15 +160,15 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
      *
      * @return Response
      */
-    public function authorize($money, CreditCard $creditcard, $options=array())
+    public function authorize($money, CreditCard $creditcard, $options = array())
     {
         $this->required_options('order_id', $options);
 
         $this->post['Amount'] = $this->amount($money);
-        $this->add_invoice($money, $creditcard, $options);
-        $this->add_creditcard($creditcard);
-        $this->add_address($options);
-        $this->add_customer_data($options);
+        $this->addInvoice($money, $creditcard, $options);
+        $this->addCreditcard($creditcard);
+        $this->addAddress($options);
+        $this->addCustomerData($options);
 
         return $this->commit('authorization', $money);
     }
@@ -181,15 +181,15 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
      *
      * @return Response
      */
-    public function purchase($money, CreditCard $creditcard, $options=array())
+    public function purchase($money, CreditCard $creditcard, $options = array())
     {
         $this->required_options('order_id', $options);
 
         $this->post['Amount'] = $this->amount($money);
-        $this->add_invoice($money, $creditcard, $options);
-        $this->add_creditcard($creditcard);
-        $this->add_address($options);
-        $this->add_customer_data($options);
+        $this->addInvoice($money, $creditcard, $options);
+        $this->addCreditcard($creditcard);
+        $this->addAddress($options);
+        $this->addCustomerData($options);
 
         return $this->commit('purchase', $options);
     }
@@ -206,7 +206,7 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
     {
         $this->post['Amount'] = $this->amount($money);
         $this->post = array('CrossReference' => $authorization);
-        $this->add_customer_data($options);
+        $this->addCustomerData($options);
 
         return $this->commit('capture', $money);
     }
@@ -228,7 +228,7 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
 
     public function void($authorization, $options = array())
     {
-    
+
     }
 
     // Private methods
@@ -238,7 +238,7 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
      *
      * @param array $options
      */
-    private function add_customer_data($options)
+    private function addCustomerData($options)
     {
         $this->post['BillingEmail'] = isset($options['email']) ? $options['email'] : null;
         $this->post['BillingPhoneNumber'] = isset($options['phone']) ? $options['phone'] : null;
@@ -246,7 +246,7 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
 
     /**
      * Options key can be 'shipping address' and 'billing_address' or 'address'
-     * 
+     *
      * Each of these keys must have an address array like:
      * $address['name']
      * $address['company']
@@ -265,12 +265,17 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
      *
      * @return void
      */
-    private function add_address($options)
+    private function addAddress($options)
     {
-        if (!isset($options['address']) || !isset($options['billing_address']))
+        if (!isset($options['address'])
+            || !isset($options['billing_address'])
+        ) {
             return false;
+        }
 
-        $address = isset($options['billing_address']) ? $options['billing_address'] : $options['address'];
+        $address = isset($options['billing_address'])
+            ? $options['billing_address']
+            : $options['address'];
 
         $this->post['BillingStreet'] = isset($address['address1']) ? $address['address1'] : null;
         $this->post['BillingHouseNumber'] = isset($address['address2']) ? $address['address2'] : null;
@@ -284,7 +289,7 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
      * @param CreditCard $creditcard
      * @param array      $options
      */
-    private function add_invoice($money, CreditCard $creditcard, $options)
+    private function addInvoice($money, CreditCard $creditcard, $options)
     {
         $this->post['TransactionUnique'] = $options['order_id'];
         $this->post['OrderDesc'] = isset($options['descreption']) ? $options['descreption'] : $options['order_id'];
@@ -292,14 +297,15 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
         if (in_array($this->card_brand($creditcard), array('american_express', 'diners_club'))) {
             $this->post['AEIT1Quantity'] = 1;
             $this->post['AEIT1Description'] = isset($options['descreption']) ? $options['descreption'] : $options['order_id'];
-        } $this->post['AEIT1GrossValue'] = $this->amount($money);
+        }
+        $this->post['AEIT1GrossValue'] = $this->amount($money);
     }
 
     /**
      *
      * @param CreditCard $creditcard
      */
-    private function add_creditcard(CreditCard $creditcard)
+    private function addCreditcard(CreditCard $creditcard)
     {
         $this->post['CardName'] = $creditcard->name();
         $this->post['CardNumber'] = $creditcard->number;
@@ -351,16 +357,20 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
     {
         $url = $this->isTest() ? self::TEST_URL : self::LIVE_URL;
 
-        $data = $this->ssl_post($url, $this->post_data($action, $parameters));
+        $data = $this->ssl_post($url, $this->postData($action, $parameters));
         $response = $this->parse($data);
 
         $test_mode = $this->isTest();
 
-        return new Response($this->success_from($response), $this->message_from($response), $response, array(
-            'test' => $test_mode,
-            'authorization' => $response['CrossReference'],
-            'avs_result' => $this->avs_result_from($response),
-            'cvv_result' => $this->cvv_result_from($response)
+        return new Response(
+            $this->successFrom($response),
+            $this->messageFrom($response),
+            $response,
+            array(
+                'test' => $test_mode,
+                'authorization' => $response['CrossReference'],
+                'avs_result' => $this->avsResultFrom($response),
+                'cvv_result' => $this->cvvResultFrom($response)
             )
         );
     }
@@ -372,7 +382,7 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
      *
      * @return string
      */
-    private function success_from($response)
+    private function successFrom($response)
     {
         return $response['ResponseCode'] == self::APPROVED;
     }
@@ -384,7 +394,7 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
      *
      * @return string
      */
-    private function message_from($response)
+    private function messageFrom($response)
     {
         return $response['Message'];
     }
@@ -397,20 +407,24 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
      *
      * @return string
      */
-    private function avs_result_from($response)
+    private function avsResultFrom($response)
     {
-        if (!isset($response['AVSCV2ResponseCode']))
+        if (!isset($response['AVSCV2ResponseCode'])) {
             return false;
+        }
+
         return array(
             'street_match' => $this->AVS_POSTAL_MATCH[$response['AVSCV2ResponseCode'][1]],
             'postal_match' => $this->AVS_STREET_MATCH[$response['AVSCV2ResponseCode'][2]]
         );
     }
 
-    private function cvv_result_from($response)
+    private function cvvResultFrom($response)
     {
-        if (!isset($response['AVSCV2ResponseCode']))
+        if (!isset($response['AVSCV2ResponseCode'])) {
             return false;
+        }
+
         return $this->CVV_CODE[$response['AVSCV2ResponseCode'][0]];
     }
 
@@ -424,7 +438,7 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
      *
      * @return string
      */
-    private function post_data($action, $parameters = array())
+    private function postData($action, $parameters = array())
     {
         $this->post['MerchantPassword'] = $this->options['password'];
         $this->post['MerchantID'] = $this->options['login'];
@@ -448,5 +462,4 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
         }
         return rtrim($request, '& ');
     }
-
 }

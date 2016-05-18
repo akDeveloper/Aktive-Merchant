@@ -7,102 +7,143 @@ namespace AktiveMerchant\Billing\Gateways;
 use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Gateways\Centinel\CentinelResponse;
+use AktiveMerchant\Common\Options;
+use AktiveMerchant\Common\SimpleXmlBuilder;
 
 /**
- * Description of Centinel gateway
+ * Integration of Centinel gateway
  *
- * @package Aktive-Merchant
- * @author  Andreas Kollaros
+ * @author Andreas Kollaros <andreas@larium.net>
  * @license http://www.opensource.org/licenses/mit-license.php
  */
 class Centinel extends Gateway
 {
     const TEST_URL = 'https://centineltest.cardinalcommerce.com/maps/txns.asp';
-    const LIVE_URL = 'https://centinel.cardinalcommerce.com/maps/txns.asp';
+    const LIVE_URL = 'https://centinel.piraeusbank.fdsecure.com/maps/txns.asp';
 
-    # The countries the gateway supports merchants from as 2 digit ISO country codes
+
+    /**
+     *  Centicel actions
+     */
+    const AUTHENTICATE = 'cmpi_authenticate';
+    const LOOKUP  = 'cmpi_lookup';
+
+    /**
+     * {@inheritdoc }
+     */
     public static $supported_countries = array('US', 'GR');
 
-    # The homepage URL of the gateway
+    /**
+     * {@inheritdoc }
+     */
     public static $homepage_url = 'http://www.cardinalcommerce.com';
 
+    /**
+     * {@inheritdoc }
+     */
     public static $display_name = 'Centinel 3D Secure';
+
+    /**
+     * {@inheritdoc }
+     */
     public static $money_format = 'cents';
+
+    /**
+     * {@inheritdoc }
+     */
     public static $default_currency = 'EUR';
+
     private $options;
+
     private $post;
-    private $VERSION = '1.7';
+
+    private $xml;
+
+    const VERSION = '1.7';
 
     public function __construct($options = array())
     {
-      $this->required_options('login, password, processor_id', $options);
+        Options::required('login, password, processor_id', $options);
 
-        if (isset($options['currency']))
-            self::$default_currency = $options['currency'];
+        $this->options = new Options($options);
 
-        $this->options = $options;
+        $this->options['currency'] and self::$default_currency = $this->options['currency'];
+
     }
 
-    public function lookup($money, CreditCard $creditcard, $options=array())
+    public function lookup($money, CreditCard $creditcard, $options = array())
     {
-        $this->required_options('order_id', $options);
 
-        $this->add_invoice($money, $options);
-        $this->add_creditcard($creditcard);
-        if (isset($options['description'])) {
-            $this->add_order_description($options['description']);
-        }
+        Options::required('order_id', $options);
+        $options = new Options($options);
 
-        return $this->commit('cmpi_lookup', $money, $options);
+        $this->buildXml(static::LOOKUP);
+        $this->addInvoice($money, $options);
+        $this->addCreditcard($creditcard);
+        $options['description'] and $this->addOrderDescription($options['description']);
+
+
+        return $this->commit(static::LOOKUP, $money, $options);
     }
 
-    public function authenticate($options=array())
+    public function authenticate($options = array())
     {
-        $this->required_options('payload, transaction_id', $options);
-        $this->add_cmpi_lookup_data($options);
+        Options::required('payload, transaction_id', $options);
+        $options = new Options($options);
 
-        return $this->commit('cmpi_authenticate', null, $options);
+        $this->buildXml(static::AUTHENTICATE);
+        $this->addCmpiLookupData($options);
+
+        return $this->commit(static::AUTHENTICATE, null, $options);
     }
 
     /* Private */
 
-    private function add_cmpi_lookup_data($options)
+    private function buildXml($action)
     {
-        $this->post .= <<<XML
-        <TransactionId>{$options['transaction_id']}</TransactionId>
-        <PAResPayload>{$options['payload']}</PAResPayload>
-XML;
+        $this->xml = new SimpleXmlBuilder('1.0', 'UTF-8');
+        $this->xml->CardinalMPI();
+        $this->xml->MsgType($action);
+        $this->xml->Version(static::VERSION);
+        $this->xml->ProcessorId($this->options['processor_id']);
+        $this->xml->MerchantId($this->options['login']);
+        $this->xml->TransactionPwd($this->options['password']);
+        $this->xml->TransactionType('C');
     }
 
-    private function add_order_description($description)
+    private function addCmpiLookupData($options)
     {
-        $this->post .= <<<XML
-        <OrderDescription>{$description}</OrderDescription>
-XML;
+        $this->xml->TransactionId($options['transaction_id']);
+        $this->xml->PAResPayload($options['payload']);
     }
 
-    private function add_invoice($money, $options)
+    private function addOrderDescription($description, $xml)
+    {
+        $this->xml->OrderDescription($description);
+    }
+
+    private function addInvoice($money, $options)
     {
         $order_number = isset($options['order_id']) ? $options['order_id'] : null;
 
         $amount = $this->isTest() ? $this->amount("1") : $this->amount($money);
-        $default_currency = self::$default_currency;
-        $this->post .= <<<XML
-      <OrderNumber>{$order_number}</OrderNumber>
-      <CurrencyCode>{$this->currency_lookup($default_currency)}</CurrencyCode>
-      <Amount>{$amount}</Amount>
-XML;
+        $default_currency = static::$default_currency;
+        $this->xml->OrderNumber($order_number);
+        $this->xml->CurrencyCode($this->currency_lookup($default_currency));
+        $this->xml->Amount($amount);
+        if ($options['installment']) {
+            $this->xml->Installment($options['installment']);
+        }
     }
 
-    private function add_creditcard(CreditCard $creditcard)
+    private function addCreditcard(CreditCard $creditcard)
     {
         $month = $this->cc_format($creditcard->month, 'two_digits');
         $year = $this->cc_format($creditcard->year, 'four_digits');
-        $this->post .= <<<XML
-      <CardNumber>{$creditcard->number}</CardNumber>
-      <CardExpMonth>{$month}</CardExpMonth>
-      <CardExpYear>{$year}</CardExpYear>
-XML;
+
+        $this->xml->CardNumber($creditcard->number);
+        $this->xml->CardExpMonth($month);
+        $this->xml->CardExpYear($year);
     }
 
     private function parse($body)
@@ -114,7 +155,7 @@ XML;
         return $response;
     }
 
-    private function parse_cmpi_lookup($body)
+    private function parseCmpiLookup($body)
     {
         $xml = simplexml_load_string($body);
 
@@ -131,7 +172,7 @@ XML;
         return $response;
     }
 
-    private function parse_cmpi_authenticate($body)
+    private function parseCmpiAuthenticate($body)
     {
         $xml = simplexml_load_string($body);
 
@@ -152,18 +193,17 @@ XML;
     {
         $url = $this->isTest() ? static::TEST_URL : static::LIVE_URL;
 
-
-        $data = $this->ssl_post($url, $this->post_data($action), $parameters);
+        $data = $this->ssl_post($url, $this->postData(), $parameters->getArrayCopy());
 
         $options = array('test' => $this->isTest());
 
         switch ($action) {
             case 'cmpi_lookup':
-                $response = $this->parse_cmpi_lookup($data);
+                $response = $this->parseCmpiLookup($data);
                 $options['authorization'] = $response['transaction_id'];
                 break;
             case 'cmpi_authenticate':
-                $response = $this->parse_cmpi_authenticate($data);
+                $response = $this->parseCmpiAuthenticate($data);
                 break;
 
             default:
@@ -171,52 +211,43 @@ XML;
                 break;
         }
 
-        return new CentinelResponse($this->success_from($response),
-            $this->message_from($response), $response, $options);
+        return new CentinelResponse(
+            $this->successFrom($response),
+            $this->messageFrom($response),
+            $response,
+            $options
+        );
     }
 
-    private function success_from($response)
+    private function successFrom($response)
     {
         $cardholderEnrolled = isset($response['acs_url']);
         $acsUrlNotProvided = empty($response['acs_url']);
 
-        if($cardholderEnrolled && $acsUrlNotProvided)
+        if ($cardholderEnrolled && $acsUrlNotProvided) {
             return false;
+        }
 
         $authStatus = isset($response['pares_status']) ? $response['pares_status'] : null;
         $isCmpiAuthenticateResponse = !is_null($authStatus);
         $autheticationFailed = !in_array($authStatus, array('Y', 'A'));
 
-        if($isCmpiAuthenticateResponse && $autheticationFailed)
-          return false;
+        if ($isCmpiAuthenticateResponse && $autheticationFailed) {
+            return false;
+        }
 
         return $response['error_no'] == '0';
     }
 
-    private function message_from($response)
+    private function messageFrom($response)
     {
         return $response['error_desc'];
     }
 
-    private function post_data($action)
+    private function postData()
     {
-        $data = <<<XML
-<?xml version="1.0" encoding="UTF-8"?>
-        <CardinalMPI>
-          <MsgType>{$action}</MsgType>
-          <Version>{$this->VERSION}</Version>
-          <ProcessorId>{$this->options['processor_id']}</ProcessorId>
-          <MerchantId>{$this->options['login']}</MerchantId>
-          <TransactionPwd>{$this->options['password']}</TransactionPwd>
-          <TransactionType>C</TransactionType>
-XML;
-        $data .= $this->post;
-        $data .= <<<XML
-        </CardinalMPI>
-XML;
-        return "cmpi_msg=" . urlencode(trim($data));
+        $xml = $this->xml->__toString();
+
+        return "cmpi_msg=" . urlencode(trim($xml));
     }
-
 }
-
-?>
