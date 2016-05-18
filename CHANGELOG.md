@@ -1,6 +1,15 @@
+* __1.1.0__ (2016-05-18)
+  * Added Datacash gateway (direct and 3D secure)
+  * Added NBG gateway, based on Datacash implementation.
+  * Added Psigate gateway from develop branch as a working gateway.
+  * Added Eurobank (Cardlink) support through Modirum gateway.
+  * Added Alpha bank support through Modirum gateway.
+  * Added Pin payments gateway.
+  * Added Stripe gateway.
+  * Added Beanstream gateway.
 * __1.0.17__ (2015-12-22)
-  * Add Ticket method to PiraeusPaycenter gateway.
-  * Add new Gateway for PiraeusPaycenter rediraction.
+  * Added Ticket method to PiraeusPaycenter gateway.
+  * Added new Gateway for PiraeusPaycenter redirection.
 * __1.0.16__ (2014-12-19)
   * Add ExpirePreauth element for authorize in PiraeusPaycenter gateway.
 * __1.0.15__ (2014-11-21)
