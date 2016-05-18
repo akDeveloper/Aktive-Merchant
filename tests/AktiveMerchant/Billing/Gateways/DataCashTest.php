@@ -145,7 +145,7 @@ class DatacashTest extends TestCase
             return $numbers[$index];
         }
 
-        throw new Exception(sprintf('Undefined index `%s`. Please check your datacash_magic_numbers.php file.', $index));
+        throw new \InvalidArgumentException(sprintf('Undefined index `%s`. Please check your datacash_magic_numbers.php file.', $index));
     }
 
     private function successPurchaseResponse()
