@@ -1,3 +1,5 @@
+* __1.1.1__ (2016-07-19)
+  * Fix live urls for Cardlink and Alphabank gateways.
 * __1.1.0__ (2016-05-18)
   * Added Datacash gateway (direct and 3D secure)
   * Added NBG gateway, based on Datacash implementation.
