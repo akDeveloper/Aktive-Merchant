@@ -7,10 +7,10 @@ namespace AktiveMerchant\Billing\Gateways;
 class AlphaBank extends Modirum
 {
     const TEST_URL = 'https://alpha.test.modirum.com/vpos/xmlpayvpos';
-    const LIVE_URL = 'https://example.com/live';
+    const LIVE_URL = 'https://www.alphaecommerce.gr/vpos/xmlpayvpos';
 
     const MPI_TEST_URL = 'https://alpha.test.modirum.com/mdpaympi/MerchantServer';
-    const MPI_LIVE_URL = 'https://alpha.test.modirum.com/mdpaympi/MerchantServer';
+    const MPI_LIVE_URL = 'https://www.alphaecommerce.gr/mdpaympi/MerchantServer';
 
     /**
      * {@inheritdoc}
