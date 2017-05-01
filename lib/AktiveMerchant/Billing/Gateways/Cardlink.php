@@ -13,10 +13,10 @@ namespace AktiveMerchant\Billing\Gateways;
 class Cardlink extends Modirum
 {
     const TEST_URL = 'https://euro.test.modirum.com/vpos/xmlpayvpos';
-    const LIVE_URL = 'https://example.com/live';
+    const LIVE_URL = 'https://ep.eurocommerce.gr/vpos/xmlpayvpos';
 
     const MPI_TEST_URL = 'https://euro.test.modirum.com/mdpaympi/MerchantServer';
-    const MPI_LIVE_URL = 'https://euro.test.modirum.com/mdpaympi/MerchantServer';
+    const MPI_LIVE_URL = 'https://ep.eurocommerce.gr/mdpaympi/MerchantServer';
 
     /**
      * {@inheritdoc}
