@@ -21,11 +21,11 @@ use AktiveMerchant\Http\RequestInterface;
  *  $options = ['secret_key' => <yoursecretkey>];
  *  $gateway = AktiveMerchant\Billing\Base::gateway('trexle', $options);
  *  // Setup customer token or card token or card data.
- *  $card = new CreditCard(['token' => 'cus_xxxxxxx']); // Customer token
- *  $card = new CreditCard(['token' => 'card_xxxxxxx']); // Card token
+ *  $card = new CreditCard(['token' => 'token_xxxxxxx']); // Customer token
+ *  $card = new CreditCard(['token' => 'token_xxxxxxx']); // Card token
  *  $card = new CreditCard([
  *        "first_name" => "John",
- *        "last_name" => "Doe",
+ *        "last_name" => "Milwood",
  *        "number" => "4242424242424242",
  *        "month" => "01",
  *        "year" => "17",
@@ -38,7 +38,7 @@ use AktiveMerchant\Http\RequestInterface;
  *  // Get unique reference from transaction for future use.
  *  $authorization = $response->authorization();
  *
- * @author Andreas Kollaros <andreas@larium.net>
+ * @author Hossam Hossny <hossamhossnyar@gmail.com>
  * @license MIT License http://www.opensource.org/licenses/mit-license.php
  */
 class Trexle extends Gateway implements
@@ -63,7 +63,73 @@ class Trexle extends Gateway implements
     /**
      * {@inheritdoc}
      */
-    public static $supported_countries = array('US');
+    public static $supported_countries = array("AD",
+ "AE",
+ "AT",
+ "AU",
+ "BD",
+ "BE",
+ "BG",
+ "BN",
+ "CA",
+ "CH",
+ "CY",
+ "CZ",
+ "DE",
+ "DK",
+ "EE",
+ "EG",
+ "ES",
+ "FI",
+ "FR",
+ "GB",
+ "GI",
+ "GR",
+ "HK",
+ "HU",
+ "ID",
+ "IE",
+ "IL",
+ "IM",
+ "IN",
+ "IS",
+ "IT",
+ "JO",
+ "KW",
+ "LB",
+ "LI",
+ "LK",
+ "LT",
+ "LU",
+ "LV",
+ "MC",
+ "MT",
+ "MU",
+ "MV",
+ "MX",
+ "MY",
+ "NL",
+ "NO",
+ "NZ",
+ "OM",
+ "PH",
+ "PL",
+ "PT",
+ "QA",
+ "RO",
+ "SA",
+ "SE",
+ "SG",
+ "SI",
+ "SK",
+ "SM",
+ "TR",
+ "TT",
+ "UM",
+ "US",
+ "VA",
+ "VN",
+ "ZA");
 
     /**
      * {@inheritdoc}
