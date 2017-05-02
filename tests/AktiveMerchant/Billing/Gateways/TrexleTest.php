@@ -9,7 +9,7 @@ use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Event\RequestEvents;
 use AktiveMerchant\TestCase;
 
-class PinTest extends TestCase
+class TrexleTest extends TestCase
 {
     public function setUp()
     {
