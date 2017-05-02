@@ -17,7 +17,7 @@ class TrexleTest extends TestCase
 
         $options = $this->getFixtures()->offsetGet('trexle');
 
-        $this->gateway = new Pin($options);
+        $this->gateway = new Trexle($options);
         $this->amount = 1000;
         $this->creditcard = new CreditCard(
             array(
