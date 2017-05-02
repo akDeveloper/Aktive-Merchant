@@ -32,7 +32,7 @@ The aim is to develop a PHP application to includes payment gateways under commo
 * [Psigate](https://www.psigate.com/)
 * [Realex](http://www.realexpayments.com)
 * [Stripe](https://stripe.com/)
-* [Trexle] (https://trexle.com/)
+* [Trexle](https://trexle.com/)
 * [WorldPay](http://www.worldpay.com)
 
 ## Requirements
