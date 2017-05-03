@@ -37,7 +37,7 @@ The aim is to develop a PHP application to includes payment gateways under commo
 
 ## Requirements
 
-* PHP 5.3.3+ 
+* PHP 5.3.3+
 * cUrl
 * SimpleXML
 
@@ -49,6 +49,3 @@ The aim is to develop a PHP application to includes payment gateways under commo
 ## Contributing
 
 You can fork this project and implement new gateways.
-
-Be sure that you checkout the `develop` branch, add your gateway and make your Pull Requests to
-`develop` branch.

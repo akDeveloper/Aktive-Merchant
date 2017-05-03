@@ -1,3 +1,5 @@
+* __1.1.2__ (2017-05-03)
+  * Add Trexle gateway ( @hossamhossny )
 * __1.1.1__ (2016-07-19)
   * Fix live urls for Cardlink and Alphabank gateways.
 * __1.1.0__ (2016-05-18)
