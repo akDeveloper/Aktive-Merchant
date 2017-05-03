@@ -106,7 +106,7 @@ class CentinelTest extends TestCase
     private function successfulLookupRequest($p, $m, $t)
     {
         return '<?xml version="1.0" encoding="UTF-8"?>
-<CardinalMPI><MsgType>cmpi_lookup</MsgType><Version>1.7</Version><ProcessorId>'.$p.'</ProcessorId><MerchantId>'.$m.'</MerchantId><TransactionPwd>'.$t.'</TransactionPwd><TransactionType>C</TransactionType><OrderNumber>123456</OrderNumber><CurrencyCode>978</CurrencyCode><Amount>100</Amount><CardNumber>5105105105105100</CardNumber><CardExpMonth>01</CardExpMonth><CardExpYear>2017</CardExpYear></CardinalMPI>';
+<CardinalMPI><MsgType>cmpi_lookup</MsgType><Version>1.7</Version><ProcessorId>'.$p.'</ProcessorId><MerchantId>'.$m.'</MerchantId><TransactionPwd>'.$t.'</TransactionPwd><TransactionType>C</TransactionType><OrderNumber>123456</OrderNumber><CurrencyCode>978</CurrencyCode><Amount>100</Amount><CardNumber>5105105105105100</CardNumber><CardExpMonth>01</CardExpMonth><CardExpYear>'.(date("Y") + 1).'</CardExpYear></CardinalMPI>';
     }
 
     private function successfulAuthenticateRequest($p, $m, $t)

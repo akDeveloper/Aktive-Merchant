@@ -56,10 +56,10 @@ class PaypalExpress extends PaypalCommon
             return null;
         }
 
-        $cents = $money * 100;
         if (!is_numeric($money)) {
             throw new \InvalidArgumentException('money amount must be a number.');
         }
+        $cents = $money * 100;
 
         return ($this->money_format() == 'cents')
             ? number_format($cents, 0, '', '')
