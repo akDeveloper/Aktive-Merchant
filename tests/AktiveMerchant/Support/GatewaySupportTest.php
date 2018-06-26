@@ -2,9 +2,10 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
+use PHPUnit\Framework\TestCase;
 use AktiveMerchant\Support\GatewaySupport;
 
-class GatewaySupportTest extends PHPUnit_Framework_TestCase
+class GatewaySupportTest extends TestCase
 {
     public function testSupport()
     {

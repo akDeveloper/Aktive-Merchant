@@ -4,9 +4,10 @@
 
 namespace AktiveMerchant\Http\Adapter;
 
+use PHPUnit\Framework\TestCase;
 use AktiveMerchant\Mock\Request;
 
-class cUrlTest extends \PHPUnit_Framework_TestCase
+class cUrlTest extends TestCase
 {
     public function testAdapterConfig()
     {

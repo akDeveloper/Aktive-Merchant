@@ -2,6 +2,7 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
+use PHPUnit\Framework\TestCase;
 use AktiveMerchant\Common\Country;
 
 /**
@@ -13,7 +14,7 @@ use AktiveMerchant\Common\Country;
  *
  */
 
-class CountryTest extends PHPUnit_Framework_TestCase
+class CountryTest extends TestCase
 {
 
     public function testGetCountryFromNumeric()

@@ -2,6 +2,7 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
+use PHPUnit\Framework\TestCase;
 use AktiveMerchant\Billing\ExpiryDate;
 
 /**
@@ -12,7 +13,7 @@ use AktiveMerchant\Billing\ExpiryDate;
  * @license http://www.opensource.org/licenses/mit-license.php MIT License
  *
  */
-class ExpireDateTest extends PHPUnit_Framework_TestCase
+class ExpireDateTest extends TestCase
 {
 
     private $given;

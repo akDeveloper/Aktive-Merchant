@@ -4,7 +4,9 @@
 
 namespace AktiveMerchant;
 
-class TestCase extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase as PHPUnit_Framework_TestCase;
+
+class TestCase extends PHPUnit_Framework_TestCase
 {
     public function getFixtures()
     {
@@ -25,10 +27,9 @@ class TestCase extends \PHPUnit_Framework_TestCase
     protected function mock_request($answer)
     {
 
-        $this->request = $this->getMock(
-            'AktiveMerchant\\Mock\\Request',
-            array('getResponseBody')
-        );
+        $this->request = $this->getMockBuilder('AktiveMerchant\\Mock\\Request')
+            ->setMethods(array('getResponseBody'))
+            ->getMock();
 
         $this->request->method('getResponseBody')
             ->will($this->returnValue($answer));

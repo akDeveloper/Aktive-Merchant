@@ -4,6 +4,8 @@
 
 namespace AktiveMerchant\Common;
 
+use PHPUnit\Framework\TestCase;
+
 /**
  * OptionsTest class.
  *
@@ -13,7 +15,7 @@ namespace AktiveMerchant\Common;
  *
  */
 
-class OptionsTest extends \PHPUnit_Framework_TestCase
+class OptionsTest extends TestCase
 {
     public $options = array();
 

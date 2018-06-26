@@ -4,6 +4,8 @@
 
 namespace AktiveMerchant\Common;
 
+use PHPUnit\Framework\TestCase;
+
 /**
  * AddressTest class.
  *
@@ -13,7 +15,7 @@ namespace AktiveMerchant\Common;
  *
  */
 
-class AddressTest extends \PHPUnit_Framework_TestCase
+class AddressTest extends TestCase
 {
     public function testMapping()
     {

@@ -4,11 +4,12 @@
 
 namespace AktiveMerchant\Http;
 
+use PHPUnit\Framework\TestCase;
 use AktiveMerchant\Http\Request;
-use AktiveMerchant\Http\RequestInterface;
 use AktiveMerchant\Http\Adapter\cUrl;
+use AktiveMerchant\Http\RequestInterface;
 
-class RequestTest extends \PHPUnit_Framework_TestCase
+class RequestTest extends TestCase
 {
     public function testResquest()
     {

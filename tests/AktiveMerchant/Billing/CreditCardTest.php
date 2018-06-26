@@ -2,6 +2,8 @@
 
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
+use PHPUnit\Framework\TestCase;
+
 /**
  * CreditCardTest class.
  *
@@ -10,7 +12,7 @@
  * @license http://www.opensource.org/licenses/mit-license.php MIT License
  *
  */
-class CreditCardTest extends PHPUnit_Framework_TestCase
+class CreditCardTest extends TestCase
 {
 
     public $creditcard;
