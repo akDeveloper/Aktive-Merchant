@@ -27,7 +27,7 @@ class PayflowTest extends \AktiveMerchant\TestCase
         $this->creditcard = new CreditCard(array(
             'number' => '5105105105105100',
             'month' => 11,
-            'year' => 2009,
+            'year' => date('Y') + 1,
             'first_name' => 'John',
             'last_name' => 'Doe',
             'verification_value' => '000',

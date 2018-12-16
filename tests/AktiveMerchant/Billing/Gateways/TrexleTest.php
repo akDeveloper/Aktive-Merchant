@@ -25,7 +25,7 @@ class TrexleTest extends TestCase
                 "last_name" => "Milwood",
                 "number" => "4242424242424242",
                 "month" => "01",
-                "year" => "17",
+                "year" => date('Y') + 1,
                 "verification_value" => "123"
             )
         );

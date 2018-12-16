@@ -42,7 +42,7 @@ class MonerisUsTest extends TestCase
                 "last_name" => "Doe",
                 "number" => "4242424242424242",
                 "month" => "01",
-                "year" => "2015",
+                "year" => date('Y') + 1,
                 "verification_value" => "000"
             )
         );

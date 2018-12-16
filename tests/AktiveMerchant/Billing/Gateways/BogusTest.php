@@ -19,7 +19,7 @@ class BogusTest extends \AktiveMerchant\TestCase
                 "last_name" => "Doe",
                 "number" => "1",
                 "month" => "01",
-                "year" => "2015",
+                "year" => date('Y') + 1,
                 "verification_value" => "000"
             )
         );

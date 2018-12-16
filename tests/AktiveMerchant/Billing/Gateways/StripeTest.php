@@ -27,7 +27,7 @@ class StripeTest extends TestCase
                 "last_name" => "Doe",
                 "number" => "4242424242424242",
                 "month" => "01",
-                "year" => "17",
+                "year" => date('Y') + 1,
                 "verification_value" => "123"
             )
         );

@@ -41,7 +41,7 @@ class FatZebraTest extends \AktiveMerchant\TestCase
                 "last_name" => "Doe",
                 "number" => "5123456789012346",
                 "month" => "01",
-                "year" => "2015",
+                "year" => date('Y') + 1,
                 "verification_value" => "000"
             )
         );

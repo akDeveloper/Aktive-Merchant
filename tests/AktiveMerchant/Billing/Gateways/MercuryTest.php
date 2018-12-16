@@ -32,7 +32,7 @@ class MercuryTest extends \AktiveMerchant\TestCase
                 "last_name" => "Doe",
                 "number" => "5499990123456781",
                 "month" => "11",
-                "year" => "2013",
+                "year" => date('Y') + 1,
                 "verification_value" => "123"
             )
         );

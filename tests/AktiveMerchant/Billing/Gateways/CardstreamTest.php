@@ -40,7 +40,7 @@ class CardstreamTest extends \AktiveMerchant\TestCase
                 "last_name" => "Doe",
                 "number" => "4111111111111111",
                 "month" => "01",
-                "year" => "2015",
+                "year" => date('Y') + 1,
                 "verification_value" => "000"
             )
         );
