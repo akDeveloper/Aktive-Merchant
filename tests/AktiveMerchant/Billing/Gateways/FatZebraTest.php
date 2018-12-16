@@ -5,6 +5,7 @@
 use AktiveMerchant\Billing\Gateways\FatZebra;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\TestCase;
 
 /**
  * Unit tests for Fat Zebra gateway.
@@ -15,11 +16,26 @@ use AktiveMerchant\Billing\CreditCard;
  * @license http://www.opensource.org/licenses/mit-license.php
  *
  */
-class FatZebraTest extends \AktiveMerchant\TestCase
+class FatZebraTest extends TestCase
 {
+    /**
+     * @var FatZebra
+     */
     public $gateway;
+
+    /**
+     * @var int
+     */
     public $amount;
+
+    /**
+     * @var array
+     */
     public $options;
+
+    /**
+     * @var CreditCard
+     */
     public $creditcard;
 
     /**

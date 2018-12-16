@@ -60,6 +60,8 @@ class EwayTest extends \AktiveMerchant\TestCase
             $this->creditcard,
             $this->options
         );
+        preg_match('/<ewayTotalAmount>(.+)<\/ewayTotalAmount>/', $this->request->getBody(), $m);
+        $this->assertEquals('10000', $m[1]);
 
         $this->assert_success($response);
 

@@ -76,6 +76,8 @@ class BridgePaytTest extends TestCase
             $authorization,
             $this->options
         );
+        parse_str($this->request->getBody(), $m);
+        $this->assertEquals('100.00', $m['Amount']);
 
         $this->assert_success($response);
         $this->assertRegExp('/OK2755/', $response->authorization());

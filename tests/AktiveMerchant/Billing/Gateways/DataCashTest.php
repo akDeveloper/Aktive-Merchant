@@ -50,6 +50,8 @@ class DatacashTest extends TestCase
     {
         $this->mock_request($this->successPurchaseResponse());
         $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
+        preg_match('/<amount currency="GBP">(.+)<\/amount>/', $this->request->getBody(), $m);
+        $this->assertEquals('100.00', $m[1]);
 
         $this->assert_success($response);
         $this->assertTrue($response->test());

@@ -52,6 +52,8 @@ class BeanstreamTest extends TestCase
             $this->creditcard,
             $this->options
         );
+        $request = json_decode($this->request->getBody());
+        $this->assertEquals('100.00', $request->amount);
 
         $this->assert_success($response);
 

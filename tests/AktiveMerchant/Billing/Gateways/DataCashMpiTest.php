@@ -52,6 +52,8 @@ class DataCashMpiTest extends TestCase
     {
         $this->mock_request($this->successLookupResponse());
         $response = $this->gateway->lookup($this->amount, $this->creditcard, $this->options);
+        preg_match('/<amount currency="GBP">(.+)<\/amount>/', $this->request->getBody(), $m);
+        $this->assertEquals('20.30', $m[1]);
 
         $this->assert_success($response);
     }

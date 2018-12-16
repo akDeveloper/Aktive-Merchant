@@ -92,6 +92,8 @@ class AuthorizeNet extends Gateway implements
      * @param array      $options
      *
      * @return Response
+     *
+     * @throws Exception
      */
     public function authorize($money, CreditCard $creditcard, $options = array())
     {

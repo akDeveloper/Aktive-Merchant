@@ -75,6 +75,9 @@ class CardstreamTest extends \AktiveMerchant\TestCase
         $this->mock_request($this->successful_purchase_response());
 
         $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
+        parse_str($this->request->getBody(), $m);
+        $this->assertEquals('10000', $m['VPAmount']);
+
         $this->assert_success($response);
         $this->assertEquals('08010706065208191057', $response->authorization());
     }

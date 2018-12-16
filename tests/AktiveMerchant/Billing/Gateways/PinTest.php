@@ -18,7 +18,7 @@ class PinTest extends TestCase
         $options = $this->getFixtures()->offsetGet('pin_payments');
 
         $this->gateway = new Pin($options);
-        $this->amount = 1000;
+        $this->amount = 10;
         $this->creditcard = new CreditCard(
             array(
                 "first_name" => "John",
@@ -52,6 +52,9 @@ class PinTest extends TestCase
             $this->creditcard,
             $this->options
         );
+
+        parse_str($this->request->getBody(), $m);
+        $this->assertEquals('1000', $m['amount']);
 
         $this->assert_success($response);
         $this->assertNotNull($response->authorization());

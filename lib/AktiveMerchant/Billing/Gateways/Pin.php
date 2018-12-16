@@ -282,7 +282,7 @@ class Pin extends Gateway implements
      */
     private function addInvoice($money, $options)
     {
-        $this->post['amount'] = $this->amount($money / 100);
+        $this->post['amount'] = $this->amount($money);
         $this->post['currency'] = self::$default_currency;
         $this->post['description'] = $options['description'];
     }

@@ -79,7 +79,6 @@ class FatZebra extends Gateway
      *                       and optional currency. Login info keys are 'username'
      *                       and 'token'
      *
-     * @return Gateway The gateway instance.
      */
     public function __construct($options = array())
     {
@@ -98,8 +97,7 @@ class FatZebra extends Gateway
      * @param number              $money      Amount of money to charge
      * @param CreditCard | string $creditcard Credit card to charge or a token
      *                                        from a stored credit card
-     * @param array               $options    The order_id reference and coustomer ip.
-     * @access public
+     * @param array               $options    The order_id reference and customer ip.
      * @throws \AktiveMerchant\Billing\Exception If the request fails
      * @return \AktiveMerchant\Billing\Response Response object
      */
@@ -133,7 +131,7 @@ class FatZebra extends Gateway
      *                                success purchase
      * @param  array  $options        The unique reference for THIS transaction.
      *                                NOTE. Not the reference from purchase
-     *                                transction.
+     *                                transaction.
      *
      * @return Response
      */
@@ -153,8 +151,8 @@ class FatZebra extends Gateway
      * Stores a reference of a credit card.
      *
      * @param CreditCard $creditcard
-     * @access public
-     * @return void
+     * @param array $options
+     * @return Response
      */
     public function store(CreditCard $creditcard, $options = array())
     {
@@ -174,14 +172,13 @@ class FatZebra extends Gateway
      * parsed via strtime function.
      *
      * customer_id can be a string with id returned when you created a customer (XXX-C-XXXXXXXX).
-     * if customer_id ommited then a new customer will be cteated.
+     * if customer_id omitted then a new customer will be created.
      *
      * @param string     $plan The plan id returned when you created a plan (XXX-PL-XXXXXXXX).
      * @param CreditCard $creditcard
      * @param array      $options
      *
-     * @access public
-     * @return void
+     * @return Response
      */
     public function recurring($plan, CreditCard $creditcard, $options = array())
     {
@@ -199,7 +196,9 @@ class FatZebra extends Gateway
         }
 
         $this->post['customer'] = $customer_id;
-        $start_date = $options->start_date instanceof \DateTime ? $options->start_date : new \DateTime(strtotime($options->start_date));
+        $start_date = $options->start_date instanceof \DateTime
+            ? $options->start_date
+            : new \DateTime(strtotime($options->start_date));
         $this->post['start_date'] = $start_date->format('Y-m-d');
         $this->post['plan'] = $plan;
         $this->post['frequency'] = $options->period;
@@ -305,11 +304,11 @@ class FatZebra extends Gateway
      * Updates customer information.
      *
      * @param string     $customer_id The id returned from gateway when the
-     *                                customer record creted to the gateway.
+     *                                customer record created to the gateway.
      * @param CreditCard $creditcard
      * @param array      $options
-     * @access public
-     * @return void
+     *
+     * @return Response
      */
     public function updateCustomer($customer_id, CreditCard $creditcard = null, $options = array())
     {
@@ -357,7 +356,7 @@ class FatZebra extends Gateway
      * $shipping_address = $options['shipping_address'];
      * </code>
      *
-     * @param  array $options
+     * @param  Options $options
      *
      * @return void
      */
@@ -450,10 +449,11 @@ class FatZebra extends Gateway
      * Parse the raw data response from gateway
      *
      * @param string $body
+     *
+     * @return array
      */
     private function parse($body)
     {
-        $result = array();
         $data = json_decode($body);
 
         $response = is_array($data->response) ? new \stdClass : $data->response;
@@ -491,8 +491,7 @@ class FatZebra extends Gateway
     /**
      *
      * @param  string $action
-     * @param  number $money
-     * @param  array  $parameters
+     * @param  string $method
      *
      * @return Response
      */
@@ -502,8 +501,10 @@ class FatZebra extends Gateway
 
         $url .= $action;
 
-        $this->getAdapter()->setOption(CURLOPT_USERPWD, "{$this->options->username}:{$this->options->token}");
-
+        $this->getAdapter()->setOption(
+            CURLOPT_USERPWD,
+            "{$this->options->username}:{$this->options->token}"
+        );
 
         $body = empty($this->post) ? null : json_encode($this->post);
 

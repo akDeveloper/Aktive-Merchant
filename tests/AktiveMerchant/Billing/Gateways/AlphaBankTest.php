@@ -60,6 +60,8 @@ class AlphaBankTest extends TestCase
             $this->creditcard,
             $this->options
         );
+        preg_match("/<OrderAmount>(.+)<\/OrderAmount>/", $this->request->getBody(), $m);
+        $this->assertEquals('0.09', $m[1]);
 
         $this->assert_success($response);
         $this->assertTrue($response->test());

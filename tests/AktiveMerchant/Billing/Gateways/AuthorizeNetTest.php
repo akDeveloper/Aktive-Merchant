@@ -98,6 +98,8 @@ class AuthorizeNetTest extends \AktiveMerchant\TestCase
             $this->creditcard,
             $this->options
         );
+        preg_match("/x_amount=(.+)$/", $this->request->getBody(), $m);
+        $this->assertEquals('100.00', $m[1]);
 
         $this->assert_success($response);
         $this->assertEquals(

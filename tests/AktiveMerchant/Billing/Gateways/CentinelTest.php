@@ -71,6 +71,8 @@ class CentinelTest extends TestCase
         );
 
         $request_body = $this->getRequestBody();
+        preg_match("/<Amount>(.+)<\/Amount>/", $request_body, $m);
+        $this->assertEquals('100', $m[1]);
 
         $this->assertEquals(
             $this->successfulLookupRequest(

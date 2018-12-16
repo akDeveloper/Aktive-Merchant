@@ -4,10 +4,16 @@
 
 namespace AktiveMerchant;
 
+use AktiveMerchant\Http\Request;
 use PHPUnit\Framework\TestCase as PHPUnit_Framework_TestCase;
 
 class TestCase extends PHPUnit_Framework_TestCase
 {
+    /**
+     * @var Request
+     */
+    protected $request;
+
     public function getFixtures()
     {
         $ini = parse_ini_file(__DIR__ . "/../fixtures.ini", true);
