@@ -129,7 +129,7 @@ class MercuryTest extends \AktiveMerchant\TestCase
     {
         return '<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soap:Body><CreditTransaction xmlns="http://www.mercurypay.com"><tran>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
-&lt;TStream&gt;&lt;Transaction&gt;&lt;TranType&gt;Credit&lt;/TranType&gt;&lt;TranCode&gt;Return&lt;/TranCode&gt;&lt;TranCode&gt;Return&lt;/TranCode&gt;&lt;InvoiceNo&gt;1108870343&lt;/InvoiceNo&gt;&lt;RefNo&gt;0001&lt;/RefNo&gt;&lt;Memo&gt;Mercury Test Transaction&lt;/Memo&gt;&lt;MerchantID&gt;595901&lt;/MerchantID&gt;&lt;Amount&gt;&lt;Purchase&gt;10.00&lt;/Purchase&gt;&lt;/Amount&gt;&lt;Account&gt;&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;&lt;ExpDate&gt;1113&lt;/ExpDate&gt;&lt;/Account&gt;&lt;CardType&gt;M/C&lt;/CardType&gt;&lt;CVVData&gt;123&lt;/CVVData&gt;&lt;AVS&gt;&lt;Address&gt;1234 Street&lt;/Address&gt;&lt;zip&gt;98004&lt;/zip&gt;&lt;/AVS&gt;&lt;TranInfo&gt;&lt;AuthCode&gt;000015&lt;/AuthCode&gt;&lt;/TranInfo&gt;&lt;/Transaction&gt;&lt;/TStream&gt;
+&lt;TStream&gt;&lt;Transaction&gt;&lt;TranType&gt;Credit&lt;/TranType&gt;&lt;TranCode&gt;Return&lt;/TranCode&gt;&lt;TranCode&gt;Return&lt;/TranCode&gt;&lt;InvoiceNo&gt;1108870343&lt;/InvoiceNo&gt;&lt;RefNo&gt;0001&lt;/RefNo&gt;&lt;Memo&gt;Mercury Test Transaction&lt;/Memo&gt;&lt;MerchantID&gt;595901&lt;/MerchantID&gt;&lt;Amount&gt;&lt;Purchase&gt;10.00&lt;/Purchase&gt;&lt;/Amount&gt;&lt;Account&gt;&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;&lt;ExpDate&gt;11'.(date('y')+1).'&lt;/ExpDate&gt;&lt;/Account&gt;&lt;CardType&gt;M/C&lt;/CardType&gt;&lt;CVVData&gt;123&lt;/CVVData&gt;&lt;AVS&gt;&lt;Address&gt;1234 Street&lt;/Address&gt;&lt;zip&gt;98004&lt;/zip&gt;&lt;/AVS&gt;&lt;TranInfo&gt;&lt;AuthCode&gt;000015&lt;/AuthCode&gt;&lt;/TranInfo&gt;&lt;/Transaction&gt;&lt;/TStream&gt;
 </tran><pw>xyz</pw></CreditTransaction></soap:Body></soap:Envelope>
 ';
     }
@@ -148,7 +148,7 @@ class MercuryTest extends \AktiveMerchant\TestCase
 	&lt;TranResponse&gt;
 		&lt;MerchantID&gt;595901&lt;/MerchantID&gt;
 		&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;
-		&lt;ExpDate&gt;1113&lt;/ExpDate&gt;
+		&lt;ExpDate&gt;11'.(date('y')+1).'&lt;/ExpDate&gt;
 		&lt;CardType&gt;M/C&lt;/CardType&gt;
 		&lt;TranCode&gt;Return&lt;/TranCode&gt;
 		&lt;AuthCode&gt;000015&lt;/AuthCode&gt;
@@ -170,7 +170,7 @@ class MercuryTest extends \AktiveMerchant\TestCase
     {
         return '<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soap:Body><CreditTransaction xmlns="http://www.mercurypay.com"><tran>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
-&lt;TStream&gt;&lt;Transaction&gt;&lt;TranType&gt;Credit&lt;/TranType&gt;&lt;TranCode&gt;Sale&lt;/TranCode&gt;&lt;PartialAuth&gt;Allow&lt;/PartialAuth&gt;&lt;InvoiceNo&gt;'.$order_id.'&lt;/InvoiceNo&gt;&lt;RefNo&gt;'.$order_id.'&lt;/RefNo&gt;&lt;Memo&gt;Mercury Test Transaction&lt;/Memo&gt;&lt;MerchantID&gt;595901&lt;/MerchantID&gt;&lt;Amount&gt;&lt;Purchase&gt;10.00&lt;/Purchase&gt;&lt;/Amount&gt;&lt;Account&gt;&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;&lt;ExpDate&gt;1113&lt;/ExpDate&gt;&lt;/Account&gt;&lt;CardType&gt;M/C&lt;/CardType&gt;&lt;CVVData&gt;123&lt;/CVVData&gt;&lt;AVS&gt;&lt;Address&gt;1234 Street&lt;/Address&gt;&lt;zip&gt;98004&lt;/zip&gt;&lt;/AVS&gt;&lt;/Transaction&gt;&lt;/TStream&gt;
+&lt;TStream&gt;&lt;Transaction&gt;&lt;TranType&gt;Credit&lt;/TranType&gt;&lt;TranCode&gt;Sale&lt;/TranCode&gt;&lt;PartialAuth&gt;Allow&lt;/PartialAuth&gt;&lt;InvoiceNo&gt;'.$order_id.'&lt;/InvoiceNo&gt;&lt;RefNo&gt;'.$order_id.'&lt;/RefNo&gt;&lt;Memo&gt;Mercury Test Transaction&lt;/Memo&gt;&lt;MerchantID&gt;595901&lt;/MerchantID&gt;&lt;Amount&gt;&lt;Purchase&gt;10.00&lt;/Purchase&gt;&lt;/Amount&gt;&lt;Account&gt;&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;&lt;ExpDate&gt;11'.(date('y')+1).'&lt;/ExpDate&gt;&lt;/Account&gt;&lt;CardType&gt;M/C&lt;/CardType&gt;&lt;CVVData&gt;123&lt;/CVVData&gt;&lt;AVS&gt;&lt;Address&gt;1234 Street&lt;/Address&gt;&lt;zip&gt;98004&lt;/zip&gt;&lt;/AVS&gt;&lt;/Transaction&gt;&lt;/TStream&gt;
 </tran><pw>xyz</pw></CreditTransaction></soap:Body></soap:Envelope>
 ';
     }
@@ -189,7 +189,7 @@ class MercuryTest extends \AktiveMerchant\TestCase
 	&lt;TranResponse&gt;
 		&lt;MerchantID&gt;595901&lt;/MerchantID&gt;
 		&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;
-		&lt;ExpDate&gt;1113&lt;/ExpDate&gt;
+		&lt;ExpDate&gt;11'.(date('y')+1).'&lt;/ExpDate&gt;
 		&lt;CardType&gt;M/C&lt;/CardType&gt;
 		&lt;TranCode&gt;Sale&lt;/TranCode&gt;
 		&lt;AuthCode&gt;000015&lt;/AuthCode&gt;
@@ -222,7 +222,7 @@ class MercuryTest extends \AktiveMerchant\TestCase
 	&lt;TranResponse&gt;
 		&lt;MerchantID&gt;595901&lt;/MerchantID&gt;
 		&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;
-		&lt;ExpDate&gt;0115&lt;/ExpDate&gt;
+		&lt;ExpDate&gt;01'.(date('y')+1).'&lt;/ExpDate&gt;
 		&lt;CardType&gt;M/C&lt;/CardType&gt;
 		&lt;TranCode&gt;Sale&lt;/TranCode&gt;
 		&lt;RefNo&gt;REF2117314507&lt;/RefNo&gt;
@@ -242,7 +242,7 @@ class MercuryTest extends \AktiveMerchant\TestCase
     {
         return '<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soap:Body><CreditTransaction xmlns="http://www.mercurypay.com"><tran>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
-&lt;TStream&gt;&lt;Transaction&gt;&lt;TranType&gt;Credit&lt;/TranType&gt;&lt;TranCode&gt;PreAuth&lt;/TranCode&gt;&lt;PartialAuth&gt;Allow&lt;/PartialAuth&gt;&lt;InvoiceNo&gt;'.$order_id.'&lt;/InvoiceNo&gt;&lt;RefNo&gt;'.$order_id.'&lt;/RefNo&gt;&lt;Memo&gt;Mercury Test Transaction&lt;/Memo&gt;&lt;MerchantID&gt;595901&lt;/MerchantID&gt;&lt;Amount&gt;&lt;Purchase&gt;10.00&lt;/Purchase&gt;&lt;Authorize&gt;10.00&lt;/Authorize&gt;&lt;/Amount&gt;&lt;Account&gt;&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;&lt;ExpDate&gt;1113&lt;/ExpDate&gt;&lt;/Account&gt;&lt;CardType&gt;M/C&lt;/CardType&gt;&lt;CVVData&gt;123&lt;/CVVData&gt;&lt;AVS&gt;&lt;Address&gt;1234 Street&lt;/Address&gt;&lt;zip&gt;98004&lt;/zip&gt;&lt;/AVS&gt;&lt;/Transaction&gt;&lt;/TStream&gt;
+&lt;TStream&gt;&lt;Transaction&gt;&lt;TranType&gt;Credit&lt;/TranType&gt;&lt;TranCode&gt;PreAuth&lt;/TranCode&gt;&lt;PartialAuth&gt;Allow&lt;/PartialAuth&gt;&lt;InvoiceNo&gt;'.$order_id.'&lt;/InvoiceNo&gt;&lt;RefNo&gt;'.$order_id.'&lt;/RefNo&gt;&lt;Memo&gt;Mercury Test Transaction&lt;/Memo&gt;&lt;MerchantID&gt;595901&lt;/MerchantID&gt;&lt;Amount&gt;&lt;Purchase&gt;10.00&lt;/Purchase&gt;&lt;Authorize&gt;10.00&lt;/Authorize&gt;&lt;/Amount&gt;&lt;Account&gt;&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;&lt;ExpDate&gt;11'.(date('y')+1).'&lt;/ExpDate&gt;&lt;/Account&gt;&lt;CardType&gt;M/C&lt;/CardType&gt;&lt;CVVData&gt;123&lt;/CVVData&gt;&lt;AVS&gt;&lt;Address&gt;1234 Street&lt;/Address&gt;&lt;zip&gt;98004&lt;/zip&gt;&lt;/AVS&gt;&lt;/Transaction&gt;&lt;/TStream&gt;
 </tran><pw>xyz</pw></CreditTransaction></soap:Body></soap:Envelope>
 ';
     }
@@ -261,7 +261,7 @@ class MercuryTest extends \AktiveMerchant\TestCase
 	&lt;TranResponse&gt;
 		&lt;MerchantID&gt;595901&lt;/MerchantID&gt;
 		&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;
-		&lt;ExpDate&gt;1113&lt;/ExpDate&gt;
+		&lt;ExpDate&gt;11'.(date('y')+1).'&lt;/ExpDate&gt;
 		&lt;CardType&gt;M/C&lt;/CardType&gt;
 		&lt;TranCode&gt;PreAuth&lt;/TranCode&gt;
 		&lt;AuthCode&gt;000015&lt;/AuthCode&gt;
@@ -283,7 +283,7 @@ class MercuryTest extends \AktiveMerchant\TestCase
     {
         return '<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soap:Body><CreditTransaction xmlns="http://www.mercurypay.com"><tran>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
-&lt;TStream&gt;&lt;Transaction&gt;&lt;TranType&gt;Credit&lt;/TranType&gt;&lt;TranCode&gt;PreAuthCapture&lt;/TranCode&gt;&lt;PartialAuth&gt;Allow&lt;/PartialAuth&gt;&lt;TranCode&gt;PreAuthCapture&lt;/TranCode&gt;&lt;InvoiceNo&gt;1108870343&lt;/InvoiceNo&gt;&lt;RefNo&gt;1108870343&lt;/RefNo&gt;&lt;Memo&gt;Mercury Test Transaction&lt;/Memo&gt;&lt;MerchantID&gt;595901&lt;/MerchantID&gt;&lt;Amount&gt;&lt;Purchase&gt;10.00&lt;/Purchase&gt;&lt;Authorize&gt;10.00&lt;/Authorize&gt;&lt;/Amount&gt;&lt;Account&gt;&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;&lt;ExpDate&gt;1113&lt;/ExpDate&gt;&lt;/Account&gt;&lt;CardType&gt;M/C&lt;/CardType&gt;&lt;CVVData&gt;123&lt;/CVVData&gt;&lt;AVS&gt;&lt;Address&gt;1234 Street&lt;/Address&gt;&lt;zip&gt;98004&lt;/zip&gt;&lt;/AVS&gt;&lt;TranInfo&gt;&lt;AuthCode&gt;000015&lt;/AuthCode&gt;&lt;/TranInfo&gt;&lt;/Transaction&gt;&lt;/TStream&gt;
+&lt;TStream&gt;&lt;Transaction&gt;&lt;TranType&gt;Credit&lt;/TranType&gt;&lt;TranCode&gt;PreAuthCapture&lt;/TranCode&gt;&lt;PartialAuth&gt;Allow&lt;/PartialAuth&gt;&lt;TranCode&gt;PreAuthCapture&lt;/TranCode&gt;&lt;InvoiceNo&gt;1108870343&lt;/InvoiceNo&gt;&lt;RefNo&gt;1108870343&lt;/RefNo&gt;&lt;Memo&gt;Mercury Test Transaction&lt;/Memo&gt;&lt;MerchantID&gt;595901&lt;/MerchantID&gt;&lt;Amount&gt;&lt;Purchase&gt;10.00&lt;/Purchase&gt;&lt;Authorize&gt;10.00&lt;/Authorize&gt;&lt;/Amount&gt;&lt;Account&gt;&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;&lt;ExpDate&gt;11'.(date('y')+1).'&lt;/ExpDate&gt;&lt;/Account&gt;&lt;CardType&gt;M/C&lt;/CardType&gt;&lt;CVVData&gt;123&lt;/CVVData&gt;&lt;AVS&gt;&lt;Address&gt;1234 Street&lt;/Address&gt;&lt;zip&gt;98004&lt;/zip&gt;&lt;/AVS&gt;&lt;TranInfo&gt;&lt;AuthCode&gt;000015&lt;/AuthCode&gt;&lt;/TranInfo&gt;&lt;/Transaction&gt;&lt;/TStream&gt;
 </tran><pw>xyz</pw></CreditTransaction></soap:Body></soap:Envelope>
 ';
     }
@@ -302,7 +302,7 @@ class MercuryTest extends \AktiveMerchant\TestCase
 	&lt;TranResponse&gt;
 		&lt;MerchantID&gt;595901&lt;/MerchantID&gt;
 		&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;
-		&lt;ExpDate&gt;1113&lt;/ExpDate&gt;
+		&lt;ExpDate&gt;11'.(date('y')+1).'&lt;/ExpDate&gt;
 		&lt;CardType&gt;M/C&lt;/CardType&gt;
 		&lt;TranCode&gt;PreAuthCapture&lt;/TranCode&gt;
 		&lt;AuthCode&gt;000015&lt;/AuthCode&gt;
@@ -324,7 +324,7 @@ class MercuryTest extends \AktiveMerchant\TestCase
     {
        return '<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><soap:Body><CreditTransaction xmlns="http://www.mercurypay.com"><tran>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
-&lt;TStream&gt;&lt;Transaction&gt;&lt;TranType&gt;Credit&lt;/TranType&gt;&lt;TranCode&gt;VoidSale&lt;/TranCode&gt;&lt;TranCode&gt;VoidSale&lt;/TranCode&gt;&lt;InvoiceNo&gt;4852831525&lt;/InvoiceNo&gt;&lt;RefNo&gt;4852831525&lt;/RefNo&gt;&lt;Memo&gt;Mercury Test Transaction&lt;/Memo&gt;&lt;MerchantID&gt;595901&lt;/MerchantID&gt;&lt;Amount&gt;&lt;Purchase&gt;10.00&lt;/Purchase&gt;&lt;/Amount&gt;&lt;Account&gt;&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;&lt;ExpDate&gt;1113&lt;/ExpDate&gt;&lt;/Account&gt;&lt;CardType&gt;M/C&lt;/CardType&gt;&lt;CVVData&gt;123&lt;/CVVData&gt;&lt;AVS&gt;&lt;Address&gt;1234 Street&lt;/Address&gt;&lt;zip&gt;98004&lt;/zip&gt;&lt;/AVS&gt;&lt;TranInfo&gt;&lt;AuthCode&gt;000015&lt;/AuthCode&gt;&lt;AcqRefData&gt;KbMCC1224211007  e00&lt;/AcqRefData&gt;&lt;ProcessData&gt;|14|410100701000&lt;/ProcessData&gt;&lt;/TranInfo&gt;&lt;/Transaction&gt;&lt;/TStream&gt;
+&lt;TStream&gt;&lt;Transaction&gt;&lt;TranType&gt;Credit&lt;/TranType&gt;&lt;TranCode&gt;VoidSale&lt;/TranCode&gt;&lt;TranCode&gt;VoidSale&lt;/TranCode&gt;&lt;InvoiceNo&gt;4852831525&lt;/InvoiceNo&gt;&lt;RefNo&gt;4852831525&lt;/RefNo&gt;&lt;Memo&gt;Mercury Test Transaction&lt;/Memo&gt;&lt;MerchantID&gt;595901&lt;/MerchantID&gt;&lt;Amount&gt;&lt;Purchase&gt;10.00&lt;/Purchase&gt;&lt;/Amount&gt;&lt;Account&gt;&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;&lt;ExpDate&gt;11'.(date('y')+1).'&lt;/ExpDate&gt;&lt;/Account&gt;&lt;CardType&gt;M/C&lt;/CardType&gt;&lt;CVVData&gt;123&lt;/CVVData&gt;&lt;AVS&gt;&lt;Address&gt;1234 Street&lt;/Address&gt;&lt;zip&gt;98004&lt;/zip&gt;&lt;/AVS&gt;&lt;TranInfo&gt;&lt;AuthCode&gt;000015&lt;/AuthCode&gt;&lt;AcqRefData&gt;KbMCC1224211007  e00&lt;/AcqRefData&gt;&lt;ProcessData&gt;|14|410100701000&lt;/ProcessData&gt;&lt;/TranInfo&gt;&lt;/Transaction&gt;&lt;/TStream&gt;
 </tran><pw>xyz</pw></CreditTransaction></soap:Body></soap:Envelope>
 ';
     }
@@ -343,7 +343,7 @@ class MercuryTest extends \AktiveMerchant\TestCase
 	&lt;TranResponse&gt;
 		&lt;MerchantID&gt;595901&lt;/MerchantID&gt;
 		&lt;AcctNo&gt;5499990123456781&lt;/AcctNo&gt;
-		&lt;ExpDate&gt;1113&lt;/ExpDate&gt;
+		&lt;ExpDate&gt;11'.(date('y')+1).'&lt;/ExpDate&gt;
 		&lt;CardType&gt;M/C&lt;/CardType&gt;
 		&lt;TranCode&gt;VoidSale&lt;/TranCode&gt;
 		&lt;AuthCode&gt;000015&lt;/AuthCode&gt;

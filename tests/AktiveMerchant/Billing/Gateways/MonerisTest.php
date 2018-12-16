@@ -96,7 +96,7 @@ class MonerisTest extends TestCase
 
     private function successfulAuthorizeRequest($order_id)
     {
-        $year = substr(date('Y') + 1, 2);
+        $year = date('y') + 1;
         return '<?xml version="1.0" encoding="UTF-8"?><request><store_id>store1</store_id><api_token>yesguy</api_token><preauth><order_id>'.$order_id.'</order_id><pan>4242424242424242</pan><expdate>'.$year.'01</expdate><cvd_info><cvd_indicator>1</cvd_indicator><cvd_value>000</cvd_value></cvd_info><billing><first_name>John</first_name><last_name>Dows</last_name><address>1 Main St</address><city>San Jose</city><province>CA</province><country>United States</country><postal_code>95131</postal_code></billing><shipping><first_name>John</first_name><last_name>Dows</last_name><address>1 Main St</address><city>San Jose</city><province>CA</province><country>United States</country><postal_code>95131</postal_code></shipping><avs_info><avs_street_number>1</avs_street_number><avs_street_name>Main St</avs_street_name><avs_zipcode>95131</avs_zipcode></avs_info><amount>10.00</amount><crypt_type>7</crypt_type></preauth></request>';
     }
 
@@ -167,7 +167,7 @@ class MonerisTest extends TestCase
 
     private function successfulPurchaseRequest($order_id)
     {
-        $year = substr(date('Y') + 1, 2);
+        $year = date('y') + 1;
         return '<?xml version="1.0" encoding="UTF-8"?><request><store_id>store1</store_id><api_token>yesguy</api_token><purchase><order_id>'.$order_id.'</order_id><pan>4242424242424242</pan><expdate>'.$year.'01</expdate><cvd_info><cvd_indicator>1</cvd_indicator><cvd_value>000</cvd_value></cvd_info><billing><first_name>John</first_name><last_name>Dows</last_name><address>1 Main St</address><city>San Jose</city><province>CA</province><country>United States</country><postal_code>95131</postal_code></billing><shipping><first_name>John</first_name><last_name>Dows</last_name><address>1 Main St</address><city>San Jose</city><province>CA</province><country>United States</country><postal_code>95131</postal_code></shipping><avs_info><avs_street_number>1</avs_street_number><avs_street_name>Main St</avs_street_name><avs_zipcode>95131</avs_zipcode></avs_info><amount>10.00</amount><crypt_type>7</crypt_type></purchase></request>';
     }
 

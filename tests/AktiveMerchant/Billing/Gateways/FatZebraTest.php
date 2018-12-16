@@ -77,7 +77,7 @@ class FatZebraTest extends \AktiveMerchant\TestCase
 
     private function successful_purchase_request($order_id)
     {
-        return '{"reference":"'.$order_id.'","amount":"1000","card_holder":"John Doe","card_number":"5123456789012346","card_expiry":"01\/2015","cvv":"000","customer_ip":"10.0.0.1"}';
+        return '{"reference":"'.$order_id.'","amount":"1000","card_holder":"John Doe","card_number":"5123456789012346","card_expiry":"01\/'.(date('Y') + 1).'","cvv":"000","customer_ip":"10.0.0.1"}';
     }
 
     private function successful_purchase_response($order_id)
@@ -139,12 +139,12 @@ class FatZebraTest extends \AktiveMerchant\TestCase
 
     private function successful_store_request()
     {
-        return '{"card_holder":"John Doe","card_number":"5123456789012346","card_expiry":"01\/2015","cvv":"000"}';
+        return '{"card_holder":"John Doe","card_number":"5123456789012346","card_expiry":"01\/'.(date('Y')+1).'","cvv":"000"}';
     }
 
     private function successful_store_response()
     {
-        return '{"successful":true,"response":{"token":"t76bbrsj","card_holder":"John Doe","card_number":"512345XXXXXX2346","card_expiry":"2015-01-31T23:59:59+11:00","authorized":true,"transaction_count":0},"errors":[],"test":true}';
+        return '{"successful":true,"response":{"token":"t76bbrsj","card_holder":"John Doe","card_number":"512345XXXXXX2346","card_expiry":"'.(date('Y') + 1).'-01-31T23:59:59+11:00","authorized":true,"transaction_count":0},"errors":[],"test":true}';
     }
 
     public function testSuccessfulPurchaseToken()
@@ -179,7 +179,7 @@ class FatZebraTest extends \AktiveMerchant\TestCase
 
     private function successful_purchase_token_response($order_id)
     {
-        return '{"successful":true,"response":{"authorization":1364262352,"id":"071-P-284ZBARA","card_number":"512345XXXXXX2346","card_holder":"John Doe","card_expiry":"2015-01-31","card_token":"t76bbrsj","amount":1000,"decimal_amount":10.0,"successful":true,"message":"Approved","reference":"'.$order_id.'","transaction_id":"071-P-284ZBARA","source":"API","currency":"AUD","settlement_date":null,"transaction_date":"2013-03-26T12:45:52+11:00","refund_identifier":null},"errors":[],"test":true}';
+        return '{"successful":true,"response":{"authorization":1364262352,"id":"071-P-284ZBARA","card_number":"512345XXXXXX2346","card_holder":"John Doe","card_expiry":"'.(date('y')+1).'-01-31","card_token":"t76bbrsj","amount":1000,"decimal_amount":10.0,"successful":true,"message":"Approved","reference":"'.$order_id.'","transaction_id":"071-P-284ZBARA","source":"API","currency":"AUD","settlement_date":null,"transaction_date":"2013-03-26T12:45:52+11:00","refund_identifier":null},"errors":[],"test":true}';
     }
 
     public function testFailedPurchaseToken()
@@ -250,7 +250,7 @@ class FatZebraTest extends \AktiveMerchant\TestCase
 
     private function successful_credit_response()
     {
-        return '{"successful":true,"response":{"authorization":1364321405,"id":"071-R-Q5AL9D8","amount":-1000,"refunded":"Approved","message":"Approved","card_holder":"John Doe","card_number":"512345XXXXXX2346","card_expiry":"2015-01-31","card_type":"MasterCard","transaction_id":"071-R-Q5AL9D8","successful":true,"transaction_date":"2013-03-27T05:10:05+11:00"},"errors":[],"test":true}';
+        return '{"successful":true,"response":{"authorization":1364321405,"id":"071-R-Q5AL9D8","amount":-1000,"refunded":"Approved","message":"Approved","card_holder":"John Doe","card_number":"512345XXXXXX2346","card_expiry":"'.(date('Y')+1).'-01-31","card_type":"MasterCard","transaction_id":"071-R-Q5AL9D8","successful":true,"transaction_date":"2013-03-27T05:10:05+11:00"},"errors":[],"test":true}';
     }
 
     public function testSuccessfulCreatePlan()
@@ -374,7 +374,7 @@ class FatZebraTest extends \AktiveMerchant\TestCase
 
     private function successful_create_customer_request($user_id)
     {
-       return '{"customer_ip":null,"first_name":"John","last_name":"Doe","email":"jonh.doe@example.com","address":{"address":"1234 Street","postcode":"98004","state":"WA"},"card":{"card_holder":"John Doe","card_number":"5123456789012346","expiry_date":"01\/2015","cvv":"000"},"reference":"'.$user_id.'"}';
+       return '{"customer_ip":null,"first_name":"John","last_name":"Doe","email":"jonh.doe@example.com","address":{"address":"1234 Street","postcode":"98004","state":"WA"},"card":{"card_holder":"John Doe","card_number":"5123456789012346","expiry_date":"01\/'.(date('Y')+1).'","cvv":"000"},"reference":"'.$user_id.'"}';
     }
 
     public function testFailCreateCustomer()
