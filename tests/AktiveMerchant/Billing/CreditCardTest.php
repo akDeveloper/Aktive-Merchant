@@ -4,6 +4,8 @@
 
 use PHPUnit\Framework\TestCase;
 
+use AktiveMerchant\Billing\CreditCard;
+
 /**
  * CreditCardTest class.
  *
@@ -19,7 +21,7 @@ class CreditCardTest extends TestCase
 
     public function setUp()
     {
-        $this->creditcard = new \AktiveMerchant\Billing\CreditCard(array(
+        $this->creditcard = new CreditCard(array(
                 "first_name" => "John",
                 "last_name" => "Doe",
                 "number" => "4381258770269608",
@@ -74,6 +76,46 @@ class CreditCardTest extends TestCase
         $this->assertTrue($expire_date->isExpired());
     }
 
-}
+    public function testValidateCardToken()
+    {
+        $token = new CreditCard(['token' => '123']);
+        $this->assertTrue($token->isValid());
+    }
 
-?>
+    public function testShuldFailForCardNumber()
+    {
+        $card = new CreditCard([
+            "first_name" => "John",
+            "last_name" => "Doe",
+            "number" => "4381258770269607",
+            "month" => "1",
+            "year" => date('Y') + 1,
+            "verification_value" => "000"
+        ]);
+
+        $this->assertFalse($card->isValid());
+        $errors = $card->errors();
+        $this->assertNotEmpty($errors);
+
+        $this->assertEquals($errors['number'], 'is not a valid credit card number');
+    }
+
+    public function testShouldFailForCardType()
+    {
+        $card = new CreditCard([
+            "first_name" => "John",
+            "last_name" => "Doe",
+            "number" => "4381258770269608",
+            "month" => "1",
+            "year" => date('Y') + 1,
+            "verification_value" => "000",
+        ]);
+        $card->type = "master";
+
+        $this->assertFalse($card->isValid());
+        $errors = $card->errors();
+        $this->assertNotEmpty($errors);
+
+        $this->assertEquals($errors['type'], 'is not the correct card type');
+    }
+}

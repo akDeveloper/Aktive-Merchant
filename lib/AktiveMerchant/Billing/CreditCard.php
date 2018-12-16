@@ -103,6 +103,7 @@ class CreditCard extends CreditCardMethods
         $this->month = $options['month'];
         $this->year = $options['year'];
         $this->number = $options['number'];
+        $this->token = $options['token'];
 
         if (isset($options['verification_value'])) {
             $this->verification_value = $options['verification_value'];
