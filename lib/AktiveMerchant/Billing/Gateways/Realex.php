@@ -89,7 +89,7 @@ class Realex extends Gateway implements
 
     public static $money_format = 'cents'; # or cents
 
-    private $options = array();
+    protected $options = array();
 
     private $xml;
 
@@ -711,7 +711,7 @@ class Realex extends Gateway implements
      *
      * @param string $response
      *
-     * @return void
+     * @return string
      */
     private function messageFrom($response)
     {
@@ -790,7 +790,7 @@ class Realex extends Gateway implements
      *
      * @param string $response_xml
      *
-     * @return SimpleXMLElement Object
+     * @return \SimpleXMLElement Object
      */
     private function parse($response_xml)
     {

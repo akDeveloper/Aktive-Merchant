@@ -62,7 +62,7 @@ class HsbcSecureEpayments extends Gateway implements Interfaces\Charge
         'CVV_FAILURE',
     );
 
-    private $options = array();
+    protected $options = array();
 
     private $xml;
 

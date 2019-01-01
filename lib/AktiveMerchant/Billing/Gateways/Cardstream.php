@@ -75,7 +75,7 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
      *
      * @var array
      */
-    private $options;
+    protected $options;
 
     /**
      * An array handling all needed variables to be send to endpoint of the gateway.

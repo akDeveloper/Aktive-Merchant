@@ -25,7 +25,7 @@ class Eurobank extends Gateway implements
     const TEST_URL = 'https://eptest.eurocommerce.gr/proxypay/apacsonline';
     const LIVE_URL = 'https://ep.eurocommerce.gr/proxypay/apacsonline';
 
-    private $options = array();
+    protected $options = array();
     private $xml;
     public static $default_currency = 'EUR';
     public static $supported_countries = array('GR');

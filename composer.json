@@ -18,7 +18,8 @@
         "symfony/event-dispatcher": "~2.3,<3.0"
     },
      "require-dev": {
-        "phpunit/phpunit": "4.8.*"
+        "phpunit/phpunit": "4.8.*",
+        "doctrine/instantiator": "~1.0.5"
     },
      "config": {
         "bin-dir": "bin"

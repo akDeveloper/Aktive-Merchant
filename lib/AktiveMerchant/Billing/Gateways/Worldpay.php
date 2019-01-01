@@ -45,7 +45,7 @@ class Worldpay extends Gateway
       'diners_club'      => 'DINERS-SSL'
     );
 
-    private $options = array();
+    protected $options = array();
     private $xml;
     private $timestamp;
 

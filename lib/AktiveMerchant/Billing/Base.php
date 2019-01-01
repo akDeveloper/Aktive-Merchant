@@ -67,7 +67,7 @@ class Base
      * @param  string $name    the underscored name of the gateway.
      * @param  array  $options the options for gateway construct.
      *
-     * @return AktiveMerchant\Billing\Gateway the gateway instance
+     * @return \AktiveMerchant\Billing\Gateway the gateway instance
      */
     public static function gateway($name = null, $options = array())
     {

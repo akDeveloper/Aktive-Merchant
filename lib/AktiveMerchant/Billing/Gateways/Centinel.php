@@ -53,7 +53,7 @@ class Centinel extends Gateway
      */
     public static $default_currency = 'EUR';
 
-    private $options;
+    protected $options;
 
     private $post;
 
@@ -117,7 +117,7 @@ class Centinel extends Gateway
         $this->xml->PAResPayload($options['payload']);
     }
 
-    private function addOrderDescription($description, $xml)
+    private function addOrderDescription($description)
     {
         $this->xml->OrderDescription($description);
     }

@@ -79,7 +79,7 @@ class Eway extends Gateway implements
      *
      * @var array
      */
-    private $options;
+    protected $options;
 
     /**
      *

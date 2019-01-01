@@ -4,6 +4,8 @@
 
 namespace AktiveMerchant\Common;
 
+use AktiveMerchant\Billing\Exception;
+
 class CountryCode
 {
     /**

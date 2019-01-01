@@ -5,3 +5,4 @@ bin/*
 composer.lock
 tests/fixtures.ini
 tests/datacash_magic_numbers.php
+build

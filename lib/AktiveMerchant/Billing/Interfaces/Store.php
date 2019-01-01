@@ -26,7 +26,7 @@ interface Store
      * @param CreditCard $creditcard
      * @param array      $options
      * @access public
-     * @return void
+     * @return \AktiveMerchant\Billing\Response
      */
     public function store(CreditCard $creditcard, $options = array());
 
@@ -36,7 +36,7 @@ interface Store
      * @param mixed $reference
      * @param array $options
      * @access public
-     * @return void
+     * @return \AktiveMerchant\Billing\Response
      */
     public function unstore($reference, $options = array());
 }

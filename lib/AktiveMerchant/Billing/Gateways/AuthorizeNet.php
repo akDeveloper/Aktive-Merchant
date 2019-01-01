@@ -64,7 +64,7 @@ class AuthorizeNet extends Gateway implements
 
     private $xml;
 
-    private $options = array();
+    protected $options = array();
 
     private $CARD_CODE_ERRORS = array('N', 'S');
 
@@ -502,7 +502,7 @@ XML;
 
         $data = $this->ssl_post(
             $url,
-            $this->arbPostData($action, $parameters),
+            $this->arbPostData($action),
             array('headers' => $headers)
         );
 

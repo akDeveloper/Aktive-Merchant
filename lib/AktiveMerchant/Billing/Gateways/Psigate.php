@@ -38,7 +38,7 @@ class Psigate extends Gateway implements
     public static $homepage_url = 'https://www.psigate.com/';
     public static $display_name = 'Psigate';
 
-    private $options = array();
+    protected $options = array();
     private $test_mode = 0;
 
     public function __construct($options)
@@ -119,8 +119,8 @@ class Psigate extends Gateway implements
      * and sometimes requires the transaction ID.  This function packs them both into
      * one string, which can be used for any of these purposes.
      *
-     * @param unknown_type $orderid
-     * @param unknown_type $transactionid
+     * @param string $orderid
+     * @param string $transactionid
      */
     private function packAuthorizationValues($orderid, $transactionid)
     {

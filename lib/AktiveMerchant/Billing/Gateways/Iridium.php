@@ -88,6 +88,8 @@ class Iridium extends Gateway implements
         'xmlns:xsd' => 'http://www.w3.org/2001/XMLSchema'
     );
 
+    private $xml;
+
     public function __construct($options = array())
     {
         $this->required_options('merchant_id, password', $options);

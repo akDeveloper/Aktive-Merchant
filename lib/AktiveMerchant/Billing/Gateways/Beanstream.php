@@ -107,7 +107,7 @@ class Beanstream extends Gateway implements
         $options = new Options($options);
 
         $this->addInvoice($options);
-        $this->addCreditCard($creditcard, false);
+        $this->addCreditcard($creditcard, false);
         $this->addAddress($options);
         $this->addCustomerData($options);
 
@@ -284,15 +284,11 @@ class Beanstream extends Gateway implements
      *
      * @param string $body
      *
-     * @return array|stdClass The parsed response data.
+     * @return Options The parsed response data.
      */
     private function parse($body)
     {
-        $response = json_decode($body, true);
-
-        $response = new Options($response);
-
-        return $response;
+        return new Options(json_decode($body, true) ?: []);
     }
 
     /**
