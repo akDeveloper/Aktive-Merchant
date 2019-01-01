@@ -37,15 +37,9 @@ class PayflowCommon extends Gateway
     public function __construct($options = array())
     {
         $this->required_options('login, password', $options);
+        parent::__construct($options);
 
-        $this->options = $options;
-        if (isset($options['partner'])) {
-            $this->partner = $options['partner'];
-        }
-
-        if (isset($options['currency'])) {
-            self::$default_currency = $options['currency'];
-        }
+        $this->partner = $this->options['partner'] ?: null;
     }
 
     public function capture($money, $authorization, $options)

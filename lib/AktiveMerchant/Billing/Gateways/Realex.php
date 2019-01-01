@@ -103,14 +103,9 @@ class Realex extends Gateway implements
     public function __construct($options)
     {
         $this->required_options('login, password', $options);
+        parent::__construct($options);
 
         $this->timestamp = strftime("%Y%m%d%H%M%S");
-
-        if (isset($options['currency'])) {
-            self::$default_currency = $options['currency'];
-        }
-
-        $this->options = $options;
     }
 
     /**

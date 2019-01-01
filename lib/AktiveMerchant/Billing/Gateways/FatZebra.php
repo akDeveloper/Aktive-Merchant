@@ -83,12 +83,7 @@ class FatZebra extends Gateway
     public function __construct($options = array())
     {
         Options::required('username, token', $options);
-
-        if (isset($options['currency'])) {
-            self::$default_currency = $options['currency'];
-        }
-
-        $this->options = new Options($options);
+        parent::__construct($options);
     }
 
     /**

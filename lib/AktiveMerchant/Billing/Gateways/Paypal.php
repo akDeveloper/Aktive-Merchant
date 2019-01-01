@@ -91,12 +91,7 @@ class Paypal extends PaypalCommon implements
     public function __construct($options = array())
     {
         $this->required_options('login, password, signature', $options);
-
-        if (isset($options['currency'])) {
-            self::$default_currency = $options['currency'];
-        }
-
-        $this->options = $options;
+        parent::__construct($options);
     }
 
     /**

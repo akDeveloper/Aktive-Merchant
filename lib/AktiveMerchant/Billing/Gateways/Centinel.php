@@ -64,11 +64,7 @@ class Centinel extends Gateway
     public function __construct($options = array())
     {
         Options::required('login, password, processor_id', $options);
-
-        $this->options = new Options($options);
-
-        $this->options['currency'] and self::$default_currency = $this->options['currency'];
-
+        parent::__construct($options);
     }
 
     public function lookup($money, CreditCard $creditcard, $options = array())

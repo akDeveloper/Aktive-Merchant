@@ -115,11 +115,7 @@ class Mercury extends Gateway implements
     {
         Options::required('login, password', $options);
 
-        if (isset($options['currency'])) {
-            self::$default_currency = $options['currency'];
-        }
-
-        $this->options = new Options($options);
+        parent::__construct($options);
 
         $this->use_tokenization = array_key_exists('tokenization', $options)
             ? $options['tokenization']

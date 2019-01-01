@@ -168,11 +168,11 @@ abstract class Gateway
      * Accepts the amount of money in base unit and returns cents or base unit
      * amount according to the @see $money_format propery.
      *
-     * @param $money The amount of money in base unit, not in cents.
+     * @param int|float $money The amount of money in base unit, not in cents.
      *
      * @throws \InvalidArgumentException
      *
-     * @return integer|float
+     * @return int|float
      */
     public function amount($money)
     {
@@ -345,7 +345,7 @@ abstract class Gateway
     /**
      * Convert an associative array to url parameters
      *
-     * @param array key/value hash of parameters
+     * @param array $params key/value hash of parameters
      *
      * @return string
      */
@@ -361,8 +361,8 @@ abstract class Gateway
     /**
      * required_options
      *
-     * @param string comma seperated parameters. Represent keys of $options array
-     * @param array  the key/value hash of options to compare with
+     * @param string $required Comma seperated parameters. Represent keys of $options array
+     * @param array  $options the key/value hash of options to compare with
      *
      * @return boolean
      */

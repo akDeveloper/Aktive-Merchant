@@ -37,15 +37,9 @@ class PaypalExpress extends PaypalCommon
     public function __construct($options = array())
     {
         Options::required('login, password, signature', $options);
+        parent::__construct($options);
 
-        $this->options = new Options($options);
-
-        if (isset($options['version'])) {
-            $this->version = $options['version'];
-        }
-        if (isset($options['currency'])) {
-            self::$default_currency = $options['currency'];
-        }
+        $this->version = $this->options['version'] ?: null;
     }
 
     /**

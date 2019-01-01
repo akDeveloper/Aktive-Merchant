@@ -112,12 +112,7 @@ abstract class Modirum extends Gateway implements
     public function __construct($options = array())
     {
         $this->required_options('merchant_id, shared_secret', $options);
-
-        if (isset($options['currency'])) {
-            self::$default_currency = $options['currency'];
-        }
-
-        $this->options = $options;
+        parent::__construct($options);
     }
 
     public function amount($money)

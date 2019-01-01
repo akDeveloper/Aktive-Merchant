@@ -99,12 +99,7 @@ class Eway extends Gateway implements
     public function __construct($options = array())
     {
         $this->required_options('login', $options);
-
-        if (isset($options['currency'])) {
-            self::$default_currency = $options['currency'];
-        }
-
-        $this->options = $options;
+        parent::__construct($options);
     }
 
     /**

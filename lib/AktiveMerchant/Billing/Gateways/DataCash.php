@@ -74,11 +74,7 @@ class DataCash extends Gateway implements
     {
         $this->required_options('client, password', $options);
 
-        if (isset($options['currency'])) {
-            static::$default_currency = $options['currency'];
-        }
-
-        $this->options = $options;
+        parent::__construct($options);
     }
 
     public function amount($money)

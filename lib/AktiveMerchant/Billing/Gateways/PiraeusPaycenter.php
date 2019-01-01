@@ -98,12 +98,7 @@ class PiraeusPaycenter extends Gateway implements
     public function __construct($options = array())
     {
         $this->required_options('acquire_id, merchant_id, pos_id, user, password, channel_type', $options);
-
-        if (isset($options['currency'])) {
-            self::$default_currency = $options['currency'];
-        }
-
-        $this->options = $options;
+        parent::__construct($options);
     }
 
     public function amount($money)

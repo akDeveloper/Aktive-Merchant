@@ -81,8 +81,7 @@ class AuthorizeNet extends Gateway implements
     public function __construct($options)
     {
         Options::required('login, password', $options);
-
-        $this->options = new Options($options);
+        parent::__construct($options);
     }
 
     /**

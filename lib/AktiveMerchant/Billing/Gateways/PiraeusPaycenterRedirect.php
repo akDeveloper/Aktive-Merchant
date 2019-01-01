@@ -43,12 +43,7 @@ class PiraeusPaycenterRedirect extends Gateway
     public function __construct($options = array())
     {
         Options::required('acquire_id, merchant_id, pos_id, user, password', $options);
-
-        if (isset($options['currency'])) {
-            self::$default_currency = $options['currency'];
-        }
-
-        $this->options = $options;
+        parent::__construct($options);
     }
 
     public function ticket($money, array $options = array())

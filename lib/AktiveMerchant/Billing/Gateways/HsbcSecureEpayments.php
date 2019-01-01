@@ -85,12 +85,7 @@ class HsbcSecureEpayments extends Gateway implements Interfaces\Charge
     public function __construct($options = array())
     {
         $this->required_options('login, password, client_id', $options);
-
-        if (isset($options['currency'])) {
-            self::$default_currency = $options['currency'];
-        }
-
-        $this->options = $options;
+        parent::__construct($options);
 
         if (!$this->isTest()) {
             $this->payment_mode = 'P'; #Production mode

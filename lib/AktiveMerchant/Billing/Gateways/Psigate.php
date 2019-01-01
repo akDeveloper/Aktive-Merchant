@@ -44,7 +44,7 @@ class Psigate extends Gateway implements
     public function __construct($options)
     {
         $this->required_options('login, password', $options);
-        $this->options = $options;
+        parent::__construct($options);
     }
 
     /**
