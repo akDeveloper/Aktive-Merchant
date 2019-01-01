@@ -25,7 +25,7 @@ class PinTest extends TestCase
                 "last_name" => "Doe",
                 "number" => "4200000000000000",
                 "month" => "01",
-                "year" => "17",
+                "year" => date('Y')+5,
                 "verification_value" => "123"
             )
         );
@@ -152,6 +152,21 @@ class PinTest extends TestCase
         $this->assertNotNull($response->authorization());
     }
 
+    public function testSuccessPurchaseFromStoredCard()
+    {
+        $this->creditcard->token = 'card_eyB0zmaj_52lAB-tz7wKgw';
+
+        $this->mock_request($this->successStoredCardPurchaseResponse());
+        $response = $this->gateway->purchase(
+            $this->amount,
+            $this->creditcard,
+            $this->options
+        );
+
+        $this->assert_success($response);
+        $this->assertNotNull($response->authorization());
+    }
+
     private function successPurchaseResponse()
     {
         return '{"response":{"token":"ch_MXERky4IR37FQiNGpepqFg","success":true,"amount":1000,"currency":"AUD","description":"Test Transaction","email":"andreas@larium.net","ip_address":"127.0.0.1","created_at":"2016-03-02T22:14:40Z","status_message":"Success","error_message":null,"card":{"token":"card_q6i8LFWz1swp71IsdoHKxw","scheme":"visa","display_number":"XXXX-XXXX-XXXX-0000","expiry_month":1,"expiry_year":2017,"name":"John Doe","address_line1":"12 Ermou Street","address_line2":null,"address_city":"Athens","address_postcode":"10560","address_state":"AT","address_country":"Greece","customer_token":null,"primary":null},"transfer":[],"amount_refunded":0,"total_fees":48,"merchant_entitlement":952,"refund_pending":false,"authorisation_expired":false,"captured":true,"settlement_currency":"AUD"}}';
@@ -185,5 +200,10 @@ class PinTest extends TestCase
     private function successCustomerPurchaseResponse()
     {
         return '{"response":{"token":"ch_0_g9QUIxIHTxstB9gUwirw","success":true,"amount":1000,"currency":"AUD","description":"Test Transaction","email":"andreas@larium.net","ip_address":"127.0.0.1","created_at":"2016-03-03T14:25:58Z","status_message":"Success","error_message":null,"card":{"token":"card_OvFyF8o-Zv1p2OgM5HD5-A","scheme":"visa","display_number":"XXXX-XXXX-XXXX-0000","expiry_month":1,"expiry_year":2017,"name":"John Doe","address_line1":"12 Ermou Street","address_line2":null,"address_city":"Athens","address_postcode":"10560","address_state":"AT","address_country":"Greece","customer_token":"cus_xGuu-GHoUVXM4PvWH60qVw","primary":true},"transfer":[],"amount_refunded":0,"total_fees":48,"merchant_entitlement":952,"refund_pending":false,"authorisation_expired":false,"captured":true,"settlement_currency":"AUD"}}';
+    }
+
+    private function successStoredCardPurchaseResponse()
+    {
+        return '{"response":{"token":"ch__U8op9Y1iS7HVlEMtVDQlw","success":true,"amount":1000,"currency":"AUD","description":"Test Transaction","email":"andreas@larium.net","ip_address":"127.0.0.1","created_at":"2019-01-01T11:12:51Z","status_message":"Success","error_message":null,"card":{"token":"card_eyB0zmaj_52lAB-tz7wKgw","scheme":"visa","display_number":"XXXX-XXXX-XXXX-0000","issuing_country":"AU","expiry_month":1,"expiry_year":2024,"name":"John Doe","address_line1":"12 Ermou Street","address_line2":null,"address_city":"Athens","address_postcode":"10560","address_state":"AT","address_country":"Greece","customer_token":"cus_31M-sXR9wUd2Z5M82BGlkQ","primary":true},"transfer":[],"amount_refunded":0,"total_fees":48,"merchant_entitlement":952,"refund_pending":false,"authorisation_expired":false,"captured":true,"captured_at":"2019-01-01T11:12:51Z","settlement_currency":"AUD","active_chargebacks":false,"metadata":{}}}';
     }
 }
