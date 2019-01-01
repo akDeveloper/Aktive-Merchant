@@ -306,7 +306,7 @@ class Pin extends Gateway implements
         }
 
         if (strpos($creditcard->token, 'card_') === 0) {
-            return $this->post['card_token'] = $credticard->token;
+            return $this->post['card_token'] = $creditcard->token;
         }
 
         if (strpos($creditcard->token, 'cus_') === 0) {
