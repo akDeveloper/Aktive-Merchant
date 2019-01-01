@@ -210,7 +210,6 @@ class BridgePay extends Gateway implements
             'Zip' => null,
             'Street' => null,
             'CVNum' => null,
-            'MagData' => null,
             'ExtData' => null
         );
     }

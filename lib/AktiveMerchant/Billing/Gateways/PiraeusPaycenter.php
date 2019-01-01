@@ -54,7 +54,7 @@ class PiraeusPaycenter extends Gateway implements
      */
     public static $default_currency = 'EUR';
 
-    private $options;
+    protected $options;
 
     private $post = array();
 
@@ -117,7 +117,7 @@ class PiraeusPaycenter extends Gateway implements
      * @param CreditCard $creditcard
      * @param array      $options
      *
-     * @return Merchant_Billing_Response
+     * @return Response
      */
     public function authorize($money, CreditCard $creditcard, $options = array())
     {

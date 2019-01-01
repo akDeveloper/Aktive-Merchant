@@ -91,6 +91,8 @@ abstract class Gateway
      */
     protected $adapter;
 
+    protected $options;
+
     private $debit_cards = array('switch', 'solo');
 
     private $dispatcher;
@@ -377,7 +379,7 @@ abstract class Gateway
      * @param integer $number  The number to format
      * @param string  $options 'two_digits' or 'four_digits'
      *
-     * @return void
+     * @return string
      */
     protected function cc_format($number, $options)
     {

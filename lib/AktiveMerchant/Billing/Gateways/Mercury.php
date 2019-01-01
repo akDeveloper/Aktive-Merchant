@@ -91,7 +91,7 @@ class Mercury extends Gateway implements
      *
      * @var array
      */
-    private $options;
+    protected $options;
 
     /**
      * Contains the main body of the request.
@@ -530,7 +530,7 @@ class Mercury extends Gateway implements
      * @param  string $action
      * @param  array  $parameters
      *
-     * @return void
+     * @return string
      */
     private function postData($action, $parameters = array())
     {

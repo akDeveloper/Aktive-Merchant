@@ -3,6 +3,7 @@
 namespace AktiveMerchant\Support;
 
 use AktiveMerchant\Common\Inflect;
+use AktiveMerchant\Billing\Gateway;
 
 class GatewaySupport
 {

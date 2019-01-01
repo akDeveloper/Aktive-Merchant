@@ -125,7 +125,7 @@ class Pin extends Gateway implements
         $options = new Options($options);
 
         $this->addInvoice($money, $options);
-        $this->addCreditCard($creditcard);
+        $this->addCreditcard($creditcard);
         if (null === $creditcard->token) {
             $this->addAddress($options);
         }
@@ -145,7 +145,7 @@ class Pin extends Gateway implements
         $options = new Options($options);
 
         $this->addInvoice($money, $options);
-        $this->addCreditCard($creditcard);
+        $this->addCreditcard($creditcard);
         if (null === $creditcard->token) {
             $this->addAddress($options);
         }
@@ -172,7 +172,7 @@ class Pin extends Gateway implements
     public function void($authorization, $options = array())
     {
         $this->post = array();
-        $action = sprintf(self::REFUND, $identification);
+        $action = sprintf(self::REFUND, $authorization);
 
         return $this->commit($action);
     }
@@ -202,7 +202,7 @@ class Pin extends Gateway implements
 
         $this->post = array();
         $options = new Options($options);
-        $this->addCreditCard($creditcard);
+        $this->addCreditcard($creditcard);
         $this->addAddress($options);
         $this->post['email'] = $options['email'];
 

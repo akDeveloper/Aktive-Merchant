@@ -323,7 +323,7 @@ class Exact extends Gateway implements Interfaces\Charge
      * Adds final parameters to post data and
      * build $this->post to the format that your payment gateway understands
      *
-     * @return void
+     * @return string
      */
     private function postData()
     {

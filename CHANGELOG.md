@@ -1,3 +1,5 @@
+* __1.1.4__ (2019-01-01)
+    * Fix typo for Trexle and Stripe gateways.
 * __1.1.3__ (2019-01-01)
     * Fix typo in creditcard for Pin Payments.
 * __1.1.2__ (2017-05-03)

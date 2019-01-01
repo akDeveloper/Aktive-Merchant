@@ -63,7 +63,7 @@ class FatZebra extends Gateway
      *
      * @var array
      */
-    private $options;
+    protected $options;
 
     /**
      * Contains the main body of the request.
@@ -295,7 +295,7 @@ class FatZebra extends Gateway
 
         $this->addCustomerData($options);
         $this->addAddress($options);
-        $this->addRecurringCreditcard($creditcard, true);
+        $this->addRecurringCreditcard($creditcard);
         $this->post['reference'] = $options->customer_id;
 
         return $this->commit('customers');
@@ -461,7 +461,7 @@ class FatZebra extends Gateway
             $response = $data;
         }
         $response->errors = $data->errors;
-        $response->test = isset($data->test) ? $data->test : $respose->test;
+        $response->test = isset($data->test) ? $data->test : $response->test;
 
         if ($data->successful == true) {
             if ((isset($response->authorized)

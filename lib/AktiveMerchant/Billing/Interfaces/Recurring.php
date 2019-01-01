@@ -34,7 +34,7 @@ interface Recurring
      * @param array      $options    Additional options to use per payment
      *                               gateway.
      * @access public
-     * @return AktiveMerchant\Billing\Response
+     * @return \AktiveMerchant\Billing\Response
      */
     public function recurring($money, CreditCard $creditcard, $options = array());
 
@@ -45,7 +45,7 @@ interface Recurring
      *                                    returned from recurring action.
      * @param Creditcard $creditcard      A creditcard instance with a valid number.
      * @access public
-     * @return AktiveMerchant\Billing\Response
+     * @return \AktiveMerchant\Billing\Response
      */
     public function updateRecurring($subscription_id, CreditCard $creditcard);
 
@@ -55,7 +55,7 @@ interface Recurring
      * @param string $subscription_id The reference for the current profile as
      *                                returned from recurring action.
      * @access public
-     * @return AktiveMerchant\Billing\Response
+     * @return \AktiveMerchant\Billing\Response
      */
     public function cancelRecurring($subscription_id);
 }

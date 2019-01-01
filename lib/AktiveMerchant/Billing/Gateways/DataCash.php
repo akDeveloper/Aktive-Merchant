@@ -60,6 +60,8 @@ class DataCash extends Gateway implements
      */
     protected $post;
 
+    protected $xml;
+
     /**
      * creates gateway instance from given options.
      *
@@ -440,10 +442,7 @@ class DataCash extends Gateway implements
      * Adds final parameters to post data and
      * build $this->post to the format that your payment gateway understands
      *
-     * @param  string $action
-     * @param  array  $parameters
-     *
-     * @return void
+     * @return string
      */
     protected function postData()
     {

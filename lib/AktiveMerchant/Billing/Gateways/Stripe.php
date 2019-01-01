@@ -149,7 +149,7 @@ class Stripe extends Gateway implements
     public function void($authorization, $options = array())
     {
         $this->post = array();
-        $action = sprintf(self::REFUND, $identification);
+        $action = sprintf(self::REFUND, $authorization);
 
         return $this->commit($action);
     }
@@ -177,7 +177,7 @@ class Stripe extends Gateway implements
     {
         $this->post = array();
         $options = new Options($options);
-        $this->addCreditCard($creditcard);
+        $this->addCreditcard($creditcard);
         $this->post['source']['object'] = 'card';
         $this->addAddress($options);
         $this->post['email'] = $options['email'];
@@ -281,7 +281,7 @@ class Stripe extends Gateway implements
         }
 
         if (strpos($creditcard->token, 'tok_') === 0) {
-            return $this->post['source'] = $credticard->token;
+            return $this->post['source'] = $creditcard->token;
         }
 
         if (strpos($creditcard->token, 'cus_') === 0) {

@@ -12,7 +12,7 @@ use AktiveMerchant\Billing\Gateway;
  * @author Andreas Kollaros <andreas@larium.net>
  * @license http://www.opensource.org/licenses/mit-license.php
  */
-class PaypalCommon extends Gateway
+abstract class PaypalCommon extends Gateway
 {
     const TEST_URL = 'https://api-3t.sandbox.paypal.com/nvp';
     const LIVE_URL = 'https://api-3t.paypal.com/nvp';
@@ -23,6 +23,26 @@ class PaypalCommon extends Gateway
     protected $SUCCESS_CODES = array('Success', 'SuccessWithWarning');
 
     const FRAUD_REVIEW_CODE = "11610";
+
+    /**
+     *
+     * Add final parameters to post data and
+     * build $this->post to the format that your payment gateway understands
+     *
+     * @param string $action
+     */
+    abstract protected function postData($action);
+
+    /**
+     *
+     * @param bool $success
+     * @param string  $message
+     * @param array   $response
+     * @param array   $options
+     *
+     * @return \AktiveMerchant\Billing\Response
+     */
+    abstract protected function buildResponse($success, $message, $response, $options = array());
 
     /**
      * Parse the raw data response from gateway
@@ -39,7 +59,7 @@ class PaypalCommon extends Gateway
     /**
      *
      * @param string $action
-     * @return Response
+     * @return \AktiveMerchant\Billing\Response
      */
     protected function commit($action)
     {
@@ -68,7 +88,7 @@ class PaypalCommon extends Gateway
      * Returns success flag from gateway response
      *
      * @param array $response
-     * @return string
+     * @return bool
      */
     private function successFrom($response)
     {
@@ -90,7 +110,7 @@ class PaypalCommon extends Gateway
      * Returns fraud review from gateway response
      *
      * @param array $response
-     * @return boolean
+     * @return bool
      */
     private function fraudReviewFrom($response)
     {
@@ -116,7 +136,7 @@ class PaypalCommon extends Gateway
     /**
      *
      * @param array $response
-     * @return boolean
+     * @return bool
      */
     private function authorizationFrom($response)
     {

@@ -10,6 +10,7 @@ use AktiveMerchant\Billing\Gateways\Paypal\PaypalExpressResponse;
 use AktiveMerchant\Common\Country;
 use AktiveMerchant\Common\Address;
 use AktiveMerchant\Common\Options;
+use AktiveMerchant\Billing\Response;
 
 /**
  * Description of PaypalExpress
@@ -24,7 +25,7 @@ class PaypalExpress extends PaypalCommon
     const LIVE_REDIRECT_URL = 'https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout&token=';
 
     private $version = '94.0';
-    private $options = array();
+    protected $options = array();
     private $post = array();
     private $token;
     private $payer_id;
@@ -470,12 +471,7 @@ class PaypalExpress extends PaypalCommon
     }
 
     /**
-     *
-     * Add final parameters to post data and
-     * build $this->post to the format that your payment gateway understands
-     *
-     * @param string $action
-     * @param array $parameters
+     * {@inheritdoc}
      */
     protected function postData($action)
     {
@@ -496,13 +492,7 @@ class PaypalExpress extends PaypalCommon
     }
 
     /**
-     *
-     * @param boolean $success
-     * @param string  $message
-     * @param array   $response
-     * @param array   $options
-     *
-     * @return PaypalExpressResponse
+     * {@inheritdoc}
      */
     protected function buildResponse($success, $message, $response, $options = array())
     {

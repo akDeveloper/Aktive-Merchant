@@ -68,7 +68,7 @@ class Paypal extends PaypalCommon implements
      */
     public static $default_currency = 'USD';
 
-    private $options;
+    protected $options;
 
     private $post = array();
 
@@ -292,13 +292,7 @@ class Paypal extends PaypalCommon implements
     }
 
     /**
-     *
-     * @param Boolean $success
-     * @param string  $message
-     * @param array   $response
-     * @param array   $options
-     *
-     * @return Response
+     * {@inheritdoc}
      */
     protected function buildResponse($success, $message, $response, $options = array())
     {
