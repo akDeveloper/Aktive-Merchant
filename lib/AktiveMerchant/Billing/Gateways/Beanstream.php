@@ -288,7 +288,7 @@ class Beanstream extends Gateway implements
      */
     private function parse($body)
     {
-        return new Options(json_decode($body, true) ?: []);
+        return new Options(json_decode($body, true) ?: array());
     }
 
     /**
