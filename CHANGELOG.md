@@ -1,3 +1,5 @@
+* __1.1.3__ (2019-01-01)
+    * Fix typo in creditcard for Pin Payments.
 * __1.1.2__ (2017-05-03)
   * Add Trexle gateway ( @hossamhossny )
 * __1.1.1__ (2016-07-19)
