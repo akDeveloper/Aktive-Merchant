@@ -1,0 +1,26 @@
+language: php
+matrix:
+  include:
+    - php: 5.3
+      dist: precise
+php:
+  - 5.6
+  - 7.0
+  - 7.1
+  - 7.2
+before_script:
+  - composer install
+  - cp tests/fixtures.dist.ini tests/fixtures.ini
+  - cp tests/datacash_magic_numbers.dist.php tests/datacash_magic_numbers.php
+script:
+    - sh -c 'if [ "$TRAVIS_PHP_VERSION" = "5.3" ]; then phpunit tests/; fi;'
+    - sh -c 'if [ "$TRAVIS_PHP_VERSION" = "5.6" ]; then phpunit tests/; fi;'
+    - sh -c 'if [ "$TRAVIS_PHP_VERSION" = "7.0" ]; then wget https://phar.phpunit.de/phpunit-5.7.phar && chmod +x phpunit-5.7.phar && php phpunit-5.7.phar tests/; fi;'
+    - sh -c 'if [ "$TRAVIS_PHP_VERSION" = "7.1" ]; then wget https://phar.phpunit.de/phpunit-5.7.phar && chmod +x phpunit-5.7.phar && php phpunit-5.7.phar tests/; fi;'
+    - sh -c 'if [ "$TRAVIS_PHP_VERSION" = "7.2" ]; then wget https://phar.phpunit.de/phpunit-5.7.phar && chmod +x phpunit-5.7.phar && php phpunit-5.7.phar tests/; fi;'
+after_success:
+  - php vendor/bin/coveralls
+  - wget https://scrutinizer-ci.com/ocular.phar
+  - php ocular.phar code-coverage:upload --format=php-clover build/logs/clover.xml
+notifications:
+  email: false
