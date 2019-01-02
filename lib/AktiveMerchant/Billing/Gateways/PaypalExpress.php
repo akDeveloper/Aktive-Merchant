@@ -39,7 +39,7 @@ class PaypalExpress extends PaypalCommon
         Options::required('login, password, signature', $options);
         parent::__construct($options);
 
-        $this->version = $this->options['version'] ?: null;
+        $this->version = $this->options['version'] ?: $this->version;
     }
 
     /**

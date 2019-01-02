@@ -235,7 +235,7 @@ class BridgePay extends Gateway implements
     private function addInvoice($money, Options $options)
     {
         $this->post['Amount'] = $this->amount($money);
-        $this->post['InvNum'] = $options->order_id;
+        $this->post['InvNum'] = $options['order_id'];
     }
 
     /**
