@@ -1,0 +1,14 @@
+filter:
+    excluded_paths:
+        - 'tests/*'
+        - 'vendor/*'
+checks:
+    php: true
+tools:
+    external_code_coverage:
+        timeout: 630
+coding_style:
+    php:
+        spaces:
+            around_operators:
+                concatenation: true
