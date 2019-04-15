@@ -18,7 +18,7 @@ class ExpireDateTest extends TestCase
 
     private $given;
 
-    public function setUp()
+    public function setUp(): void
     {
 
         $this->given['Date']['Expired'] = array(

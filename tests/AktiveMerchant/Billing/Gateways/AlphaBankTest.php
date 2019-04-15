@@ -16,7 +16,7 @@ class AlphaBankTest extends TestCase
     public $options;
     public $creditcard;
 
-    public function setUp()
+    public function setUp(): void
     {
         Base::mode('test');
 

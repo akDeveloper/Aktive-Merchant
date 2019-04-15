@@ -26,7 +26,7 @@ class AuthorizeNetTest extends \AktiveMerchant\TestCase
     /**
      * Setup
      */
-    public function setUp()
+    public function setUp(): void
     {
         Base::mode('test');
 

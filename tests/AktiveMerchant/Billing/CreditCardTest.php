@@ -19,7 +19,7 @@ class CreditCardTest extends TestCase
 
     public $creditcard;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->creditcard = new CreditCard(array(
                 "first_name" => "John",
