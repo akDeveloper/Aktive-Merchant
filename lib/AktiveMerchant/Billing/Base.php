@@ -68,11 +68,8 @@ class Base
      * @param  array  $options the options for gateway construct.
      *
      * @return \AktiveMerchant\Billing\Gateway the gateway instance
-<<<<<<< cfde3196d9953528220b1f91d328452d37d282f6
-=======
      *
      * @throws Exception
->>>>>>> Add tests for money format
      */
     public static function gateway($name = null, $options = array())
     {

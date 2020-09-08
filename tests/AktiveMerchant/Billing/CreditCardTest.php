@@ -3,7 +3,6 @@
 /* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
 
 use PHPUnit\Framework\TestCase;
-
 use AktiveMerchant\Billing\CreditCard;
 
 /**
