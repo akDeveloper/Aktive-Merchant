@@ -90,6 +90,9 @@ class Options implements \ArrayAccess, \Iterator
         }
     }
 
+    /**
+     * @return bool
+     */
     public function offsetExists($offset)
     {
         return isset($this->options[$offset]);
@@ -100,6 +103,9 @@ class Options implements \ArrayAccess, \Iterator
         unset($this->options[$offset]);
     }
 
+    /**
+     * @return mixed|null
+     */
     public function offsetGet($offset)
     {
         $value = isset($this->options[$offset])

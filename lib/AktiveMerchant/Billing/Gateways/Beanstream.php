@@ -327,7 +327,7 @@ class Beanstream extends Gateway implements
                 'authorization' => $response['id'],
                 'fraud_review' => null,
                 'avs_result' => $this->avsResultFrom($response),
-                'cvv_result' => $response['card']['cvd_match']
+                'cvv_result' => $response['card']['cvd_match'] ?? ''
             )
         );
     }
@@ -366,7 +366,9 @@ class Beanstream extends Gateway implements
      */
     private function avsResultFrom($response)
     {
-        return array('code' => $response['card']['postal_result']);
+        if (isset($response['card']['postal_result'])) {
+            return array('code' => $response['card']['postal_result']);
+        }
     }
 
     /**
