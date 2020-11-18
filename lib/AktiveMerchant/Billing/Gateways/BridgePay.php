@@ -191,7 +191,9 @@ class BridgePay extends Gateway implements
     private function addAddress(Options $options)
     {
         $address = $options['billing_address'] ?: $options['address'];
-
+        if (empty($address)) {
+            return;
+        }
         $this->post['Street'] = $address->address1;
         $this->post['Zip'] = $address->zip;
     }

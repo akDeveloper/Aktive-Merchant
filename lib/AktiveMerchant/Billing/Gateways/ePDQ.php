@@ -14,6 +14,7 @@ use AktiveMerchant\Billing\Response;
  *
  * @package Aktive-Merchant
  * @author  Kieran Graham (AirPOS Ltd.)
+ * @deprecated Deprecated since version 1.1.0
  */
 class ePDQ extends Gateway implements Interfaces\Charge
 {

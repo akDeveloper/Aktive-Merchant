@@ -266,6 +266,9 @@ class Pin extends Gateway implements
     {
         $address = $options['billing_address']
             ?: $options['address'];
+        if (empty($address)) {
+            return;
+        }
 
         $this->post['card']['address_line1'] = $address['address1'];
         $this->post['card']['address_line2'] = $address['address2'];

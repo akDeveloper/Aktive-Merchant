@@ -22,7 +22,7 @@ class Psigate extends Gateway implements
 {
 
     const LIVE_URL = "https://secure.psigate.com:17989/Messenger/XMLMessenger";
-    const TEST_URL = "https://dev.psigate.com:17989/Messenger/XMLMessenger";
+    const TEST_URL = "https://staging.psigate.com:17989/Messenger/XMLMessenger";
 
     const SUCCESS_MESSAGE = "Success";
     const UNKNOWN_ERROR_MESSAGE = "The transaction was declined";

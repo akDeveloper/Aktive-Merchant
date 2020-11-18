@@ -202,6 +202,9 @@ class Iridium extends Gateway implements
     private function addCustomerDetails($options)
     {
         $billingAddress = $options['billingAddress'] ?: $options['address'];
+        if (empty($billingAddress)) {
+            return;
+        }
 
         $country = null;
         if ($billingAddress['country']) {
