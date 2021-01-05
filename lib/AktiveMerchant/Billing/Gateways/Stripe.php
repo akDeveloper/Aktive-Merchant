@@ -242,6 +242,10 @@ class Stripe extends Gateway implements
         $address = $options['billing_address']
             ?: $options['address'];
 
+        if (empty($address)) {
+            return;
+        }
+
         $this->post['source']['address_line1'] = $address['address1'];
         $this->post['source']['address_line2'] = $address['address2'];
         $this->post['source']['address_city'] = $address['city'];
