@@ -136,7 +136,7 @@ class Stripe extends Gateway implements
      */
     public function capture($money, $authorization, $options = array())
     {
-        $this->post = array('amount' => $this->amount($money / 100));
+        $this->post = array('amount' => $this->amount($money));
 
         $action = sprintf(self::CAPTURE, $authorization);
 
@@ -159,7 +159,7 @@ class Stripe extends Gateway implements
      */
     public function credit($money, $identification, $options = array())
     {
-        $this->post = array('amount' => $this->amount($money / 100));
+        $this->post = array('amount' => $this->amount($money));
 
         $action = sprintf(self::REFUND, $identification);
 
@@ -261,7 +261,7 @@ class Stripe extends Gateway implements
      */
     private function addInvoice($money, $options)
     {
-        $this->post['amount'] = $this->amount($money / 100);
+        $this->post['amount'] = $this->amount($money);
         $this->post['currency'] = self::$default_currency;
         $this->post['description'] = $options['description'];
     }

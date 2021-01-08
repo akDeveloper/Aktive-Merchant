@@ -20,7 +20,7 @@ class StripeTest extends TestCase
         $options['currency'] = 'EUR';
 
         $this->gateway = new Stripe($options);
-        $this->amount = 1000;
+        $this->amount = 10;
         $this->creditcard = new CreditCard(
             array(
                 "first_name" => "John",
@@ -46,7 +46,7 @@ class StripeTest extends TestCase
         );
     }
 
-    public function testSuccessPurchase()
+    public function testSuccessfulPurchase()
     {
         $this->mock_request($this->successPurchaseResponse());
         $response = $this->gateway->purchase(
@@ -57,6 +57,9 @@ class StripeTest extends TestCase
 
         $this->assert_success($response);
         $this->assertNotNull($response->authorization());
+        $this->assertEquals('1000', $response->params()->amount);
+        parse_str($this->request->getBody(), $result);
+        $this->assertEquals('1000', $result['amount']);
     }
 
     public function testFailPurchase()
@@ -68,7 +71,6 @@ class StripeTest extends TestCase
             $this->creditcard,
             $this->options
         );
-
         $this->assert_failure($response);
         $this->assertEquals('Your card was declined.', $response->message());
     }
