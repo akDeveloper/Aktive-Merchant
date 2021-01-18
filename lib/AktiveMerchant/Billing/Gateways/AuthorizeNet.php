@@ -415,6 +415,11 @@ XML;
         return $response;
     }
 
+    /**
+     * @param string $action
+     * @param array  $parameters
+     * @param array  $post
+     */
     private function postData($action, $parameters = array(), $post = null)
     {
         if ($post === null) {
@@ -438,6 +443,9 @@ XML;
         return rtrim($request, '& ');
     }
 
+    /**
+     * @param Options $options
+     */
     private function addInvoice($options)
     {
         $this->post['invoice_num'] = $options['order_id'];
@@ -463,11 +471,18 @@ XML;
         return $month . $year;
     }
 
+    /**
+     * @param Options $options
+     */
     private function addAddress($options)
     {
         $address = isset($options['billing_address'])
             ? $options['billing_address']
             : $options['address'];
+
+        if (empty($address)) {
+            return;
+        }
 
         $this->post['address']  = $address['address1'];
         $this->post['company']  = $address['company'];

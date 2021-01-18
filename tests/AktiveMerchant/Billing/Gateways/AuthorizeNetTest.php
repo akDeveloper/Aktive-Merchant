@@ -48,11 +48,12 @@ class AuthorizeNetTest extends \AktiveMerchant\TestCase
         $this->options = array(
             'order_id' => 'REF' . $this->gateway->generateUniqueId(),
             'description' => 'Autorize.net Test Transaction',
+            /*
             'address' => array(
                 'address1' => '1234 Street',
                 'zip' => '98004',
                 'state' => 'WA'
-            )
+            )*/
         );
 
         $this->recurring_options = array(
