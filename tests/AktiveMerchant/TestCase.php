@@ -1,13 +1,13 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant;
 
 use AktiveMerchant\Http\Request;
-use PHPUnit\Framework\TestCase as PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
-class TestCase extends PHPUnit_Framework_TestCase
+class TestCase extends PHPUnitTestCase
 {
     /**
      * @var Request

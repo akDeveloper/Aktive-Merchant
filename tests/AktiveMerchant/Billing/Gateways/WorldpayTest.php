@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing\Gateways;
 
@@ -23,7 +23,7 @@ class WorldpayTest extends TestCase
     public $options;
     public $creditcard;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         Base::mode('test');
 
@@ -98,7 +98,7 @@ class WorldpayTest extends TestCase
     private function successfulCaptureRequest()
     {
 
-        $now = new \DateTime(null, new \DateTimeZone('UTC'));
+        $now = new \DateTime('now', new \DateTimeZone('UTC'));
         $dom = $now->format('d');
         $m = $now->format('m');
         $y = $now->format('Y');

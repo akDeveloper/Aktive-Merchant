@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing\Gateways;
 
@@ -438,7 +438,7 @@ XML;
 
         #Add x_ prefix to all keys
         foreach ($post as $k => $v) {
-            $request .= 'x_' . $k . '=' . urlencode($v) . '&';
+            $request .= 'x_' . $k . '=' . urlencode($v ?? '') . '&';
         }
         return rtrim($request, '& ');
     }
@@ -496,7 +496,7 @@ XML;
     private function addCustomerData($options)
     {
         $this->post['email'] = $options['email'];
-        $this->post['email_customer'] = false;
+        $this->post['email_customer'] = null;
         $this->post['cust_id'] = $options['customer'];
         $this->post['customer_ip'] = $options['ip'];
     }

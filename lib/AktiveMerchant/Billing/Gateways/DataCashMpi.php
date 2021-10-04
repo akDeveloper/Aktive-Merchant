@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing\Gateways;
 
@@ -89,7 +89,7 @@ class DataCashMpi extends DataCash
 
         $this->xml->ThreeDSecure(null, 'TxnDetails')
             ->Browser(null, 'ThreeDSecure')
-            ->device_category(0, 'Browser')
+            ->device_category('0', 'Browser')
             ->accept_headers($options['accept_headers'], 'Browser')
             ->user_agent($options['user_agent'], 'Browser')
             ->purchase_datetime(date('Ymd H:i:s'), 'ThreeDSecure')

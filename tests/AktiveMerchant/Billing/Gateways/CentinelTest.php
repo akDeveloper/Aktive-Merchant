@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing\Gateways;
 
@@ -17,7 +17,7 @@ class CentinelTest extends TestCase
     public $creditcard;
     public $loginInfo;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         Base::mode('test');
 
@@ -129,6 +129,6 @@ class CentinelTest extends TestCase
 
     private function getRequestBody()
     {
-        return str_replace('cmpi_msg=', null, urldecode($this->request->getBody()));
+        return str_replace('cmpi_msg=', '', urldecode($this->request->getBody()));
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing\Gateways;
 
@@ -23,7 +23,7 @@ class ExactTest extends TestCase
     public $options;
     public $creditcard;
 
-    public function setUp()
+    public function setUp(): void
     {
         Base::mode('test');
 
@@ -63,7 +63,7 @@ class ExactTest extends TestCase
         );
 
         $this->assert_success($response);
-        $this->assertRegExp(
+        $this->assertMatchesRegularExpression(
             '/Approved/',
             $response->message()
         );
@@ -85,7 +85,7 @@ class ExactTest extends TestCase
         $this->assertEquals('100.00', $m[1]);
 
         $this->assert_success($response);
-        $this->assertRegExp(
+        $this->assertMatchesRegularExpression(
             '/Approved/',
             $response->message()
         );

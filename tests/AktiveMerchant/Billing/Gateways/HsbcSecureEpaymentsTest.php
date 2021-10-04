@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 use AktiveMerchant\Billing\Gateways\HsbcSecureEpayments;
 use AktiveMerchant\Billing\Base;
@@ -27,7 +27,7 @@ class HsbcSecureEpaymentsTest extends \AktiveMerchant\TestCase
     /**
      * Setup
      */
-    function setUp()
+    public function setUp(): void
     {
         Base::mode('test');
 

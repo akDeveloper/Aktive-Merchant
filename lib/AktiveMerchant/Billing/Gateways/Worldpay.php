@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing\Gateways;
 
@@ -122,7 +122,7 @@ class Worldpay extends Gateway
     {
         $this->xml->orderModification(null, 'modify', array('orderCode' => $authorization));
         $this->xml->capture(null, 'orderModification');
-        $now = new \DateTime(null, new \DateTimeZone('UTC'));
+        $now = new \DateTime('', new \DateTimeZone('UTC'));
         $this->xml->date(null, 'capture', array(
             'dayOfMonth' => $now->format('d'),
             'month' => $now->format('m'),

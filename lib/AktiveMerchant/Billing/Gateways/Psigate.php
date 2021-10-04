@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing\Gateways;
 
@@ -250,6 +250,7 @@ class Psigate extends Gateway implements
         $params = $this->parameters($money, $creditcard, $options);
         $xml = new \SimpleXMLElement("<Order />");
         foreach ($params as $k => $v) {
+            $v = (string) $v;
             if ($v !== null) {
                 $xml->addChild($k, $v);
             }
@@ -285,7 +286,7 @@ class Psigate extends Gateway implements
                 $params['CardExpMonth'] = sprintf("%02d", $creditcard->month);
             }
             if (isset($creditcard->year)) {
-                $params['CardExpYear'] = substr($creditcard->year, -2);
+                $params['CardExpYear'] = substr((string) $creditcard->year, -2);
             }
             if (isset($creditcard->verification_value)) {
                 $params['CardIDNumber'] = $creditcard->verification_value;

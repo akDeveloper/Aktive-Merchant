@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 use AktiveMerchant\Billing\Gateways\Payflow;
 use AktiveMerchant\Billing\Base;
@@ -14,7 +14,7 @@ class PayflowTest extends \AktiveMerchant\TestCase
     public $options;
     public $creditcard;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         Base::mode('test');
 

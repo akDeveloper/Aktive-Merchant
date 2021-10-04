@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing\Gateways;
 
@@ -11,6 +11,7 @@ use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Billing\Response;
 use AktiveMerchant\Common\Options;
 use AktiveMerchant\Common\SimpleXmlBuilder;
+use SimpleXMLElement;
 
 /**
  * Abstract instegration of Modirum gateway.
@@ -73,7 +74,7 @@ abstract class Modirum extends Gateway implements
     /**
      * Contains the main body of the request.
      *
-     * @var array
+     * @var SimpleXmlBuilder
      */
     protected $xml;
 
@@ -265,8 +266,8 @@ abstract class Modirum extends Gateway implements
 
         if ($options['installments']) {
             $xml->InstallmentParameters(null, 'PaymentInfo')
-                ->ExtInstallmentoffset(0, 'InstallmentParameters')
-                ->ExtInstallmentperiod($options['installments'], 'InstallmentParameters');
+                ->ExtInstallmentoffset('0', 'InstallmentParameters')
+                ->ExtInstallmentperiod((string) $options['installments'], 'InstallmentParameters');
         }
     }
 
@@ -297,6 +298,7 @@ abstract class Modirum extends Gateway implements
      */
     private function parse($body, $actionResponse)
     {
+        /** @var SimpleXMLElement $data */
         $data = simplexml_load_string($body, 'SimpleXMLElement', LIBXML_NOBLANKS);
 
         $defaults = array(
@@ -469,8 +471,8 @@ abstract class Modirum extends Gateway implements
     private function postData($action)
     {
         $xml = $this->xml->__toString();
-        $xml = str_replace('<?xml version="1.0" encoding="UTF-8"?>', null, $xml);
-        $xml = str_replace("\n", null, $xml);
+        $xml = str_replace('<?xml version="1.0" encoding="UTF-8"?>', '', $xml);
+        $xml = str_replace("\n", '', $xml);
         $digest = $this->calculateDigest($xml);
         $xml .= '<Digest>'.$digest.'</Digest>';
         $content = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><VPOS xmlns="http://www.modirum.com/schemas">%s</VPOS>';
@@ -500,7 +502,7 @@ abstract class Modirum extends Gateway implements
      */
     protected function canonicalize($xml)
     {
-        $xml = str_replace('<?xml version="1.0" encoding="UTF-8"?>', null, $xml);
+        $xml = str_replace('<?xml version="1.0" encoding="UTF-8"?>', '', $xml);
 
         $replacement = 'xmlns="http://www.modirum.com/schemas" ';
         $start  = 0;

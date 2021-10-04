@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace AktiveMerchant\Support;
 
 use AktiveMerchant\Common\Inflect;
@@ -7,7 +9,6 @@ use AktiveMerchant\Billing\Gateway;
 
 class GatewaySupport
 {
-
     private $supported_gateways = array();
     private $actions = array("purchase", "authorize", "capture", "void", "credit", "recurring");
 
@@ -81,7 +82,7 @@ class GatewaySupport
     {
         $max = array_map(function ($a) {
             $gateway = "AktiveMerchant\\Billing\\Gateways\\".$a;
-            return strlen($gateway::$display_name);
+            return strlen($gateway::$display_name ?? '');
         }, $this->supported_gateways);
 
         $max = max($max) + 1;
@@ -98,7 +99,7 @@ class GatewaySupport
         foreach ($this->supported_gateways as $gateway) {
             $ref = new \ReflectionClass('AktiveMerchant\\Billing\\Gateways\\' . $gateway);
             $display_name = $ref->getStaticPropertyValue('display_name');
-            $length = $max - strlen($display_name);
+            $length = $max - strlen($display_name ?? '');
             $print .= "\033[1;35m".  $display_name ."\033[0m". str_repeat(' ', $length > 0 ? $length : 0);
             foreach ($this->actions as $action) {
                 if ($ref->hasMethod($action)) {

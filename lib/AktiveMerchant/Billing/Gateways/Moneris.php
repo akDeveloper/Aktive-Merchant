@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing\Gateways;
 
@@ -69,7 +69,7 @@ class Moneris extends Gateway
 
     private $xml;
 
-    private $crypt_type = 7;
+    private $crypt_type = '7';
 
     private $credit_card_types = array(
         'V'  => 'visa',
@@ -341,7 +341,7 @@ class Moneris extends Gateway
         $this->xml->pan($creditcard->number, $action);
         $this->xml->expdate($expDate, $action);
         $this->xml->cvd_info(null, $action);
-        $this->xml->cvd_indicator(1, 'cvd_info');
+        $this->xml->cvd_indicator('1', 'cvd_info');
         $this->xml->cvd_value($creditcard->verification_value, 'cvd_info');
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 /*
  * For more information on the Realex Payment Gateway visit their site http://realexpayments.com.
@@ -647,8 +647,8 @@ class Realex extends Gateway implements
         $card->addChild('chname', $creditcard->name());
 
         $cvn = $card->addChild('cvn');
-        $cvn->addChild('number', $creditcard->verification_value);
-        $cvn->addChild('presind', (($creditcard->verification_value) ? 1 : null));
+        $cvn->addChild('number', (string) $creditcard->verification_value);
+        $cvn->addChild('presind', (($creditcard->verification_value) ? '1' : null));
     }
 
     private function avsInputCodeOrZip($address, $options)

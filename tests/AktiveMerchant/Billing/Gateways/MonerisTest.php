@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing\Gateways;
 
@@ -27,7 +27,7 @@ class MonerisTest extends TestCase
     /**
      * Setup
      */
-    public function setUp()
+    public function setUp(): void
     {
         Base::mode('test');
 
@@ -247,6 +247,6 @@ class MonerisTest extends TestCase
 
     private function getRequestBody()
     {
-        return str_replace("\n", null, $this->request->getBody());
+        return str_replace("\n", '', $this->request->getBody());
     }
 }

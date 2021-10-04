@@ -1,23 +1,22 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing\Gateways;
 
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\Gateways\BridgePay;
 use AktiveMerchant\Billing\CreditCard;
-use AktiveMerchant\Common\Options;
 use AktiveMerchant\TestCase;
 
-class BridgePaytTest extends TestCase
+class BridgePayTest extends TestCase
 {
     public $gateway;
     public $amount;
     public $options;
     public $creditcard;
 
-    public function setUp()
+    public function setUp(): void
     {
         Base::mode('test');
 
@@ -80,7 +79,7 @@ class BridgePaytTest extends TestCase
         $this->assertEquals('100.00', $m['Amount']);
 
         $this->assert_success($response);
-        $this->assertRegExp('/OK2755/', $response->authorization());
+        $this->assertMatchesRegularExpression('/OK2755/', $response->authorization());
     }
 
     public function testSuccesfulPurchase()

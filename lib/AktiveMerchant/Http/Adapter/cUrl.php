@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Http\Adapter;
 
@@ -117,8 +117,8 @@ class cUrl implements AdapterInterface
         $this->info = $curl_info;
 
         $this->response_headers = substr($response, 0, $curl_info['header_size']);
-
-        $this->response_body = substr($response, -$curl_info['size_download']);
+        $size = (int) $curl_info['size_download'];
+        $this->response_body = substr($response, -$size);
 
         // OK, the response was OK at the HTTP level at least!
         return true;

@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 use AktiveMerchant\Billing\Gateways\Paypal;
 use AktiveMerchant\Billing\Base;
@@ -23,7 +23,7 @@ class PaypalTest extends \AktiveMerchant\TestCase
     public $options;
     public $creditcard;
 
-    public function setUp()
+    public function setUp(): void
     {
         Base::mode('test');
 

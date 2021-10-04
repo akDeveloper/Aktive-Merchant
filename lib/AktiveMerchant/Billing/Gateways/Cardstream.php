@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing\Gateways;
 
@@ -453,7 +453,7 @@ class Cardstream extends Gateway implements Interfaces\Charge, Interfaces\Credit
         #Add VP prefix to all keys
         $request = '';
         foreach ($this->post as $k => $v) {
-            $request .= 'VP' . $k . '=' . urlencode($v) . '&';
+            $request .= 'VP' . $k . '=' . urlencode($v ?? '') . '&';
         }
         return rtrim($request, '& ');
     }

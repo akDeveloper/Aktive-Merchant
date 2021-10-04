@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Common;
 
@@ -92,6 +92,7 @@ class Country
      */
     public static function find($name)
     {
+        $name = (string) $name;
         if (empty($name)) {
             throw new \InvalidArgumentException('Cannot lookup country for an empty name');
         }

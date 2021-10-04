@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Common;
 
@@ -19,7 +19,7 @@ class OptionsTest extends TestCase
 {
     public $options = array();
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->options = array(
             'login' => 'x',
@@ -79,21 +79,17 @@ class OptionsTest extends TestCase
         $this->assertTrue($exists);
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testFailRequired()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $options = new Options($this->options);
 
         $exists = Options::required('pass', $options);
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testFailRecursiveRequired()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $options = new Options($this->options);
 
         $exists = Options::required('pass', $options->billing_address);

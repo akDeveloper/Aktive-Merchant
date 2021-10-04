@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use AktiveMerchant\Common\Country;
@@ -56,19 +56,15 @@ class CountryTest extends TestCase
         $this->assertEquals($country->getCode('numeric')->__toString(), 300);
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testFailFindCountryEmptyValue()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $country = Country::find('');
     }
 
-    /**
-     * @expectedException \OutOfRangeException
-     */
     public function testNotFoundCountry()
     {
+        $this->expectException(\OutOfRangeException::class);
         $country = Country::find('Asgard');
     }
 }

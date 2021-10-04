@@ -12,7 +12,7 @@
         }
     ],
     "require": {
-        "php": ">=7.2",
+        "php": "^7.4 || ^8.0",
         "ext-curl": "*",
         "ext-simplexml": "*",
         "ext-json": "*",
@@ -20,7 +20,7 @@
         "symfony/event-dispatcher": "~2.3,<3.0"
     },
      "require-dev": {
-        "phpunit/phpunit": "^7.0"
+        "phpunit/phpunit": "^9.0"
     },
      "config": {
         "bin-dir": "bin"
@@ -31,5 +31,11 @@
     },
     "autoload-dev": {
         "psr-0": {"AktiveMerchant": "tests/"}
+    },
+    "scripts": {
+        "build7": "docker build -f .docker/Dockerfile -t aktive-merchant-7.4 .",
+        "tests7": "docker run -v $(pwd):/opt/php aktive-merchant-7.4 sh -c './bin/phpunit tests/'",
+        "build8": "docker build -f .docker/Dockerfile -t aktive-merchant-8.0 .",
+        "tests8": "docker run -v $(pwd):/opt/php aktive-merchant-8.0 sh -c './bin/phpunit tests/'"
     }
 }

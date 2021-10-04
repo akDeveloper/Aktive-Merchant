@@ -1,13 +1,12 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing;
 
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Http\Request;
-use AktiveMerchant\Billing\Exception;
 use AktiveMerchant\Common\CurrencyCode;
 use AktiveMerchant\Http\RequestInterface;
 use AktiveMerchant\Http\AdapterInterface;
@@ -323,7 +322,16 @@ abstract class Gateway
      */
     public function generateUniqueId()
     {
-        return substr(uniqid(rand(), true), 0, 10);
+        $chars = '1234567890';
+        $i = 10;
+        $prefix = "";
+        while ($i > 0) {
+            $pos = \random_int(0, \strlen($chars) - 1);
+            $prefix .= $chars[$pos];
+            $i--;
+        }
+
+        return $prefix;
     }
 
     /**
@@ -353,6 +361,10 @@ abstract class Gateway
     {
         $string = "";
         foreach ($params as $key => $value) {
+            $value = $value ?? '';
+            if (is_object($value)) {
+                $value = $value->__toString();
+            }
             $string .= $key . '=' . urlencode(trim($value)) . '&';
         }
         return rtrim($string, "& ");

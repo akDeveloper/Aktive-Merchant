@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing;
 
@@ -64,6 +64,10 @@ class CreditCardMethods
     {
         if (self::isValidTestModeCardNumber($number)) {
             return 'bogus';
+        }
+
+        if (empty($number)) {
+            return null;
         }
 
         foreach (self::$CARD_COMPANIES as $name => $pattern) {

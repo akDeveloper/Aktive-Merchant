@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 use AktiveMerchant\Billing\Gateways\PaypalExpress;
 use AktiveMerchant\Billing\Base;
@@ -21,7 +21,7 @@ class PaypalExpressTest extends \AktiveMerchant\TestCase
     public $amount;
     public $options;
 
-    public function setUp()
+    public function setUp(): void
     {
         Base::mode('test');
 
@@ -202,11 +202,9 @@ class PaypalExpressTest extends \AktiveMerchant\TestCase
         return "TOKEN=EC%2d2KK82117LS1153937&TIMESTAMP=2012%2d10%2d04T00%3a33%3a10Z&CORRELATIONID=5d59521b7935a&ACK=Success&VERSION=63%2e0&BUILD=3881757";
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testFailAmount()
     {
+        $this->expectException(\InvalidArgumentException::class);
        $this->gateway->amount('string');
     }
 

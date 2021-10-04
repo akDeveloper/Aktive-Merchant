@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing\Gateways;
 
@@ -17,7 +17,7 @@ class IridiumTest extends TestCase
     public $options;
     public $creditcard;
 
-    public function setUp()
+    public function setUp(): void
     {
         Base::mode('test');
 
@@ -64,7 +64,7 @@ class IridiumTest extends TestCase
         );
 
         $this->assert_success($response);
-        $this->assertRegExp('/033976/', $response->authorization());
+        $this->assertMatchesRegularExpression('/033976/', $response->authorization());
         $this->assertNotNull($response->authorization());
 
         return $response->authorization();
@@ -84,7 +84,7 @@ class IridiumTest extends TestCase
         );
 
         $this->assert_success($response);
-        $this->assertRegExp('/140529115328094701097945/', $response->authorization());
+        $this->assertMatchesRegularExpression('/140529115328094701097945/', $response->authorization());
     }
 
     public function testSuccessfulPurchase()
@@ -98,7 +98,7 @@ class IridiumTest extends TestCase
         );
 
         $this->assert_success($response);
-        $this->assertRegExp('/140529120244578301140694/', $response->authorization());
+        $this->assertMatchesRegularExpression('/140529120244578301140694/', $response->authorization());
 
         return $response->authorization();
     }
@@ -117,7 +117,7 @@ class IridiumTest extends TestCase
         );
 
         $this->assert_success($response);
-        $this->assertRegExp('/140529131137341901180555/', $response->authorization());
+        $this->assertMatchesRegularExpression('/140529131137341901180555/', $response->authorization());
     }
 
     /**
@@ -133,7 +133,7 @@ class IridiumTest extends TestCase
         );
 
         $this->assert_success($response);
-        $this->assertRegExp('/140529132114901901941710/', $response->authorization());
+        $this->assertMatchesRegularExpression('/140529132114901901941710/', $response->authorization());
     }
 
     private function successfulAuthorizeResponse()

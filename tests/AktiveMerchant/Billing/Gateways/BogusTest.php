@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 use AktiveMerchant\Billing\Gateways\Bogus;
 use AktiveMerchant\Billing\Base;
@@ -10,7 +10,7 @@ class BogusTest extends \AktiveMerchant\TestCase
 {
     protected $creditcard;
 
-    public function setUp()
+    public function setUp(): void
     {
         Base::mode('test');
         $this->creditcard = new CreditCard(
@@ -42,11 +42,9 @@ class BogusTest extends \AktiveMerchant\TestCase
         $this->assert_failure($response);
     }
 
-    /**
-     * @expectedException AktiveMerchant\Billing\Exception
-     */
     public function testExceptionPurchase()
     {
+        $this->expectException(\AktiveMerchant\Billing\Exception::class);
         $gateway = new Bogus();
         $this->creditcard->number = 2;
         $response = $gateway->purchase(100, $this->creditcard);

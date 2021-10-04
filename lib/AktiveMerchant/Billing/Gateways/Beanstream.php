@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Billing\Gateways;
 
@@ -384,7 +384,7 @@ class Beanstream extends Gateway implements
                 return array_filter($v, 'strlen');
             }
 
-            return strlen($v);
+            return strlen($v ?? '');
         });
 
         return json_encode($data);

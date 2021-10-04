@@ -1,5 +1,5 @@
 <?php
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 use AktiveMerchant\Billing\Gateways\Psigate;
 use AktiveMerchant\Billing\Base;
@@ -52,7 +52,7 @@ class PsigateTest extends \AktiveMerchant\TestCase
     /**
      * Setup
      */
-    function setUp()
+    public function setUp(): void
     {
         $this->login_info = $this->getFixtures()->offsetGet('psigate');
 

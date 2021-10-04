@@ -1,6 +1,6 @@
 <?php
 
-/* vim: set expandtab tabstop=4 shiftwidth=4 softtabstop=4: */
+declare(strict_types=1);
 
 namespace AktiveMerchant\Common;
 
@@ -107,6 +107,7 @@ class SimpleXmlBuilder
     private function addAttributes($node, array $attrs)
     {
         foreach ($attrs as $name => $value) {
+            $value = (string) $value;
             $node->addAttribute($name, $value);
         }
     }
