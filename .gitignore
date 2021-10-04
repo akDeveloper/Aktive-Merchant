@@ -1,9 +1,9 @@
 /log/*
 /test/login.php
-vendor
-bin/*
+/vendor
 composer.lock
-tests/fixtures.ini
-tests/datacash_magic_numbers.php
-build
+/tests/fixtures.ini
+/tests/datacash_magic_numbers.php
+/build
 .idea
+.DS_Store
