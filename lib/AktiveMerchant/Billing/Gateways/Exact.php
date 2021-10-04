@@ -75,14 +75,14 @@ class Exact extends Gateway implements Interfaces\Charge
     /**
      * Additional options needed by gateway
      *
-     * @var array
+     * @var Options
      */
     protected $options;
 
     /**
      * Contains the main body of the request.
      *
-     * @var array
+     * @var \SimpleXMLElement
      */
     private $post;
 
@@ -184,7 +184,7 @@ class Exact extends Gateway implements Interfaces\Charge
     /**
      * Customer data like e-mail, ip, web browser used for transaction etc
      *
-     * @param array $options
+     * @param Options $options
      */
     private function addCustomerData($options)
     {
@@ -230,7 +230,7 @@ class Exact extends Gateway implements Interfaces\Charge
     /**
      * Adds invoice info if exists.
      *
-     * @param array $options
+     * @param Options $options
      */
     private function addInvoice($options)
     {

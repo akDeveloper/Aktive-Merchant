@@ -87,7 +87,7 @@ class IridiumTest extends TestCase
         $this->assertRegExp('/140529115328094701097945/', $response->authorization());
     }
 
-    public function testSuccesfulPurchase()
+    public function testSuccessfulPurchase()
     {
         $this->mock_request($this->successfulPurchaseResponse());
 

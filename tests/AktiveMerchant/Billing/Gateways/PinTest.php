@@ -44,7 +44,7 @@ class PinTest extends TestCase
         );
     }
 
-    public function testSuccessPurchase()
+    public function testSuccessfulPurchase()
     {
         $this->mock_request($this->successPurchaseResponse());
         $response = $this->gateway->purchase(
