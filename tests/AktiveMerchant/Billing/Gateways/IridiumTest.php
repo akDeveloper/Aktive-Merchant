@@ -104,7 +104,7 @@ class IridiumTest extends TestCase
     }
 
     /**
-     * @depends testSuccesfulPurchase
+     * @depends testSuccessfulPurchase
      */
     public function testSuccessfulCredit($authorization)
     {
@@ -175,7 +175,6 @@ class IridiumTest extends TestCase
             <CV2CheckResult>PASSED</CV2CheckResult><GatewayEntryPoints><GatewayEntryPoint EntryPointURL="https://gw1.payvector.net/" Metric="100" />
             <GatewayEntryPoint EntryPointURL="https://gw2.payvector.net/" Metric="200" /></GatewayEntryPoints>
             </TransactionOutputData></CardDetailsTransactionResponse></soap:Body></soap:Envelope>';
-
     }
 
     private function successfulCreditResponse()
