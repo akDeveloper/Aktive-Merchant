@@ -37,12 +37,12 @@
         "psr-4": {"AktiveMerchant\\": "src/"}
     },
     "autoload-dev": {
-        "psr-0": {"AktiveMerchant": "tests/"}
+        "psr-4": {"AktiveMerchant\\": "tests/"}
     },
     "scripts": {
-        "build7": "docker build -f .docker/Dockerfile -t aktive-merchant-7.4 .",
+        "build7": "docker build -f .docker/php7.4-cli/Dockerfile -t aktive-merchant-7.4 .",
         "tests7": "docker run -v $(pwd):/opt/php aktive-merchant-7.4 sh -c './bin/phpunit tests/'",
-        "build8": "docker build -f .docker/Dockerfile -t aktive-merchant-8.0 .",
+        "build8": "docker build -f .docker/php8.0-cli/Dockerfile -t aktive-merchant-8.0 .",
         "tests8": "docker run -v $(pwd):/opt/php aktive-merchant-8.0 sh -c './bin/phpunit tests/'"
     }
 }

@@ -16,7 +16,7 @@ class TestCase extends PHPUnitTestCase
 
     public function getFixtures()
     {
-        $ini = parse_ini_file(__DIR__ . "/../fixtures.ini", true);
+        $ini = parse_ini_file(__DIR__ . "/fixtures.ini", true);
         return new \ArrayIterator($ini);
     }
 
@@ -32,7 +32,6 @@ class TestCase extends PHPUnitTestCase
 
     protected function mock_request($answer)
     {
-
         $this->request = $this->getMockBuilder('AktiveMerchant\\Mock\\Request')
             ->setMethods(array('getResponseBody'))
             ->getMock();

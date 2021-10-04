@@ -7,6 +7,7 @@ namespace AktiveMerchant\Billing\Gateways;
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\TestCase;
+use RuntimeException;
 
 class DataCashMpiTest extends TestCase
 {
@@ -166,12 +167,12 @@ class DataCashMpiTest extends TestCase
 
     private function getMagicNumbers($index)
     {
-        $numbers = include __DIR__ . '/../../../datacash_magic_numbers.php';
+        $numbers = include __DIR__ . '/../../datacash_magic_numbers.php';
 
         if (array_key_exists($index, $numbers)) {
             return $numbers[$index];
         }
 
-        throw new Exception(sprintf('Undefined index `%s`. Please check your datacash_magic_numbers.php file.', $index));
+        throw new RuntimeException(sprintf('Undefined index `%s`. Please check your datacash_magic_numbers.php file.', $index));
     }
 }

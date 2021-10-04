@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
-use AktiveMerchant\Billing\Gateways\Nbg;
+namespace AktiveMerchant\Billing\Gateways;
+
 use AktiveMerchant\Billing\Base;
 use AktiveMerchant\Billing\CreditCard;
+use AktiveMerchant\TestCase;
 
-class NbgTest extends \AktiveMerchant\TestCase
+class DataCashTest extends TestCase
 {
     public $gateway;
     public $amount;
@@ -18,13 +20,13 @@ class NbgTest extends \AktiveMerchant\TestCase
     {
         Base::mode('test');
 
-        $login_info = $this->getFixtures()->offsetGet('nbg');
+        $login_info = $this->getFixtures()->offsetGet('datacash');
 
-        $this->gateway = new Nbg($login_info);
+        $this->gateway = new DataCash($login_info);
 
-        $this->amount = 20.30;
+        $this->amount = 100.00;
 
-        $magic = $this->getMagicNumbers(0);
+        $magic = $this->getMagicNumbers(1);
 
         $this->creditcard = new CreditCard(
             array_merge(array(
@@ -35,7 +37,7 @@ class NbgTest extends \AktiveMerchant\TestCase
 
         $this->options = array(
             'order_id' => 'REF' . $this->gateway->generateUniqueId(),
-            'description' => 'NbgDataCash Test Transaction',
+            'description' => 'DataCash Test Transaction',
             'address' => array(
                 'address1' => '1234 Street',
                 'zip' => '98004',
@@ -47,22 +49,23 @@ class NbgTest extends \AktiveMerchant\TestCase
     public function testPurchase()
     {
         $this->mock_request($this->successPurchaseResponse());
+        $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
+        preg_match('/<amount currency="GBP">(.+)<\/amount>/', $this->request->getBody(), $m);
+        $this->assertEquals('100.00', $m[1]);
+
+        $this->assert_success($response);
+        $this->assertTrue($response->test());
+    }
+
+    public function testMotoPurchase()
+    {
+        $this->mock_request($this->successPurchaseResponse());
         $this->options['moto'] = true;
         $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
 
         $this->assert_success($response);
         $this->assertTrue($response->test());
     }
-
-    /*
-    public function test3DSecurePurchase()
-    {
-        $this->mock_request($this->success3DSecurePurchaseResponse());
-        $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
-
-        $this->assert_success($response);
-        $this->assertTrue($response->test());
-    }*/
 
     public function testTokenPurchase()
     {
@@ -119,25 +122,9 @@ class NbgTest extends \AktiveMerchant\TestCase
         $this->assertTrue($response->test());
     }
 
-    public function testDeclinedResponse()
-    {
-        $this->mock_request($this->declinedResponse());
-        $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
-
-        $this->assert_failure($response);
-    }
-
     public function testSpeedLimitResponse()
     {
         $this->mock_request($this->speedLimitResponse());
-        $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
-
-        $this->assert_failure($response);
-    }
-
-    public function testInvalidArgumentResponse()
-    {
-        $this->mock_request($this->invalidArgumentResponse());
         $response = $this->gateway->purchase($this->amount, $this->creditcard, $this->options);
 
         $this->assert_failure($response);
@@ -154,13 +141,13 @@ class NbgTest extends \AktiveMerchant\TestCase
 
     private function getMagicNumbers($index)
     {
-        $numbers = include __DIR__ . '/../../../datacash_magic_numbers.php';
+        $numbers = include __DIR__ . '/../../datacash_magic_numbers.php';
 
         if (array_key_exists($index, $numbers)) {
             return $numbers[$index];
         }
 
-        throw new Exception(sprintf('Undefined index `%s`. Please check your datacash_magic_numbers.php file.', $index));
+        throw new \InvalidArgumentException(sprintf('Undefined index `%s`. Please check your datacash_magic_numbers.php file.', $index));
     }
 
     private function successPurchaseResponse()
@@ -169,67 +156,21 @@ class NbgTest extends \AktiveMerchant\TestCase
 <Response version='2'>
   <CardTxn>
     <Cv2Avs>
-      <address_policy matched='accept' notchecked='accept' notmatched='accept' notprovided='accept' partialmatch='accept'></address_policy>
-      <address_result numeric='0'>notprovided</address_result>
-      <cv2_policy matched='accept' notchecked='accept' notmatched='reject' notprovided='reject' partialmatch='reject'></cv2_policy>
-      <cv2_result numeric='1'>notchecked</cv2_result>
-      <cv2avs_status>ACCEPTED</cv2avs_status>
-      <postcode_policy matched='accept' notchecked='accept' notmatched='accept' notprovided='accept' partialmatch='accept'></postcode_policy>
-      <postcode_result numeric='0'>notprovided</postcode_result>
+      <cv2avs_status>ALL MATCH</cv2avs_status>
     </Cv2Avs>
-    <authcode>545787</authcode>
-    <card_scheme>Mastercard</card_scheme>
-    <country>Greece</country>
-    <issuer>NATIONAL BANK OF GREECE, S.A.</issuer>
-    <response_code>00</response_code>
+    <authcode>100000</authcode>
+    <card_scheme>VISA</card_scheme>
   </CardTxn>
-  <acquirer>NBG s2a</acquirer>
-  <aiic>001259</aiic>
-  <datacash_reference>3100900013650378</datacash_reference>
-  <merchantreference>REF1281608176</merchantreference>
-  <mid>1234567</mid>
-  <mode>LIVE</mode>
+  <acquirer>RBS</acquirer>
+  <datacash_reference>4400204473646246</datacash_reference>
+  <merchantreference>REF5194395215</merchantreference>
+  <mid>12345678</mid>
+  <mode>TEST</mode>
   <reason>ACCEPTED</reason>
-  <rrn>600812004476</rrn>
-  <stan>004476</stan>
   <status>1</status>
-  <time>1452257678</time>
+  <time>1463431327</time>
 </Response>
 ";
-    }
-
-    private function declinedResponse()
-    {
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<Response version='2'>
-  <CardTxn>
-    <Cv2Avs>
-      <address_policy matched='accept' notchecked='accept' notmatched='accept' notprovided='accept' partialmatch='accept'></address_policy>
-      <address_result numeric='0'>notprovided</address_result>
-      <cv2_policy matched='accept' notchecked='accept' notmatched='reject' notprovided='reject' partialmatch='reject'></cv2_policy>
-      <cv2_result numeric='1'>notchecked</cv2_result>
-      <cv2avs_status>ACCEPTED</cv2avs_status>
-      <postcode_policy matched='accept' notchecked='accept' notmatched='accept' notprovided='accept' partialmatch='accept'></postcode_policy>
-      <postcode_result numeric='0'>notprovided</postcode_result>
-    </Cv2Avs>
-    <card_scheme>Mastercard</card_scheme>
-    <country>Greece</country>
-    <issuer>NATIONAL BANK OF GREECE, S.A.</issuer>
-    <response_code>70</response_code>
-  </CardTxn>
-  <acquirer>NBG s2a</acquirer>
-  <aiic>001259</aiic>
-  <datacash_reference>3200900013650405</datacash_reference>
-  <information>DECLINED</information>
-  <merchantreference>REF1756248983</merchantreference>
-  <mid>1234567</mid>
-  <mode>LIVE</mode>
-  <reason>DECLINED</reason>
-  <rrn>600812004479</rrn>
-  <stan>004479</stan>
-  <status>7</status>
-  <time>1452257777</time>
-</Response>";
     }
 
     private function speedLimitResponse()
@@ -237,33 +178,14 @@ class NbgTest extends \AktiveMerchant\TestCase
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <Response version='2'>
   <CardTxn>
-    <card_scheme>Mastercard</card_scheme>
-    <country>Greece</country>
-    <issuer>NATIONAL BANK OF GREECE, S.A.</issuer>
+    <card_scheme>VISA</card_scheme>
   </CardTxn>
-  <datacash_reference>3600900013650390</datacash_reference>
-  <merchantreference>REF1105401622</merchantreference>
-  <mode>LIVE</mode>
-  <reason>speed limit (57)</reason>
+  <datacash_reference>4000204473646272</datacash_reference>
+  <merchantreference>REF2135056169</merchantreference>
+  <mode>TEST</mode>
+  <reason>speed limit (84)</reason>
   <status>56</status>
-  <time>1452257737</time>
-</Response>";
-    }
-
-    private function invalidArgumentResponse()
-    {
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<Response version='2'>
-  <CardTxn>
-    <card_scheme>Mastercard</card_scheme>
-  </CardTxn>
-  <datacash_reference>3500900013649972</datacash_reference>
-  <information>Extended Policy missing address_policy, postcode_policy element(s)</information>
-  <merchantreference>REF9352519175</merchantreference>
-  <mode>LIVE</mode>
-  <reason>Invalid ExtendedPolicy definition</reason>
-  <status>131</status>
-  <time>1452255413</time>
+  <time>1463431411</time>
 </Response>";
     }
 
@@ -273,31 +195,22 @@ class NbgTest extends \AktiveMerchant\TestCase
 <Response version='2'>
   <CardTxn>
     <Cv2Avs>
-      <address_policy matched='accept' notchecked='accept' notmatched='accept' notprovided='accept' partialmatch='accept'></address_policy>
-      <address_result numeric='0'>notprovided</address_result>
-      <cv2_policy matched='accept' notchecked='accept' notmatched='reject' notprovided='reject' partialmatch='reject'></cv2_policy>
-      <cv2_result numeric='2'>matched</cv2_result>
-      <cv2avs_status>ACCEPTED</cv2avs_status>
-      <postcode_policy matched='accept' notchecked='accept' notmatched='accept' notprovided='accept' partialmatch='accept'></postcode_policy>
-      <postcode_result numeric='0'>notprovided</postcode_result>
+      <cv2avs_status>SECURITY CODE MATCH ONLY</cv2avs_status>
     </Cv2Avs>
-    <authcode>013648</authcode>
-    <card_scheme>VISA</card_scheme>
-    <country>Greece</country>
-    <issuer>National Bank of Greece S.A.</issuer>
+    <authcode>596295</authcode>
+    <card_scheme>Mastercard</card_scheme>
+    <country>Japan</country>
     <response_code>00</response_code>
+    <response_code_text>Approved or completed successfully</response_code_text>
   </CardTxn>
-  <acquirer>NBG s2a</acquirer>
-  <aiic>001259</aiic>
-  <datacash_reference>3400900013651606</datacash_reference>
-  <merchantreference>REF1551428783</merchantreference>
-  <mid>1234567</mid>
-  <mode>LIVE</mode>
+  <acquirer>RBS</acquirer>
+  <datacash_reference>4600204473646542</datacash_reference>
+  <merchantreference>REF2112450153</merchantreference>
+  <mid>12345678</mid>
+  <mode>TEST</mode>
   <reason>ACCEPTED</reason>
-  <rrn>600815004486</rrn>
-  <stan>004486</stan>
   <status>1</status>
-  <time>1452267927</time>
+  <time>1463431874</time>
 </Response>";
     }
 
