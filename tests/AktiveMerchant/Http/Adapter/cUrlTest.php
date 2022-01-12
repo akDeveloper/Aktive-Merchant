@@ -5,8 +5,9 @@
 namespace AktiveMerchant\Http\Adapter;
 
 use AktiveMerchant\Mock\Request;
+use PHPUnit_Framework_TestCase;
 
-class cUrlTest extends \PHPUnit_Framework_TestCase
+class cUrlTest extends PHPUnit_Framework_TestCase
 {
     public function testAdapterConfig()
     {
@@ -25,5 +26,27 @@ class cUrlTest extends \PHPUnit_Framework_TestCase
         $options = $adapter->getOptions();
 
         $this->assertEquals(20, $options[CURLOPT_CONNECTTIMEOUT]);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function testItShouldOverrideOptionsOnConcurrentRequests()
+    {
+        $request = new Request();
+        $adapter = new cUrl();
+
+        $request->setUrl('http://www.httpbin.org/get');
+        $adapter->sendRequest($request);
+
+        $concurrentRequestUrl = 'https://www.examples.com/';
+        $request->setUrl($concurrentRequestUrl);
+        $adapter->sendRequest($request);
+        $concurrentOptions = $adapter->getOptions();
+
+        $this->assertEquals(
+            $concurrentRequestUrl,
+            $concurrentOptions[10002]
+        );
     }
 }
