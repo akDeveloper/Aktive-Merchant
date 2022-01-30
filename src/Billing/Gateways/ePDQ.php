@@ -106,9 +106,9 @@ class ePDQ extends Gateway implements Interfaces\Charge
     /**
      * Authorize
      *
-     * @param int - Amount to charge for authorize.
-     * @param CreditCard - Credit card to charge.
-     * @param array - Options to pass.
+     * @param int $amount Amount to charge for authorize.
+     * @param CreditCard $creditcard- Credit card to charge.
+     * @param array $options - Options to pass.
      * @return Response
      */
     public function authorize($amount, CreditCard $creditcard, $options = array())
@@ -120,9 +120,9 @@ class ePDQ extends Gateway implements Interfaces\Charge
     /**
      * Purchase
      *
-     * @param int - Amount to charge for purchase.
-     * @param Merchant_billing_CreditCard - Credit card to charge.
-     * @param array - Options to pass.
+     * @param int $amount Amount to charge for purchase.
+     * @param CreditCard $creditcard Credit card to charge.
+     * @param array $options Options to pass.
      * @return Response
      */
     public function purchase($amount, CreditCard $creditcard, $options = array())
@@ -134,9 +134,9 @@ class ePDQ extends Gateway implements Interfaces\Charge
     /**
      * Capture
      *
-     * @param int - Amount to capture.
-     * @param  -
-     * @param array - Options to pass.
+     * @param int $amount Amount to capture.
+     * @param string $authorization
+     * @param array $options Options to pass.
      */
     public function capture($amount, $authorization, $options = array())
     {
@@ -147,8 +147,8 @@ class ePDQ extends Gateway implements Interfaces\Charge
     /**
      * Void
      *
-     * @param string - Payment identification.
-     * @param array - Options to pass.
+     * @param string $identification - Payment identification.
+     * @param array $options - Options to pass.
      */
     public function void($identification, $options = array())
     {
@@ -158,10 +158,10 @@ class ePDQ extends Gateway implements Interfaces\Charge
     /**
      * Build XML
      *
-     * @param int
-     * @param CreditCard
-     * @param string
-     * @param array
+     * @param int $amount
+     * @param CreditCard $creditcard
+     * @param string $type
+     * @param array $options
      */
     private function buildXml($amount, CreditCard $creditcard, $type, $options = array())
     {
@@ -173,10 +173,10 @@ class ePDQ extends Gateway implements Interfaces\Charge
     /**
      * Insert Data
      *
-     * @param int
-     * @param CreditCard
-     * @param string
-     * @param array
+     * @param int $amount
+     * @param CreditCard $creditcard
+     * @param string $type
+     * @param array $options
      */
     private function insertData($amount, CreditCard $creditcard, $type, $options = array())
     {
@@ -206,9 +206,9 @@ XML;
     /**
      * Add Transaction Element
      *
-     * @param int
-     * @param string
-     * @param array
+     * @param int $amount
+     * @param string $type
+     * @param array $options
      */
     private function addTransactionElement($amount, $type, $options)
     {
@@ -242,7 +242,7 @@ XML;
     /**
      * Add Billing Address
      *
-     * @param array
+     * @param array $options
      */
     private function addBillingAddress($options)
     {
@@ -264,7 +264,7 @@ XML;
     /**
      * Add Shipping Address
      *
-     * @param array
+     * @param array $options
      */
     private function addShippingAddress($options)
     {
@@ -286,7 +286,7 @@ XML;
     /**
      * Add Address
      *
-     * @param array
+     * @param array $options
      */
     private function addAddress($options)
     {
@@ -341,7 +341,7 @@ XML;
     /**
      * Commit
      *
-     * @param string - Action.
+     * @param string $action Action.
      */
     private function commit($action)
     {
@@ -359,7 +359,7 @@ XML;
     /**
      * Parse
      *
-     * @param string
+     * @param string $response_xml
      * @return string
      */
     private function parse($response_xml)
@@ -447,7 +447,7 @@ XML;
     /**
      * Options from Response
      *
-     * @param array
+     * @param array $response
      */
     private function optionsFrom($response)
     {
@@ -465,8 +465,8 @@ XML;
     /**
      * Success From
      *
-     * @param string
-     * @param array
+     * @param string $action
+     * @param array $response
      * @return bool
      */
     private function successFrom($action, $response)
@@ -494,7 +494,7 @@ XML;
     /**
      * Message From
      *
-     * @param array
+     * @param array $response
      * @return string
      */
     private function messageFrom($response)
@@ -505,7 +505,7 @@ XML;
     /**
      * AVS Code From
      *
-     * @param array
+     * @param array $response
      * @return array
      */
     private function avsCodeFrom($response)

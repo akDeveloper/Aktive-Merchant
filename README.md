@@ -2,7 +2,11 @@
 
 This project is a PHP port of [Active Merchant](http://github.com/Shopify/active_merchant) library from Ruby.
 
-The aim is to develop a PHP application to includes payment gateways under common interfaces.
+The aim is to develop a payment gateway framework under a common interface.
+
+## What is new in v2.0.0
+### BC changes
+- Stripe gateway expecting amounts in cents, while should be accepts in base units.
 
 ## Supported Gateways
 
