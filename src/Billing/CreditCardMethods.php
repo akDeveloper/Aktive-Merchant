@@ -27,40 +27,40 @@ class CreditCardMethods
         'forbrugsforeningen' => '/^600722\d{10}$/',
         'laser' => '/^(6304|6706|6771|6709)\d{8}(\d{4}|\d{6,7})?$/');
 
-    public static function isValidMonth($month)
+    public static function isValidMonth($month): bool
     {
         $month = (int) $month;
-        return ($month >= 1 && $month <= 12);
+        return $month >= 1 && $month <= 12;
     }
 
-    public static function isValidExpiryYear($year)
+    public static function isValidExpiryYear($year): bool
     {
         $year_now = date("Y", time());
-        return ($year >= $year_now && $year <= ($year_now + 20) );
+        return $year >= $year_now && $year <= ($year_now + 20);
     }
 
-    public static function isValidStartYear($year)
+    public static function isValidStartYear($year): bool
     {
-        return (preg_match("/^\d{4}$/", $year) && $year > 1987);
+        return preg_match("/^\d{4}$/", $year) === 1 && $year > 1987;
     }
 
-    public static function isValidIssueNumber($number)
+    public static function isValidIssueNumber($number): bool
     {
-        return preg_match("/^\d{1,2}$/", $number);
+        return preg_match("/^\d{1,2}$/", $number) === 1;
     }
 
-    public static function getCardCompanies()
+    public static function getCardCompanies(): array
     {
         return self::$CARD_COMPANIES;
     }
 
-    public static function isValidNumber($number)
+    public static function isValidNumber($number): bool
     {
-        return ((self::isValidCardNumberLength($number) &&
-            self::isValidChecksum($number)));
+        return self::isValidCardNumberLength($number)
+            && self::isValidChecksum($number);
     }
 
-    public static function type($number)
+    public static function type($number): ?string
     {
         if (self::isValidTestModeCardNumber($number)) {
             return 'bogus';
@@ -84,19 +84,19 @@ class CreditCardMethods
         }
     }
 
-    public static function getLastDigits($number)
+    public static function getLastDigits($number): string
     {
         return strlen($number) <= 4 ? $number : substr($number, -4);
     }
 
-    public static function mask($number)
+    public static function mask($number): string
     {
         return "XXXX-XXXX-XXXX-" . self::getLastDigits($number);
     }
 
-    public static function isMatchingType($number, $type)
+    public static function isMatchingType($number, $type): bool
     {
-        return (self::type($number) == $type);
+        return self::type($number) == $type;
     }
 
     private static function isValidCardNumberLength($number)

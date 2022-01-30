@@ -222,7 +222,7 @@ class CreditCard extends CreditCardMethods
         if (in_array($this->type, array('solo', 'switch'))) {
             if ((self::isValidMonth($this->start_month) === false
                 && self::isValidStartYear($this->start_year) == false)
-                || self::isValidIssueNumber($this->issue_number) == false
+                || self::isValidIssueNumber($this->issue_number) === false
             ) {
                 if (self::isValidMonth($this->start_month) === false) {
                     $this->errors->add('start month', 'is invalid');
