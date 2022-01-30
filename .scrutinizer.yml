@@ -1,14 +1,21 @@
 filter:
-    excluded_paths:
-        - 'tests/*'
-        - 'vendor/*'
-checks:
-    php: true
-tools:
-    external_code_coverage:
-        timeout: 630
-coding_style:
-    php:
-        spaces:
-            around_operators:
-                concatenation: true
+  excluded_paths:
+    - 'tests/'
+    - 'vendor/'
+  dependency_paths:
+    - 'vendor/'
+build:
+  nodes:
+    coverage:
+      tests:
+        override:
+          - command: ./bin/phpunit tests/
+    analysis:
+      dependencies:
+        override:
+          - php composer.phar install --ignore-platform-reqs --no-interaction
+          - cp tests/fixtures.dist.ini tests/fixtures.ini
+          - cp tests/datacash_magic_numbers.dist.php tests/datacash_magic_numbers.php
+        tests:
+          override:
+            - php-scrutinizer-run  --enable-security-analysis
