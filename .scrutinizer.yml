@@ -5,17 +5,20 @@ filter:
   dependency_paths:
     - 'vendor/'
 build:
+  environment:
+    php:
+      version: '7.4'
   nodes:
     coverage:
       tests:
         override:
-          - command: ./bin/phpunit tests/
+          - cp tests/fixtures.dist.ini tests/fixtures.ini
+          - cp tests/datacash_magic_numbers.dist.php tests/datacash_magic_numbers.php
+          - ./bin/phpunit tests/
     analysis:
       dependencies:
         override:
-          - php composer.phar install --ignore-platform-reqs --no-interaction
-          - cp tests/fixtures.dist.ini tests/fixtures.ini
-          - cp tests/datacash_magic_numbers.dist.php tests/datacash_magic_numbers.php
+          - composer install --ignore-platform-reqs --no-interaction
       tests:
         override:
           - php-scrutinizer-run  --enable-security-analysis

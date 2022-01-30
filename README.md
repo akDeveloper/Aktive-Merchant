@@ -37,7 +37,7 @@ The aim is to develop a PHP application to includes payment gateways under commo
 
 ## Requirements
 
-* PHP 5.3.3+
+* PHP 7.4+
 * cUrl
 * SimpleXML
 
