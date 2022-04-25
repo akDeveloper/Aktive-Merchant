@@ -9,7 +9,6 @@ use AktiveMerchant\Billing\Gateway;
 use AktiveMerchant\Billing\CreditCard;
 use AktiveMerchant\Common\Options;
 use AktiveMerchant\Billing\Response;
-use AktiveMerchant\Common\Address;
 
 /**
  * Integration of TGATE PathwayLINK gateway from BridgePay.
@@ -200,7 +199,7 @@ class BridgePay extends Gateway implements
 
     private function postRequiredFields($transaction_type)
     {
-        $this->post = array (
+        $this->post = array(
             'TransType' => $transaction_type,
             'Amount' => null,
             'PNRef' => null,
@@ -357,7 +356,6 @@ class BridgePay extends Gateway implements
         $result = $this->urlize(array_merge($post, $this->post));
 
         return $result;
-
     }
 
     /**

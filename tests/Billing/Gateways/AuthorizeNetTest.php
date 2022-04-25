@@ -99,9 +99,10 @@ class AuthorizeNetTest extends \AktiveMerchant\TestCase
             $this->creditcard,
             $this->options
         );
-        preg_match("/x_amount=(.+)$/", $this->request->getBody(), $m);
-        $this->assertEquals('100.00', $m[1]);
-
+        if ($this->request) {
+            preg_match("/x_amount=(.+)$/", $this->request->getBody(), $m);
+            $this->assertEquals('100.00', $m[1]);
+        }
         $this->assert_success($response);
         $this->assertEquals(
             'This transaction has been approved.',
@@ -118,7 +119,9 @@ class AuthorizeNetTest extends \AktiveMerchant\TestCase
     {
         $this->mock_request($this->successful_authorize_response());
         $response = $this->gateway->authorize(
-            $this->amount, $this->creditcard, $this->options
+            $this->amount,
+            $this->creditcard,
+            $this->options
         );
 
         $this->assert_success($response);
@@ -239,5 +242,4 @@ class AuthorizeNetTest extends \AktiveMerchant\TestCase
     {
         return '3|1|8|The credit card has expired.||P|0|REF2122605833|Autorize.net Test Transaction|100.00|CC|auth_capture||John|Doe||1234 Street||WA|98004||||||||||||||||||8221EB3CA5ECBE7D801F4EF2AA88E191|||||||||||||XXXX1111|Visa||||||||||||||||';
     }
-
 }

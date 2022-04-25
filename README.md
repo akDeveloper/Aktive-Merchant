@@ -44,6 +44,7 @@ The aim is to develop a payment gateway framework under a common interface.
 * PHP 7.4+
 * cUrl
 * SimpleXML
+* Soap
 
 ## Documentations
 
