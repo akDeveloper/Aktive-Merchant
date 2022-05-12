@@ -23,7 +23,6 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class Request implements RequestInterface
 {
-
     protected $url;
 
     protected $method;
@@ -88,20 +87,19 @@ class Request implements RequestInterface
     {
         $preSendEvent = new PreSendEvent();
         $preSendEvent->setRequest($this);
-        $this->getDispatcher()->dispatch(RequestEvents::PRE_SEND, $preSendEvent);
+        $this->getDispatcher()->dispatch($preSendEvent, RequestEvents::PRE_SEND);
 
         $return = true;
 
         $postSendEvent = new PostSendEvent();
         $postSendEvent->setRequest($this);
-        $this->getDispatcher()->dispatch(RequestEvents::POST_SEND, $postSendEvent);
+        $this->getDispatcher()->dispatch($postSendEvent, RequestEvents::POST_SEND);
 
         return $return;
     }
 
     public function getResponseBody()
     {
-
     }
 
     public function setAdapter(AdapterInterface $adapter)
@@ -118,7 +116,7 @@ class Request implements RequestInterface
      * Gets dispatcher.
      *
      * @access public
-     * @return mixed
+     * @return EventDispatcherInterface
      */
     public function getDispatcher()
     {
@@ -128,7 +126,7 @@ class Request implements RequestInterface
     /**
      * Sets dispatcher.
      *
-     * @param mixed $dispatcher the value to set.
+     * @param EventDispatcherInterface $dispatcher the value to set.
      * @access public
      * @return void
      */
