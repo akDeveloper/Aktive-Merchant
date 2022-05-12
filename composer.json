@@ -12,10 +12,10 @@
         }
     ],
     "require": {
-        "php": ">=7.2.5",
+        "php": ">=5.3.3",
         "ext-curl": "*",
         "ext-simplexml": "*",
-        "symfony/event-dispatcher": "~5.4.3"
+        "symfony/event-dispatcher": "~2.3,<3.0"
     },
      "require-dev": {
         "phpunit/phpunit": "4.8.*",

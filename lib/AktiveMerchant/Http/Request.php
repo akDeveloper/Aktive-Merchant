@@ -81,6 +81,7 @@ class Request implements RequestInterface
         $method = self::METHOD_GET,
         array $options = array()
     ) {
+
         $this->setUrl($url);
 
         $this->setMethod($method);
@@ -197,13 +198,13 @@ class Request implements RequestInterface
     {
         $preSendEvent = new PreSendEvent();
         $preSendEvent->setRequest($this);
-        $this->getDispatcher()->dispatch($preSendEvent, RequestEvents::PRE_SEND);
+        $this->getDispatcher()->dispatch(RequestEvents::PRE_SEND, $preSendEvent);
 
         $return = $this->getAdapter()->sendRequest($this);
 
         $postSendEvent = new PostSendEvent();
         $postSendEvent->setRequest($this);
-        $this->getDispatcher()->dispatch($postSendEvent, RequestEvents::POST_SEND);
+        $this->getDispatcher()->dispatch(RequestEvents::POST_SEND, $postSendEvent);
 
         return $return;
     }
