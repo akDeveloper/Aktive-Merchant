@@ -4,7 +4,7 @@
 
 namespace AktiveMerchant\Event;
 
-use Symfony\Contracts\EventDispatcher\Event;
+use Symfony\Component\EventDispatcher\Event;
 
 class PostSendEvent extends Event
 {
