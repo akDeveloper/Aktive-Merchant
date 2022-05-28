@@ -228,7 +228,7 @@ class cUrl implements AdapterInterface
         );
 
         $config = $this->map_config($request->getConfig());
-        $this->options = $this->options + $config + $default;
+        $this->options = array_replace($this->options, $config, $default);
 
         curl_setopt_array($this->ch, $this->options);
     }
