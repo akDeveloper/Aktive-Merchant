@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AktiveMerchant\Http;
 
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * RequestInterface

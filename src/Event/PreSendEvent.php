@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AktiveMerchant\Event;
 
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class PreSendEvent extends Event
 {
