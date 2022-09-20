@@ -82,6 +82,8 @@ class CreditCardMethods
         if (preg_match(self::$CARD_COMPANIES['maestro'], $number)) {
             return 'maestro';
         }
+
+        return null;
     }
 
     public static function getLastDigits($number): string
