@@ -98,10 +98,12 @@ class cUrl implements AdapterInterface
             return $this->sendRequest($request);
         }
 
+        $this->response_headers = substr($response, 0, $curl_info['header_size']);
+        $bodySize = intval($curl_info['size_download']) * -1;
+        $this->response_body = substr($response, $bodySize);
         if ($curl_info['http_code'] < 200
             || $curl_info['http_code'] >= 500
         ) {
-            $this->response_body = substr($response, -$curl_info['size_download']);
             $ex = new Exception(
                 "HTTP Status #"
                 . $curl_info['http_code']."\n"
@@ -115,10 +117,6 @@ class cUrl implements AdapterInterface
         }
 
         $this->info = $curl_info;
-
-        $this->response_headers = substr($response, 0, $curl_info['header_size']);
-        $size = (int) $curl_info['size_download'];
-        $this->response_body = substr($response, -$size);
 
         // OK, the response was OK at the HTTP level at least!
         return true;
