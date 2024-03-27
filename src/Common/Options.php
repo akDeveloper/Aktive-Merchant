@@ -59,12 +59,12 @@ class Options implements \ArrayAccess, \Iterator
         reset($this->options);
     }
 
-    public function current()
+    public function current(): mixed
     {
         return current($this->options);
     }
 
-    public function key()
+    public function key(): mixed
     {
         return key($this->options);
     }
@@ -106,7 +106,7 @@ class Options implements \ArrayAccess, \Iterator
     /**
      * @return mixed|null
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         $value = isset($this->options[$offset])
             ? $this->options[$offset]
