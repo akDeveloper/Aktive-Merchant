@@ -54,7 +54,7 @@ class Options implements \ArrayAccess, \Iterator
 
     /* -(  Iterator  )------------------------------------------------------ */
 
-    public function rewind()
+    public function rewind(): void
     {
         reset($this->options);
     }
@@ -69,19 +69,19 @@ class Options implements \ArrayAccess, \Iterator
         return key($this->options);
     }
 
-    public function next()
+    public function next(): void
     {
         next($this->options);
     }
 
-    public function valid()
+    public function valid(): bool
     {
         return current($this->options) !== false;
     }
 
     /* -(  ArrayAccess  )--------------------------------------------------- */
 
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         if (is_null($offset)) {
             $this->options[] = $value;
@@ -93,12 +93,12 @@ class Options implements \ArrayAccess, \Iterator
     /**
      * @return bool
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->options[$offset]);
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset):void
     {
         unset($this->options[$offset]);
     }
